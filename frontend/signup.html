@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — Aarif Fragrances</title>
+  <meta name="description" content="Create your Aarif Fragrances customer account.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css?v=57">
+  <link rel="icon" href="assets/aarif-logo.png" type="image/png">
+</head>
+<body data-page="signup" class="customer-login-body">
+
+  <div class="login-screen customer-login-screen">
+    <div class="login-card customer-login-card customer-login-card--signup">
+      <div class="login-logo">
+        <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--auth">
+        <span class="logo-brand-text logo-brand-text--auth"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+        <p>Create Account</p>
+      </div>
+
+      <form id="signup-form" class="customer-login-form" novalidate>
+        <div class="form-group">
+          <label for="signup-name">Full name</label>
+          <input type="text" id="signup-name" name="name" required autocomplete="name" placeholder="Your full name">
+        </div>
+        <div class="form-group">
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" name="email" required autocomplete="email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="signup-phone">Phone number</label>
+          <input type="tel" id="signup-phone" name="phone" required autocomplete="tel" placeholder="9688498926">
+        </div>
+        <div class="form-group">
+          <label for="signup-address">Address</label>
+          <textarea id="signup-address" name="address" rows="3" required autocomplete="street-address" placeholder="City, Tamil Nadu"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <div class="pass-wrap">
+            <input type="password" id="signup-password" name="password" required autocomplete="new-password" placeholder="Create a password">
+            <button type="button" class="pass-toggle" data-target="signup-password" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="signup-password-confirm">Confirm password</label>
+          <div class="pass-wrap">
+            <input type="password" id="signup-password-confirm" name="password_confirm" required autocomplete="new-password" placeholder="Re-enter password">
+            <button type="button" class="pass-toggle" data-target="signup-password-confirm" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <p id="signup-error" class="login-error auth-error hidden" role="alert"></p>
+        <button type="submit" class="btn btn-primary btn-login"><i class="fa-solid fa-user-check"></i> Create Account</button>
+      </form>
+
+      <p class="login-forgot">Already have an account? <a href="login.html">Sign in</a></p>
+      <p class="login-hint"><a href="index.html">← Back to home</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.pass-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        if (!input) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.innerHTML = show ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+      });
+    });
+  </script>
+  <script src="js/customer-api.js"></script>
+  <script src="js/customer-auth.js"></script>
+</body>
+</html>
+

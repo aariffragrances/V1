@@ -1,0 +1,706 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Portal &ndash; Aarif Fragrances</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/admin.css?v=11">
+<link rel="icon" href="assets/aarif-logo.png" type="image/png">
+</head>
+<body data-page="admin">
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="admin-logo-img">
+      <h1>Aarif Fragrances</h1>
+      <p>Admin Portal</p>
+    </div>
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label for="login-email">Email / Username</label>
+        <input type="text" id="login-email" autocomplete="username" placeholder="admin@aarifragrances.local" required>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" placeholder="Enter password" required>
+      </div>
+      <p class="login-error" id="login-error" role="alert"></p>
+      <button type="submit" class="btn-login" id="login-submit">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+      </button>
+    </form>
+    <p class="login-hint">Default: <code>admin@aarifragrances.local</code> / <code>Admin@1234</code></p>
+  </div>
+</div>
+
+<!-- ============ ADMIN APP ============ -->
+<div id="admin-app" class="admin-shell hidden">
+
+  <aside id="adm-sidebar" class="adm-sidebar">
+    <nav class="adm-nav">
+      <button type="button" class="adm-nav-link active" data-section="dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
+      <button type="button" class="adm-nav-link" data-section="perfumes"><i class="fa-solid fa-spray-can-sparkles"></i><span>Perfumes</span></button>
+      <button type="button" class="adm-nav-link" data-section="fragrance-types"><i class="fa-solid fa-layer-group"></i><span>Fragrance Types</span></button>
+      <button type="button" class="adm-nav-link" data-section="banners"><i class="fa-solid fa-images"></i><span>Banners</span></button>
+      <button type="button" class="adm-nav-link" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
+      <button type="button" class="adm-nav-link" data-section="orders"><i class="fa-solid fa-receipt"></i><span>Orders</span><span class="adm-nav-badge hidden" id="orders-new-badge"></span></button>
+      <button type="button" class="adm-nav-link" data-section="contact"><i class="fa-solid fa-inbox"></i><span>Contact Messages</span><span class="adm-nav-badge hidden" id="contact-unread-badge"></span></button>
+      <button type="button" class="adm-nav-link" data-section="settings"><i class="fa-solid fa-gear"></i><span>Store Settings</span></button>
+    </nav>
+    <div class="adm-sidebar-footer">v1.0.0 &bull; Aarif Admin &bull; <span id="sidebar-user-name">Admin</span></div>
+  </aside>
+
+  <header class="adm-header">
+    <div class="adm-header-left">
+      <button type="button" id="sidebar-toggle" class="adm-icon-btn" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+      <img src="assets/aarif-logo.png?v=3" alt="Aarif" width="36" height="36" class="adm-logo-img">
+      <div class="adm-header-brand">
+        <span class="adm-header-title">Admin Portal</span>
+        <span class="adm-header-subtitle">Aarif Fragrances</span>
+      </div>
+    </div>
+    <div class="adm-header-right">
+      <div class="adm-search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="search" id="global-search" placeholder="Search perfumes..." autocomplete="off">
+      </div>
+      <button type="button" class="adm-icon-btn" id="notif-btn" aria-label="Notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span class="adm-badge hidden" id="notif-badge">0</span>
+      </button>
+      <a href="index.html" target="_blank" class="adm-header-btn" id="view-store-btn">
+        <i class="fa-solid fa-store"></i><span>Back to site</span>
+      </a>
+      <button type="button" class="adm-header-btn" id="logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="adm-main" class="adm-main">
+
+      <!-- DASHBOARD -->
+      <section class="adm-section active" id="section-dashboard">
+        <div class="adm-page-header">
+          <div>
+            <h1>Dashboard Overview</h1>
+            <p id="admin-today-date"></p>
+          </div>
+        </div>
+        <div class="kpi-grid kpi-grid--spotlight" id="kpi-grid">
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-card-label">Total Perfumes</div>
+              <div class="kpi-card-value" id="stat-perfumes">&ndash;</div>
+              <div class="kpi-card-trend up">Active catalog items</div>
+            </div>
+            <div class="kpi-card-icon"><i class="fa-solid fa-spray-can-sparkles"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-card-label">Fragrance Types</div>
+              <div class="kpi-card-value" id="stat-types">&ndash;</div>
+              <div class="kpi-card-trend up">Category groups</div>
+            </div>
+            <div class="kpi-card-icon"><i class="fa-solid fa-layer-group"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-card-label">Featured</div>
+              <div class="kpi-card-value" id="stat-featured">&ndash;</div>
+              <div class="kpi-card-trend up">Homepage featured strip</div>
+            </div>
+            <div class="kpi-card-icon"><i class="fa-solid fa-star"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-card-label">Best Sellers</div>
+              <div class="kpi-card-value" id="stat-bestsellers">&ndash;</div>
+              <div class="kpi-card-trend up">Top performing scents</div>
+            </div>
+            <div class="kpi-card-icon"><i class="fa-solid fa-fire"></i></div>
+          </div>
+        </div>
+        <div class="adm-card">
+          <div class="adm-card-header"><h3>Quick Actions</h3></div>
+          <div class="quick-actions">
+            <button type="button" class="quick-action-btn" id="qa-add-perfume"><i class="fa-solid fa-plus"></i><span>Add New Perfume</span></button>
+            <button type="button" class="quick-action-btn" id="qa-add-banner"><i class="fa-solid fa-image"></i><span>Add Banner</span></button>
+            <button type="button" class="quick-action-btn" id="qa-add-testimonial"><i class="fa-solid fa-star"></i><span>Add Testimonial</span></button>
+          </div>
+        </div>
+        <div class="adm-card" style="margin-top:16px">
+          <div class="adm-card-header">
+            <h3>Low Stock Alerts</h3>
+            <span class="spotlight-cell-count" id="low-stock-count-badge">0</span>
+          </div>
+          <div class="low-stock-list" id="low-stock-list">
+            <p class="table-empty">Loading�</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERFUMES -->
+      <section class="adm-section" id="section-perfumes">
+        <div class="adm-page-header">
+          <div>
+            <h1>Perfumes</h1>
+            <p id="perfumes-subtitle">Manage catalog items, prices, and flags</p>
+          </div>
+          <div class="adm-page-actions">
+            <button type="button" class="adm-btn adm-btn--primary" id="add-perfume-btn"><i class="fa-solid fa-plus"></i> Add Perfume</button>
+          </div>
+        </div>
+        <div class="adm-card adm-filter-card">
+          <div class="adm-filter-row">
+            <div class="adm-filter-group">
+              <label>Search</label>
+              <input type="search" class="adm-input" id="perfume-search" placeholder="Name or brand">
+            </div>
+            <div class="adm-filter-group">
+              <label>Type</label>
+              <select class="adm-select" id="perfume-type-filter"><option value="">All Types</option></select>
+            </div>
+          </div>
+          <p class="adm-filter-showing" id="perfumes-filter-showing"></p>
+        </div>
+        <div id="bulk-bar" class="bulk-bar hidden">
+          <span id="bulk-count">0 selected</span>
+          <button type="button" class="adm-btn adm-btn--outline adm-btn--sm" id="bulk-prices-btn"><i class="fa-solid fa-tags"></i> Bulk Update Prices</button>
+          <button type="button" class="adm-btn adm-btn--outline adm-btn--sm" id="bulk-clear-btn">Clear</button>
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table" id="perfumes-table">
+              <thead>
+                <tr>
+                  <th class="no-sort"><input type="checkbox" id="perfumes-select-all" title="Select all"></th>
+                  <th class="no-sort">Perfume</th>
+                  <th>Type</th>
+                  <th>Prices</th>
+                  <th>Stock</th>
+                  <th class="no-sort">Badges</th>
+                  <th class="no-sort">Status</th>
+                  <th class="no-sort">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="perfumes-tbody">
+                <tr><td colspan="8" class="table-empty">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- FRAGRANCE TYPES -->
+      <section class="adm-section" id="section-fragrance-types">
+        <div class="adm-page-header">
+          <div>
+            <h1>Fragrance Types</h1>
+            <p>Manage category groups shown on the storefront</p>
+          </div>
+          <button type="button" class="adm-btn adm-btn--primary" id="add-type-btn"><i class="fa-solid fa-plus"></i> Add Fragrance Type</button>
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr><th>ID</th><th>Name</th><th>Slug</th><th>Description</th><th>Items</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="types-tbody">
+                <tr><td colspan="8" class="table-empty">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- BANNERS -->
+      <section class="adm-section" id="section-banners">
+        <div class="adm-page-header">
+          <div>
+            <h1>Banners &amp; Hero Slides</h1>
+            <p>Homepage hero images � recommended size <strong>1776 &times; 602px</strong>. Link each slide to a fragrance type or collection.</p>
+          </div>
+          <button type="button" class="adm-btn adm-btn--primary" id="add-banner-btn"><i class="fa-solid fa-plus"></i> Add Banner</button>
+        </div>
+        <div class="banner-rows">
+          <div class="banner-row">
+            <h2 class="banner-row-title">Active banners</h2>
+            <p class="banner-row-hint">Shown on the homepage hero carousel.</p>
+            <div class="banner-scroll" id="banner-scroll-active"></div>
+          </div>
+          <div class="banner-row">
+            <h2 class="banner-row-title">Inactive banners</h2>
+            <p class="banner-row-hint">Hidden from the storefront until you turn Active back on.</p>
+            <div class="banner-scroll" id="banner-scroll-inactive"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section class="adm-section" id="section-testimonials">
+        <div class="adm-page-header">
+          <div>
+            <h1>Testimonials</h1>
+            <p>Customer reviews shown on the homepage</p>
+          </div>
+          <button type="button" class="adm-btn adm-btn--primary" id="add-testimonial-btn"><i class="fa-solid fa-plus"></i> Add Testimonial</button>
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr><th>Name</th><th>Initial</th><th>Rating</th><th>Quote</th><th>Featured</th><th>Order</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="testimonials-tbody">
+                <tr><td colspan="7" class="table-empty">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ORDERS -->
+      <section class="adm-section" id="section-orders">
+        <div class="adm-page-header">
+          <div>
+            <h1>Orders</h1>
+            <p>WhatsApp checkout orders with reference IDs</p>
+          </div>
+          <div class="adm-page-actions">
+            <select class="adm-select" id="orders-status-filter">
+              <option value="">All statuses</option>
+              <option value="new">New</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>Ref</th><th>Date</th><th>Items</th><th>Units</th><th>Status</th><th class="no-sort">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="adm-section" id="section-contact">
+        <div class="adm-page-header">
+          <div>
+            <h1>Contact Messages</h1>
+            <p>Enquiries submitted from the contact form</p>
+          </div>
+        </div>
+        <div class="kpi-grid" style="margin-bottom:20px">
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-card-label">Total Messages</div>
+              <div class="kpi-card-value" id="contact-total">&ndash;</div>
+            </div>
+            <div class="kpi-card-icon"><i class="fa-solid fa-inbox"></i></div>
+          </div>
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-card-label">Unread</div>
+              <div class="kpi-card-value" id="contact-unread">&ndash;</div>
+            </div>
+            <div class="kpi-card-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+          </div>
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Enquiry</th><th>Message</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="contact-tbody"><tr><td colspan="8" class="table-empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="adm-section" id="section-settings">
+        <div class="adm-page-header">
+          <div>
+            <h1>Store Settings</h1>
+            <p>Contact details, social links, and storefront copy</p>
+          </div>
+        </div>
+        <form id="settings-form" class="settings-form adm-card">
+          <div class="settings-grid">
+            <div class="form-group">
+              <label for="set-store_name">Store Name</label>
+              <input type="text" id="set-store_name" name="store_name">
+            </div>
+            <div class="form-group">
+              <label for="set-store_tagline">Tagline</label>
+              <input type="text" id="set-store_tagline" name="store_tagline">
+            </div>
+            <div class="form-group">
+              <label for="set-store_phone">Phone</label>
+              <input type="text" id="set-store_phone" name="store_phone">
+            </div>
+            <div class="form-group">
+              <label for="set-whatsapp_number">WhatsApp Number</label>
+              <input type="text" id="set-whatsapp_number" name="whatsapp_number" placeholder="919688498926">
+            </div>
+            <div class="form-group">
+              <label for="set-contact_email">Contact Email</label>
+              <input type="email" id="set-contact_email" name="contact_email">
+            </div>
+            <div class="form-group">
+              <label for="set-store_address">Address</label>
+              <input type="text" id="set-store_address" name="store_address">
+            </div>
+            <div class="form-group">
+              <label for="set-store_city">City</label>
+              <input type="text" id="set-store_city" name="store_city">
+            </div>
+            <div class="form-group">
+              <label for="set-opening_hours">Opening Hours</label>
+              <input type="text" id="set-opening_hours" name="opening_hours">
+            </div>
+            <div class="form-group form-group--wide">
+              <label for="set-footer_desc">Footer Description</label>
+              <textarea id="set-footer_desc" name="footer_desc" rows="3"></textarea>
+            </div>
+            <div class="form-group form-group--wide">
+              <label for="set-home_about_teaser">Home About Teaser</label>
+              <textarea id="set-home_about_teaser" name="home_about_teaser" rows="3"></textarea>
+            </div>
+            <div class="form-group form-group--wide">
+              <label for="set-about_us_text">About Us Text</label>
+              <textarea id="set-about_us_text" name="about_us_text" rows="6"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="set-social_facebook">Facebook URL</label>
+              <input type="text" id="set-social_facebook" name="social_facebook">
+            </div>
+            <div class="form-group">
+              <label for="set-social_instagram">Instagram URL</label>
+              <input type="text" id="set-social_instagram" name="social_instagram">
+            </div>
+          </div>
+          <p class="settings-feedback" id="settings-feedback" role="status"></p>
+          <button type="submit" class="adm-btn adm-btn--primary"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+        </form>
+      </section>
+
+  </main>
+</div>
+
+<!-- ============ PERFUME MODAL ============ -->
+<div class="admin-modal-overlay" id="perfume-modal-overlay">
+  <div class="admin-modal admin-modal--wide" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="perfume-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="perfume-modal-title">Add Perfume</h2>
+    <form id="perfume-form">
+      <input type="hidden" id="pf-original-id">
+      <div class="settings-grid">
+        <div class="form-group">
+          <label for="pf-id">Perfume ID *</label>
+          <input type="text" id="pf-id" required maxlength="25" placeholder="PF031">
+        </div>
+        <div class="form-group">
+          <label for="pf-name">Perfume Name *</label>
+          <input type="text" id="pf-name" required maxlength="255">
+        </div>
+        <div class="form-group">
+          <label for="pf-brand">Brand</label>
+          <input type="text" id="pf-brand" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label for="pf-type">Fragrance Type *</label>
+          <select id="pf-type" required></select>
+        </div>
+        <div class="form-group">
+          <label for="pf-stock">Stock Quantity</label>
+          <input type="number" id="pf-stock" min="0" value="0">
+        </div>
+        <div class="form-group form-group--wide">
+          <label for="pf-description">Description</label>
+          <textarea id="pf-description" rows="3" maxlength="5000"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="pf-price-6">Price 6ml (&#8377;)</label>
+          <input type="number" id="pf-price-6" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="pf-price-12">Price 12ml (&#8377;)</label>
+          <input type="number" id="pf-price-12" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="pf-price-30">Price 30ml (&#8377;)</label>
+          <input type="number" id="pf-price-30" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="pf-price-50">Price 50ml (&#8377;)</label>
+          <input type="number" id="pf-price-50" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-attar"> Attar (6ml � 12ml)</label>
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-perfume" checked> Perfume (30ml � 50ml)</label>
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-car-hanger"> Car Hanger (6ml � 12ml)</label>
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-featured"> Featured</label>
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-bestseller"> Best Seller</label>
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-newarrival"> New Arrival</label>
+        <label class="checkbox-pill"><input type="checkbox" id="pf-is-active" checked> Active</label>
+      </div>
+      <div class="form-group image-upload-group" id="pf-image-group">
+        <label>Images</label>
+        <div class="pf-images-preview" id="pf-images-preview"></div>
+        <input type="file" id="pf-image-files" accept="image/*" multiple>
+        <p class="field-hint">Save the perfume first, then upload images. JPG/PNG/WEBP, max 5MB each.</p>
+      </div>
+      <p class="modal-feedback" id="perfume-form-feedback" role="status"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" data-close-modal="perfume-modal-overlay">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Perfume</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ FRAGRANCE TYPE MODAL ============ -->
+<div class="admin-modal-overlay" id="type-modal-overlay">
+  <div class="admin-modal" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="type-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="type-modal-title">Add Fragrance Type</h2>
+    <form id="type-form">
+      <input type="hidden" id="ft-original-id">
+      <div class="form-group">
+        <label for="ft-id">Type ID *</label>
+        <input type="text" id="ft-id" required maxlength="10" placeholder="FT010">
+      </div>
+      <div class="form-group">
+        <label for="ft-name">Type Name *</label>
+        <input type="text" id="ft-name" required maxlength="100">
+      </div>
+      <div class="form-group">
+        <label for="ft-slug">Slug</label>
+        <input type="text" id="ft-slug" maxlength="120" placeholder="auto-generated if blank">
+      </div>
+      <div class="form-group">
+        <label for="ft-description">Description</label>
+        <textarea id="ft-description" rows="3" maxlength="2000"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="ft-order">Display Order</label>
+        <input type="number" id="ft-order" min="0" value="0">
+      </div>
+      <label class="checkbox-pill"><input type="checkbox" id="ft-is-active" checked> Active</label>
+      <p class="modal-feedback" id="type-form-feedback" role="status"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" data-close-modal="type-modal-overlay">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Type</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ BANNER MODAL ============ -->
+<div class="admin-modal-overlay" id="banner-modal-overlay">
+  <div class="admin-modal admin-modal--banner" role="dialog" aria-modal="true">
+    <div class="admin-modal-header">
+      <h2 id="banner-modal-title">Add Hero Banner</h2>
+      <div class="modal-header-actions">
+        <div class="modal-header-active" id="bn-active-wrap">
+          <span class="modal-active-label modal-active-label--on" id="bn-active-state">Active</span>
+          <label class="toggle" title="Active on storefront">
+            <input type="checkbox" id="bn-is-active" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <button type="button" class="admin-modal-close" data-close-modal="banner-modal-overlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <form id="banner-form" class="banner-modal-form">
+      <input type="hidden" id="bn-id">
+      <div class="form-group">
+        <label for="bn-title">Title</label>
+        <input type="text" id="bn-title" required maxlength="150" placeholder="Hero Slide title">
+      </div>
+      <div class="form-group">
+        <label for="bn-subtitle">Subtitle</label>
+        <input type="text" id="bn-subtitle" maxlength="255" placeholder="Optional subtitle">
+      </div>
+      <div class="form-group">
+        <label>Upload from computer</label>
+        <div class="image-upload-row">
+          <input type="file" id="bn-image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+          <button type="button" class="adm-btn adm-btn--outline" id="bn-image-upload-btn">
+            <i class="fa-solid fa-upload"></i> Choose file
+          </button>
+          <span class="form-hint" style="margin:0">JPG, PNG, WebP or GIF</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="bn-image-url">Or paste image URL</label>
+        <input type="text" id="bn-image-url" placeholder="https://res.cloudinary.com/�">
+        <p class="form-hint">Recommended 1776�602. Uploads are stored on Cloudinary.</p>
+      </div>
+      <div id="bn-image-preview-wrap" class="banner-image-preview hidden">
+        <img id="bn-image-preview" alt="Banner preview">
+      </div>
+      <div class="form-group">
+        <label for="bn-link-type">Click destination</label>
+        <select id="bn-link-type" class="adm-select">
+          <option value="auto">Auto � products page</option>
+          <option value="type">Fragrance Type</option>
+          <option value="featured">Featured</option>
+          <option value="bestsellers">Best Sellers</option>
+          <option value="custom">Custom URL</option>
+        </select>
+      </div>
+      <div class="form-group banner-link-panel" id="bn-type-panel">
+        <label for="bn-fragrance-type">Fragrance Type</label>
+        <select id="bn-fragrance-type" class="adm-select">
+          <option value="">Select type�</option>
+        </select>
+      </div>
+      <div class="form-group banner-link-panel" id="bn-custom-panel">
+        <label for="bn-link">Custom link URL</label>
+        <input type="text" id="bn-link" placeholder="products.html or full URL">
+      </div>
+      <div class="form-group">
+        <label for="bn-order" id="bn-order-label">Display order</label>
+        <input type="number" id="bn-order" min="0" value="0">
+      </div>
+      <p class="modal-feedback" id="banner-form-feedback" role="status"></p>
+      <div class="modal-actions modal-actions--banner">
+        <button type="button" class="btn btn-danger hidden" id="bn-delete-btn"><i class="fa-solid fa-trash"></i> Delete Banner</button>
+        <div class="modal-footer-right">
+          <button type="button" class="btn btn-outline" data-close-modal="banner-modal-overlay">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ TESTIMONIAL MODAL ============ -->
+<div class="admin-modal-overlay" id="testimonial-modal-overlay">
+  <div class="admin-modal" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="testimonial-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="testimonial-modal-title">Add Testimonial</h2>
+    <form id="testimonial-form">
+      <input type="hidden" id="ts-id">
+      <div class="form-group">
+        <label for="ts-name">Customer Name *</label>
+        <input type="text" id="ts-name" required maxlength="100">
+      </div>
+      <div class="form-group">
+        <label for="ts-initial">Initial (e.g. R.K)</label>
+        <input type="text" id="ts-initial" maxlength="5">
+      </div>
+      <div class="form-group">
+        <label for="ts-rating">Rating (1-5)</label>
+        <input type="number" id="ts-rating" min="1" max="5" value="5">
+      </div>
+      <div class="form-group">
+        <label for="ts-quote">Quote *</label>
+        <textarea id="ts-quote" rows="4" required maxlength="5000"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="ts-order">Display Order</label>
+        <input type="number" id="ts-order" min="0" value="0">
+      </div>
+      <label class="checkbox-pill"><input type="checkbox" id="ts-is-featured" checked> Featured</label>
+      <p class="modal-feedback" id="testimonial-form-feedback" role="status"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" data-close-modal="testimonial-modal-overlay">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Testimonial</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CONTACT MESSAGE MODAL ============ -->
+<div class="admin-modal-overlay" id="contact-modal-overlay">
+  <div class="admin-modal" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="contact-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
+    <h2>Contact Message</h2>
+    <div id="contact-modal-body" class="contact-modal-body"></div>
+  </div>
+</div>
+
+<!-- ============ BULK PRICES MODAL ============ -->
+<div class="admin-modal-overlay" id="bulk-prices-modal-overlay">
+  <div class="admin-modal" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="bulk-prices-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
+    <h2>Bulk Update Prices</h2>
+    <p class="field-hint" id="bulk-prices-hint">Update selected perfumes</p>
+    <div class="form-group">
+      <label for="bulk-mode">Mode</label>
+      <select id="bulk-mode">
+        <option value="percent">Adjust by percent (%)</option>
+        <option value="absolute">Set absolute prices</option>
+      </select>
+    </div>
+    <div class="form-group" id="bulk-percent-wrap">
+      <label for="bulk-percent">Percent change (e.g. 10 or -5)</label>
+      <input type="number" id="bulk-percent" step="1" value="10">
+    </div>
+    <div id="bulk-absolute-wrap" class="hidden">
+      <div class="settings-grid">
+        <div class="form-group"><label>6ml</label><input type="number" id="bulk-p6" min="0" step="10" placeholder="Leave blank to skip"></div>
+        <div class="form-group"><label>12ml</label><input type="number" id="bulk-p12" min="0" step="10" placeholder="Leave blank to skip"></div>
+        <div class="form-group"><label>30ml</label><input type="number" id="bulk-p30" min="0" step="10" placeholder="Leave blank to skip"></div>
+        <div class="form-group"><label>50ml</label><input type="number" id="bulk-p50" min="0" step="10" placeholder="Leave blank to skip"></div>
+      </div>
+    </div>
+    <p class="modal-feedback" id="bulk-prices-feedback"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" data-close-modal="bulk-prices-modal-overlay">Cancel</button>
+      <button type="button" class="btn btn-primary" id="bulk-prices-apply"><i class="fa-solid fa-check"></i> Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ORDER DETAIL MODAL ============ -->
+<div class="admin-modal-overlay" id="order-modal-overlay">
+  <div class="admin-modal admin-modal--wide" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="order-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="order-modal-title">Order</h2>
+    <div id="order-modal-body"></div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM DIALOG ============ -->
+<div class="admin-modal-overlay" id="confirm-modal-overlay">
+  <div class="admin-modal admin-modal--sm" role="dialog" aria-modal="true">
+    <h2 id="confirm-modal-title">Are you sure?</h2>
+    <p id="confirm-modal-message"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="confirm-modal-cancel">Cancel</button>
+      <button type="button" class="btn btn-danger" id="confirm-modal-ok">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="admin-toast" class="admin-toast" role="status" aria-live="polite"></div>
+
+<script src="js/admin-api.js?v=5"></script>
+<script src="js/admin.js?v=11"></script>
+</body>
+</html>
+
+

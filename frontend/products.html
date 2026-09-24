@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>All Perfumes &ndash; Aarif Fragrances</title>
+  <meta name="description" content="Browse our full catalog of premium attars and perfumes from Tamil Nadu. Filter by Attar, Perfume, Car Hanger, price, or family.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Aarif Fragrances">
+  <meta property="og:title" content="All Perfumes – Aarif Fragrances">
+  <meta property="og:description" content="Browse our full catalog of premium attars and perfumes from Tamil Nadu. Filter by Attar, Perfume, Car Hanger, price, or family.">
+  <meta property="og:image" content="assets/aarif-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css?v=61">
+  <link rel="icon" href="assets/aarif-logo.png" type="image/png">
+</head>
+<body data-page="products">
+
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-left">
+        <a href="about.html">About</a>
+        <span class="topbar-sep">|</span>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="topbar-right">
+        <span>Need help? Call Us: <a href="tel:+919688498926" class="site-store-phone">+91 9688498926</a></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-stack" id="header-stack">
+    <header id="site-header" class="site-header">
+      <div class="header-inner container">
+        <a href="index.html" class="logo" aria-label="Aarif Fragrances home">
+          <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img" width="220" height="52">
+          <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+        </a>
+        <div class="header-search-wrapper">
+          <div class="header-search">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="search" id="header-search" placeholder="Search perfumes..." aria-label="Search perfumes" autocomplete="off">
+            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="search-dropdown" class="search-dropdown" aria-hidden="true"></div>
+        </div>
+        <div class="header-actions">
+          <a href="wishlist.html" class="header-action" id="header-wishlist" title="Wishlist">
+            <i class="fa-regular fa-heart"></i>
+            <span class="header-action-label">Wishlist</span>
+            <span class="header-action-badge" id="wishlist-count">0</span>
+          </a>
+          <a href="basket.html" class="header-action" id="header-basket" title="My Cart">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span class="header-action-label">Cart</span>
+            <span class="header-action-badge" id="basket-count">0</span>
+          </a>
+          <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="browse-bar">
+      <div class="container browse-bar-inner">
+        <div class="browse-cat-wrap" id="subnav-types-wrap">
+          <button type="button" class="browse-cat-btn" id="subnav-types-btn" aria-expanded="false" aria-haspopup="true">
+            <i class="fa-solid fa-border-all"></i> Browse All Fragrances
+            <i class="fa-solid fa-chevron-down sub-nav-chevron"></i>
+          </button>
+          <div class="sub-nav-dropdown" id="subnav-types-dropdown" role="menu"></div>
+        </div>
+        <nav class="browse-nav-links" aria-label="Main navigation">
+          <a href="products.html" class="browse-nav-link">All Perfumes</a>
+          <a href="index.html#fragrance-types" class="browse-nav-link browse-nav-link--section">Fragrance Types</a>
+          <a href="products.html?collection=featured" class="browse-nav-link">Featured</a>
+          <a href="products.html?collection=bestsellers" class="browse-nav-link">Best Sellers</a>
+          <a href="about.html" class="browse-nav-link">About</a>
+          <a href="contact.html" class="browse-nav-link">Contact</a>
+          <a href="policies.html" class="browse-nav-link">Policies</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <aside id="mobile-drawer" class="mobile-drawer" aria-label="Mobile navigation">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--drawer">
+        <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+      </div>
+      <button type="button" id="drawer-close" class="drawer-close" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="drawer-nav">
+      <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="products.html"><i class="fa-solid fa-spray-can-sparkles"></i> All Perfumes</a>
+      <a href="wishlist.html"><i class="fa-regular fa-heart"></i> Wishlist</a>
+      <a href="basket.html"><i class="fa-solid fa-cart-shopping"></i> Cart</a>
+      <a href="https://wa.me/919688498926" target="_blank" rel="noopener" class="site-whatsapp-link"><i class="fa-brands fa-whatsapp"></i> WhatsApp Order</a>
+      <a href="about.html"><i class="fa-solid fa-circle-info"></i> About</a>
+      <a href="contact.html"><i class="fa-solid fa-envelope"></i> Contact</a>
+      <a href="policies.html"><i class="fa-solid fa-file-lines"></i> Policies</a>
+    </nav>
+    <div class="drawer-categories">
+      <h3>Fragrance Types</h3>
+      <ul id="mobile-type-list"></ul>
+    </div>
+  </aside>
+
+
+
+  <main class="catalog-page">
+    <div class="catalog-layout">
+      <aside class="catalog-sidebar" aria-label="Product filters">
+        <div class="filter-panel">
+          <div class="filter-panel-head">
+            <h2 class="filter-panel-title">Filters</h2>
+            <button type="button" class="filter-panel-close" id="mobile-filter-close" aria-label="Close filters"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="filter-panel-body">
+            <div class="filter-status-row">
+              <button type="button" class="filter-clear-btn" onclick="clearAllFilters()">Clear all</button>
+            </div>
+
+            <div class="filter-nav-sections">
+              <div class="filter-acc">
+                <button type="button" class="filter-acc-trigger is-open" aria-expanded="true" data-filter-acc>
+                  <span class="filter-acc-label"><span class="filter-acc-dot" aria-hidden="true"></span> Category</span>
+                  <i class="fa-solid fa-chevron-down filter-acc-chevron" aria-hidden="true"></i>
+                </button>
+                <div class="filter-acc-panel is-open" id="filter-acc-category">
+                  <div id="type-filter-list" class="filter-nav-list" role="list"></div>
+                </div>
+              </div>
+
+              <button type="button" class="filter-acc-trigger filter-collection-row"
+                data-filter-collection="featured" aria-pressed="false">
+                <span class="filter-acc-label"><span class="filter-acc-dot" aria-hidden="true"></span> Featured products</span>
+              </button>
+
+              <button type="button" class="filter-acc-trigger filter-collection-row"
+                data-filter-collection="bestsellers" aria-pressed="false">
+                <span class="filter-acc-label"><span class="filter-acc-dot" aria-hidden="true"></span> Best Sellers</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="catalog-main">
+        <div class="catalog-toolbar">
+          <div class="catalog-toolbar-start">
+            <button type="button" id="mobile-filter-btn" class="btn-mobile-filter"><i class="fa-solid fa-sliders"></i> Filters</button>
+            <div>
+              <nav id="cat-page-header" style="font-size:12px;color:#888;margin-bottom:4px"></nav>
+              <p id="result-count" class="result-count">Loading...</p>
+            </div>
+          </div>
+          <div class="toolbar-actions">
+            <label class="sort-label type-toggle-wrap">Type
+              <div class="type-toggle" id="type-toggle" role="group" aria-label="Product type">
+                <button type="button" class="type-toggle-btn active" data-product-type="attar" aria-pressed="true">Attar</button>
+                <button type="button" class="type-toggle-btn" data-product-type="perfume" aria-pressed="false">Perfume</button>
+                <button type="button" class="type-toggle-btn" data-product-type="car_hanger" aria-pressed="false">Car Hanger</button>
+              </div>
+            </label>
+            <label class="sort-label" id="sort-select-label">Sort <select id="sort-select">
+              <option value="none">Default</option>
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
+              <option value="price-asc">Price Low-High</option>
+              <option value="price-desc">Price High-Low</option>
+            </select></label>
+            <label class="sort-label" id="per-page-label">Show <select id="per-page-select">
+              <option value="24" selected>24</option>
+              <option value="48">48</option>
+              <option value="96">96</option>
+            </select></label>
+            <div class="view-toggle">
+              <button type="button" id="view-grid" class="view-btn active"><i class="fa-solid fa-grip"></i></button>
+              <button type="button" id="view-list" class="view-btn"><i class="fa-solid fa-list"></i></button>
+            </div>
+          </div>
+        </div>
+        <div id="product-grid" class="fp-grid fp-grid--catalog"></div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer"><div class="footer-top"><div class="container"><div class="footer-grid">
+    <div class="footer-brand-col">
+      <div class="footer-logo">
+        <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--footer">
+        <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+      </div>
+      <p class="footer-desc site-footer-desc">Your destination for premium attars and perfumes from Tamil Nadu, India.</p>
+      <div class="footer-contact-items">
+        <div class="footer-contact-item"><i class="fa-solid fa-phone"></i><a href="tel:+919688498926" style="color:inherit">+91 9688498926</a></div>
+        <div class="footer-contact-item"><i class="fa-regular fa-envelope"></i><a href="mailto:aariffragrances@gmail.com" style="color:inherit">aariffragrances@gmail.com</a></div>
+      </div>
+    </div>
+    <div class="footer-col"><h4>Quick Links</h4><div class="footer-links">
+      <a href="index.html"><i class="fa-solid fa-chevron-right"></i> Home</a>
+      <a href="products.html"><i class="fa-solid fa-chevron-right"></i> All Perfumes</a>
+      <a href="about.html"><i class="fa-solid fa-chevron-right"></i> About</a>
+      <a href="contact.html"><i class="fa-solid fa-chevron-right"></i> Contact</a>
+      <a href="policies.html"><i class="fa-solid fa-chevron-right"></i> Policies</a>
+    </div></div>
+    <div class="footer-col"><h4>Fragrance Types</h4><div id="footer-types-list" class="footer-types-list"></div></div>
+  </div></div></div>
+  <div class="footer-bottom"><div class="container"><p>&copy; 2026 Aarif Fragrances. All rights reserved.</p></div></div>
+  </footer>
+
+  <button type="button" id="back-to-top" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></button>
+  <div id="product-modal-overlay" class="modal-overlay"><div id="product-modal" class="product-modal" role="dialog" aria-modal="true"></div></div>
+  <a href="https://wa.me/919688498926" class="whatsapp-fab site-whatsapp-link" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
+
+  <script src="js/site-settings.js?v=2"></script>
+  <script src="js/placeholders.js?v=2"></script>
+  <script src="js/product-card.js?v=27"></script>
+  <script src="js/data-loader.js?v=6"></script>
+  <script src="js/filters.js?v=11"></script>
+  <script src="js/product-grid.js?v=4"></script>
+  <script src="js/search.js?v=2"></script>
+  <script src="js/modal.js?v=19"></script>
+  <script src="js/navigation.js?v=4"></script>
+  <script src="js/shopping-store.js?v=3"></script>
+  <script src="js/enhancements.js?v=2"></script>
+  <script src="js/basket.js?v=11"></script>
+  <script src="js/customer-api.js?v=2"></script>
+  <script src="js/customer-auth.js?v=3"></script>
+  <script src="js/main.js?v=3"></script>
+</body>
+</html>
+

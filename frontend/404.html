@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found &ndash; Aarif Fragrances</title>
+  <meta name="description" content="The page you are looking for cannot be found. Return to Aarif Fragrances catalog.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css?v=58">
+  <link rel="icon" href="assets/aarif-logo.png" type="image/png">
+  <style>
+    .error-hero {
+      min-height: 55vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .error-card {
+      background: var(--bg-card, #1a1a1a);
+      border: 1px solid var(--border-gold, #c5a059);
+      border-radius: 12px;
+      padding: 50px 30px;
+      max-width: 580px;
+      width: 100%;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+    .error-code {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 80px;
+      font-weight: 700;
+      color: var(--gold, #c5a059);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .error-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .error-desc {
+      color: #aaa;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .error-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body data-page="404">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-left">
+        <a href="about.html">About</a>
+        <span class="topbar-sep">|</span>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="topbar-right">
+        <span>Need help? Call Us: <a href="tel:+919688498926" class="site-store-phone">+91 9688498926</a></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-stack" id="header-stack">
+    <header id="site-header" class="site-header">
+      <div class="header-inner container">
+        <a href="index.html" class="logo" aria-label="Aarif Fragrances home">
+          <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img" width="220" height="52">
+          <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+        </a>
+        <div class="header-search-wrapper">
+          <div class="header-search">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="search" id="header-search" placeholder="Search perfumes..." aria-label="Search perfumes" autocomplete="off">
+            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="search-dropdown" class="search-dropdown" aria-hidden="true"></div>
+        </div>
+        <div class="header-actions">
+          <a href="wishlist.html" class="header-action" id="header-wishlist" title="Wishlist">
+            <i class="fa-regular fa-heart"></i>
+            <span class="header-action-label">Wishlist</span>
+            <span class="header-action-badge" id="wishlist-count">0</span>
+          </a>
+          <a href="basket.html" class="header-action" id="header-basket" title="My Cart">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span class="header-action-label">Cart</span>
+            <span class="header-action-badge" id="basket-count">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+    <div class="browse-bar">
+      <div class="container browse-bar-inner">
+        <nav class="browse-nav-links" aria-label="Main navigation">
+          <a href="index.html" class="browse-nav-link">Home</a>
+          <a href="products.html" class="browse-nav-link">All Perfumes</a>
+          <a href="about.html" class="browse-nav-link">About</a>
+          <a href="contact.html" class="browse-nav-link">Contact</a>
+          <a href="policies.html" class="browse-nav-link">Policies</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <main class="error-hero">
+    <div class="error-card">
+      <div class="error-code">404</div>
+      <h1 class="error-title">Fragrance Note Not Found</h1>
+      <p class="error-desc">The page or scent you are looking for might have been moved, renamed, or is temporarily unavailable.</p>
+      <div class="error-actions">
+        <a href="products.html" class="btn btn-primary"><i class="fa-solid fa-spray-can-sparkles"></i> Browse Perfumes</a>
+        <a href="index.html" class="btn btn-outline"><i class="fa-solid fa-house"></i> Return Home</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; 2026 Aarif Fragrances. All rights reserved. Tamil Nadu, India.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/shopping-store.js?v=3"></script>
+  <script src="js/customer-api.js?v=2"></script>
+  <script src="js/customer-auth.js?v=3"></script>
+  <script src="js/main.js?v=3"></script>
+</body>
+</html>

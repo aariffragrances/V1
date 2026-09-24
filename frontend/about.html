@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About &ndash; Aarif Fragrances</title>
+  <meta name="description" content="About Aarif Fragrances — premium attars and perfumes from Tamil Nadu, India. Quality ingredients and long-lasting scents.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Aarif Fragrances">
+  <meta property="og:title" content="About Us – Aarif Fragrances">
+  <meta property="og:description" content="About Aarif Fragrances — premium attars and perfumes from Tamil Nadu, India. Quality ingredients and long-lasting scents.">
+  <meta property="og:image" content="assets/aarif-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css?v=57">
+  <link rel="icon" href="assets/aarif-logo.png" type="image/png">
+</head>
+<body data-page="about">
+
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-left">
+        <a href="about.html">About</a>
+        <span class="topbar-sep">|</span>
+        <a href="contact.html">Contact Us</a>
+      </div>
+      <div class="topbar-right">
+        <span>Need help? Call Us: <a href="tel:+919688498926" class="site-store-phone">+91 9688498926</a></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-stack" id="header-stack">
+    <header id="site-header" class="site-header">
+      <div class="header-inner container">
+        <a href="index.html" class="logo" aria-label="Aarif Fragrances home">
+          <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img" width="220" height="52">
+          <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+        </a>
+        <div class="header-search-wrapper">
+          <div class="header-search">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="search" id="header-search" placeholder="Search perfumes..." aria-label="Search perfumes" autocomplete="off">
+            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="search-dropdown" class="search-dropdown" aria-hidden="true"></div>
+        </div>
+        <div class="header-actions">
+          <a href="wishlist.html" class="header-action" id="header-wishlist" title="Wishlist">
+            <i class="fa-regular fa-heart"></i>
+            <span class="header-action-label">Wishlist</span>
+            <span class="header-action-badge" id="wishlist-count">0</span>
+          </a>
+          <a href="basket.html" class="header-action" id="header-basket" title="My Cart">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span class="header-action-label">Cart</span>
+            <span class="header-action-badge" id="basket-count">0</span>
+          </a>
+          <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="browse-bar">
+      <div class="container browse-bar-inner">
+        <div class="browse-cat-wrap" id="subnav-types-wrap">
+          <button type="button" class="browse-cat-btn" id="subnav-types-btn" aria-expanded="false" aria-haspopup="true">
+            <i class="fa-solid fa-border-all"></i> Browse All Fragrances
+            <i class="fa-solid fa-chevron-down sub-nav-chevron"></i>
+          </button>
+          <div class="sub-nav-dropdown" id="subnav-types-dropdown" role="menu"></div>
+        </div>
+        <nav class="browse-nav-links" aria-label="Main navigation">
+          <a href="products.html" class="browse-nav-link">All Perfumes</a>
+          <a href="index.html#fragrance-types" class="browse-nav-link browse-nav-link--section">Fragrance Types</a>
+          <a href="products.html?collection=featured" class="browse-nav-link">Featured</a>
+          <a href="products.html?collection=bestsellers" class="browse-nav-link">Best Sellers</a>
+          <a href="about.html" class="browse-nav-link">About</a>
+          <a href="contact.html" class="browse-nav-link">Contact</a>
+          <a href="policies.html" class="browse-nav-link">Policies</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <aside id="mobile-drawer" class="mobile-drawer" aria-label="Mobile navigation">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--drawer">
+        <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+      </div>
+      <button type="button" id="drawer-close" class="drawer-close" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="drawer-nav">
+      <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="products.html"><i class="fa-solid fa-spray-can-sparkles"></i> All Perfumes</a>
+      <a href="wishlist.html"><i class="fa-regular fa-heart"></i> Wishlist</a>
+      <a href="basket.html"><i class="fa-solid fa-cart-shopping"></i> Cart</a>
+      <a href="https://wa.me/919688498926" target="_blank" rel="noopener" class="site-whatsapp-link"><i class="fa-brands fa-whatsapp"></i> WhatsApp Order</a>
+      <a href="about.html"><i class="fa-solid fa-circle-info"></i> About</a>
+      <a href="contact.html"><i class="fa-solid fa-envelope"></i> Contact</a>
+      <a href="policies.html"><i class="fa-solid fa-file-lines"></i> Policies</a>
+    </nav>
+    <div class="drawer-categories">
+      <h3>Fragrance Types</h3>
+      <ul id="mobile-type-list"></ul>
+    </div>
+  </aside>
+
+
+
+  <main class="page-main">
+    <div class="container about-page">
+      <h1 class="page-title">About Aarif Fragrances</h1>
+      <p class="page-lead">Premium attars &amp; perfumes from Tamil Nadu, India</p>
+
+      <div class="about-body" id="about-us-text">
+        <p>Aarif Fragrances is a dedicated perfume and attar brand based in Tamil Nadu, India. Our collection follows eight premium fragrance families: <strong>Aquatic Fresh</strong>, <strong>Fruity Delights</strong>, <strong>Spicy &amp; Aromatic</strong>, <strong>Mystic Oud</strong>, <strong>Floral Elegance</strong>, <strong>Rich Woody</strong>, <strong>Sweet Gourmand</strong>, and <strong>Heritage Traditional</strong>.</p>
+        <p>All our perfumes are available in convenient sizes &mdash; <strong>6ml, 12ml, 30ml, and 50ml</strong> &mdash; perfect for personal use, gifting, or travel.</p>
+        <p>We believe everyone deserves authentic, long-lasting fragrances at fair prices. Order easily on WhatsApp and get delivery across Tamil Nadu and India.</p>
+      </div>
+
+      <div class="location-wrapper">
+        <div class="location-card">
+          <div class="left">
+            <div class="small-title">
+              <i class="fa-solid fa-location-dot"></i>
+              VISIT OUR STORE
+            </div>
+            <h2>Aarif Fragrances</h2>
+            <p>
+              Experience authentic premium attars and luxury perfumes crafted for every occasion.
+              Visit our store and discover timeless fragrances with exceptional quality and elegance.
+            </p>
+            <div class="info">
+              <div class="row">
+                <div class="icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="text">
+                  <h3>Location</h3>
+                  <span>Tamil Nadu, India</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="icon"><i class="fa-solid fa-phone"></i></div>
+                <div class="text">
+                  <h3>Phone</h3>
+                  <span><a href="tel:+919688498926">+91 9688498926</a></span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="icon"><i class="fa-regular fa-envelope"></i></div>
+                <div class="text">
+                  <h3>Email</h3>
+                  <span><a href="mailto:aariffragrances@gmail.com">aariffragrances@gmail.com</a></span>
+                </div>
+              </div>
+            </div>
+            <a class="btn-directions" href="https://maps.app.goo.gl/ka9tkpJ69XWtNRsc8" target="_blank" rel="noopener">
+              Get Directions
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+          <div class="right">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4431.55462283868!2d78.17009124204232!3d9.952110920761804!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b00c5c2c3e5bb71%3A0x349740215b44c64d!2sAarif%20Fragrances!5e1!3m2!1sen!2sin!4v1785220938410!5m2!1sen!2sin"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              title="Aarif Fragrances location map">
+            </iframe>
+            <div class="overlay">
+              <h3>Our Store Location</h3>
+              <p>Find us easily on Google Maps. Click below for turn-by-turn navigation.</p>
+              <a href="https://maps.app.goo.gl/ka9tkpJ69XWtNRsc8" target="_blank" rel="noopener">
+                Open in Google Maps
+                <i class="fa-solid fa-location-arrow"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <h3 class="site-store-name">Aarif Fragrances</h3>
+        <p class="site-footer-desc">Premium attars and perfumes from Tamil Nadu.</p>
+      </div>
+      <div>
+        <h4>Useful Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="products.html">Shop</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="tel:+919688498926">+91 9688498926</a></li>
+          <li><a href="mailto:aariffragrances@gmail.com">aariffragrances@gmail.com</a></li>
+          <li>Tamil Nadu, India</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">&copy; <span id="footer-year"></span> Aarif Fragrances. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <button type="button" id="back-to-top" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></button>
+  <a href="https://wa.me/919688498926" class="whatsapp-fab site-whatsapp-link" target="_blank" rel="noopener" aria-label="WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+
+  <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
+  <script src="js/placeholders.js?v=2"></script>
+  <script src="js/site-settings.js?v=2"></script>
+  <script src="js/shopping-store.js?v=3"></script>
+  <script src="js/customer-api.js?v=2"></script>
+  <script src="js/customer-auth.js?v=3"></script>
+  <script src="js/data-loader.js?v=6"></script>
+  <script src="js/search.js?v=2"></script>
+  <script src="js/navigation.js?v=4"></script>
+  <script src="js/main.js?v=3"></script>
+</body>
+</html>
+
