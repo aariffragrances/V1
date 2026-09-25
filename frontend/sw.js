@@ -3,7 +3,7 @@
  * High-performance Cache-First image delivery with instant 0ms disk cache for Cloudinary and local assets.
  */
 
-const STATIC_CACHE = 'aarif-static-v3';
+const STATIC_CACHE = 'aarif-static-v4';
 const IMAGE_CACHE  = 'aarif-images-v2';
 
 const PRECACHE_ASSETS = [
@@ -85,8 +85,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static CSS / JS / Fonts: Stale-While-Revalidate
-  if (/\.(css|js|woff2|woff|ttf)$/i.test(url.pathname)) {
+  // 2. Static CSS / JS / JSON / Fonts: Stale-While-Revalidate
+  if (/\.(css|js|json|woff2|woff|ttf)$/i.test(url.pathname)) {
     event.respondWith(
       caches.open(STATIC_CACHE).then(async (cache) => {
         const cached = await cache.match(req);

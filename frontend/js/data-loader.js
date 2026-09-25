@@ -134,9 +134,13 @@ async function fetchBootstrap() {
     const res = await fetch('/api/v1/catalog/bootstrap');
     if (res.ok) return await res.json();
   } catch (_) {}
-  const fallback = await fetch('data/bootstrap.json');
-  if (!fallback.ok) throw new Error('Catalog data unavailable');
-  return fallback.json();
+  try {
+    const fallback = await fetch('/data/bootstrap.json');
+    if (fallback.ok) return await fallback.json();
+  } catch (_) {}
+  const rel = await fetch('data/bootstrap.json');
+  if (!rel.ok) throw new Error('Catalog data unavailable');
+  return rel.json();
 }
 
 async function fetchMetadata() {
@@ -144,9 +148,13 @@ async function fetchMetadata() {
     const res = await fetch('/api/v1/catalog/metadata');
     if (res.ok) return await res.json();
   } catch (_) {}
-  const fallback = await fetch('data/metadata.json');
-  if (!fallback.ok) throw new Error('Metadata unavailable');
-  return fallback.json();
+  try {
+    const fallback = await fetch('/data/metadata.json');
+    if (fallback.ok) return await fallback.json();
+  } catch (_) {}
+  const rel = await fetch('data/metadata.json');
+  if (!rel.ok) throw new Error('Metadata unavailable');
+  return rel.json();
 }
 
 async function fetchPerfumesBulk() {
@@ -154,9 +162,13 @@ async function fetchPerfumesBulk() {
     const res = await fetch('/api/v1/catalog/perfumes-bulk');
     if (res.ok) return await res.json();
   } catch (_) {}
-  const fallback = await fetch('data/perfumes.json');
-  if (!fallback.ok) throw new Error('Perfumes data unavailable');
-  return fallback.json();
+  try {
+    const fallback = await fetch('/data/perfumes.json');
+    if (fallback.ok) return await fallback.json();
+  } catch (_) {}
+  const rel = await fetch('data/perfumes.json');
+  if (!rel.ok) throw new Error('Perfumes data unavailable');
+  return rel.json();
 }
 
 /* ── whenMetadataReady ───────────────────────────────────────── */
