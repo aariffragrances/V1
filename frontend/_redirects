@@ -1,0 +1,4 @@
+# Netlify Redirects configuration
+# If hosting the FastAPI backend on an external server (e.g. Render / Railway / Fly.io / VPS):
+# Uncomment the line below and replace YOUR_BACKEND_URL:
+# /api/*  https://YOUR_BACKEND_URL/api/:splat  200!

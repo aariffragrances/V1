@@ -5,6 +5,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.catalog import _cache_get, _cache_set
 from app.models import SiteSetting
 
 DEFAULT_SITE_SETTINGS: dict[str, str] = {
@@ -52,8 +53,14 @@ SITE_SETTING_KEYS = frozenset(DEFAULT_SITE_SETTINGS.keys())
 
 
 async def load_public_site_settings(db: AsyncSession) -> dict[str, str]:
+    cached = _cache_get("public_site_settings")
+    if cached is not None:
+        return cached
+
     result = await db.execute(
         select(SiteSetting).where(SiteSetting.setting_key.in_(SITE_SETTING_KEYS))
     )
     stored = {row.setting_key: row.setting_value for row in result.scalars()}
-    return {**DEFAULT_SITE_SETTINGS, **stored}
+    merged = {**DEFAULT_SITE_SETTINGS, **stored}
+    _cache_set("public_site_settings", merged)
+    return merged

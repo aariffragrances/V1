@@ -3,6 +3,22 @@
    main.js — Page boot & orchestration
    ============================================================ */
 
+/**
+ * Universal Cloudinary image optimization:
+ * Injects f_auto,q_auto,w_${width} to deliver tiny, crisp WebP/AVIF images.
+ */
+function getOptimizedImageUrl(url, width = 400) {
+  if (!url || typeof url !== 'string') return '';
+  if (url.includes('res.cloudinary.com/') && url.includes('/upload/')) {
+    if (url.includes('/upload/f_auto') || url.includes('/upload/w_') || url.includes('/upload/c_')) {
+      return url;
+    }
+    return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width},c_limit/`);
+  }
+  return url;
+}
+window.getOptimizedImageUrl = getOptimizedImageUrl;
+
 function updateHeaderBadges() {
   const badge = document.getElementById('basket-count');
   if (badge) {
@@ -51,22 +67,43 @@ function initSectionScrollLinks() {
 
 /* ── Home page boot ─────────────────────────────────────────── */
 function bootHome() {
-  if (typeof initHeroSlider    === 'function') initHeroSlider();
+  if (typeof initHeroSlider     === 'function') initHeroSlider();
   if (typeof renderTestimonials === 'function') renderTestimonials();
-  if (typeof renderFooterTypes  === 'function') renderFooterTypes();
+  if (typeof renderFooterTypes   === 'function') renderFooterTypes();
 
-  // Load metadata first (fast — no products)
+  // Instant render from memory/cache if already populated
+  if (Array.isArray(FRAGRANCE_TYPES) && FRAGRANCE_TYPES.length > 0) {
+    if (typeof refreshHeroSlider === 'function') refreshHeroSlider();
+    if (typeof renderTypeCards   === 'function') renderTypeCards(FRAGRANCE_TYPES);
+    if (typeof renderFooterTypes === 'function') renderFooterTypes();
+    if (typeof renderTeaserStats === 'function') renderTeaserStats();
+  } else {
+    // Immediate gold skeleton state to avoid blank space
+    if (typeof renderTypeCards === 'function') renderTypeCards([]);
+  }
+
+  if (Array.isArray(ALL_PERFUMES) && ALL_PERFUMES.length > 0) {
+    if (typeof renderHomeProductStrips === 'function') renderHomeProductStrips();
+    if (typeof renderTeaserStats       === 'function') renderTeaserStats();
+  } else {
+    // Immediate gold skeleton cards for featured & bestsellers
+    if (typeof renderProductStripSkeletons === 'function') {
+      renderProductStripSkeletons('featured-grid', 6);
+      renderProductStripSkeletons('best-sellers-grid', 6);
+    }
+  }
+
+  // Non-blocking network sync / metadata completion
   whenMetadataReady().then(() => {
     if (typeof refreshHeroSlider === 'function') refreshHeroSlider();
     if (typeof renderTypeCards   === 'function') renderTypeCards(FRAGRANCE_TYPES);
     if (typeof renderFooterTypes === 'function') renderFooterTypes();
     if (typeof renderTeaserStats === 'function') renderTeaserStats();
   }).catch(() => {
-    // Fallback: render type cards from static text
     if (typeof renderTypeCards === 'function') renderTypeCards([]);
   });
 
-  // Then load products for feature strips
+  // Non-blocking catalog completion
   whenCatalogReady().then(() => {
     if (typeof renderHomeProductStrips === 'function') renderHomeProductStrips();
     if (typeof renderTeaserStats       === 'function') renderTeaserStats();
@@ -75,7 +112,11 @@ function bootHome() {
 
 /* ── Products page boot ──────────────────────────────────────── */
 function bootProducts() {
-  if (typeof renderSkeletonGrid === 'function') renderSkeletonGrid(12);
+  if (Array.isArray(ALL_PERFUMES) && ALL_PERFUMES.length > 0) {
+    if (typeof initProductsPage === 'function') initProductsPage();
+  } else {
+    if (typeof renderSkeletonGrid === 'function') renderSkeletonGrid(12);
+  }
   whenCatalogReady().then(() => {
     if (typeof initProductsPage === 'function') initProductsPage();
   }).catch(() => {});
@@ -110,6 +151,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('aarif:basket-updated', updateHeaderBadges);
   document.addEventListener('aarif:wishlist-updated', updateWishlistBadge);
 
+  // Background SWR update listener
+  document.addEventListener('aarif:data-revalidated', (e) => {
+    const page = document.body.dataset.page;
+    if (page === 'home') {
+      if (typeof refreshHeroSlider === 'function') refreshHeroSlider();
+      if (typeof renderTypeCards   === 'function') renderTypeCards(FRAGRANCE_TYPES);
+      if (typeof renderFooterTypes === 'function') renderFooterTypes();
+      if (typeof renderHomeProductStrips === 'function') renderHomeProductStrips();
+      if (typeof renderTeaserStats === 'function') renderTeaserStats();
+    } else if (page === 'products') {
+      if (typeof applyFilters === 'function') applyFilters(false);
+    }
+  });
+
   const page = document.body.dataset.page;
   if      (page === 'home')     bootHome();
   else if (page === 'products') bootProducts();
@@ -123,5 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
     whenMetadataReady().then(() => {
       if (typeof renderFooterTypes === 'function') renderFooterTypes();
     }).catch(() => {});
+  }
+
+  // Register production Service Worker for disk caching
+  if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+    });
   }
 });

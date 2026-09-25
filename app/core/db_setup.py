@@ -360,7 +360,10 @@ async def seed_fragrance_types(db: AsyncSession) -> None:
                         slug = :slug,
                         description = :desc,
                         display_order = :order,
-                        icon_image_url = :icon,
+                        icon_image_url = CASE 
+                            WHEN icon_image_url LIKE '%res.cloudinary.com%' THEN icon_image_url 
+                            ELSE :icon 
+                        END,
                         is_active = TRUE
                     WHERE type_id = :id
                     """
@@ -510,10 +513,11 @@ async def seed_banners(db: AsyncSession) -> None:
     ]
 
     for title, image_url, link_url, order in banners:
+        fname = image_url.split('/')[-1]
         exists = (
             await db.execute(
-                text("SELECT id FROM site_banners WHERE image_url = :url LIMIT 1"),
-                {"url": image_url},
+                text("SELECT id FROM site_banners WHERE image_url = :url OR image_url LIKE :like_url LIMIT 1"),
+                {"url": image_url, "like_url": f"%{fname}%"},
             )
         ).scalar_one_or_none()
         if exists:

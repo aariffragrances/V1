@@ -1,46 +1,88 @@
 from functools import lru_cache
-
-from pydantic import model_validator
+from sqlalchemy.engine import URL, make_url
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_env: str = "development"
+    app_env: str = Field(
+        default="development",
+        validation_alias=AliasChoices("APP_ENV", "ENVIRONMENT", "app_env", "environment"),
+    )
     app_host: str = "127.0.0.1"
     app_port: int = 8001
     secret_key: str = "change-me"
     session_expire_minutes: int = 60 * 24 * 7
 
-    db_host: str = "localhost"
-    db_port: int = 5432
-    db_name: str = "Aarif_fragnances"
-    db_user: str = "postgres"
-    db_password: str = "2003"
-    db_ssl: str = ""
+    # Neon Cloud PostgreSQL Connection
+    database_connection_url: str = Field(
+        default="",
+        validation_alias=AliasChoices("DATABASE_URL", "NEON_DATABASE_URL"),
+    )
+    neon_data_api_url: str = Field(
+        default="",
+        validation_alias=AliasChoices("NEON_DATA_API_URL", "NEON_REST_URL"),
+    )
 
-    cloudinary_cloud_name: str = ""
-    cloudinary_api_key: str = ""
-    cloudinary_api_secret: str = ""
-    cloudinary_upload_preset: str = "AARIF_FRAGRANCES"
-    cloudinary_folder: str = "aarif-fragrances"
+    cloudinary_cloud_name: str = Field(
+        default="",
+        validation_alias=AliasChoices("CLOUDINARY_CLOUD_NAME", "cloudinary_cloud_name"),
+    )
+    cloudinary_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("CLOUDINARY_API_KEY", "cloudinary_api_key"),
+    )
+    cloudinary_api_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices("CLOUDINARY_API_SECRET", "cloudinary_api_secret"),
+    )
+    cloudinary_upload_preset: str = Field(
+        default="AARIF_FRAGRANCES",
+        validation_alias=AliasChoices("CLOUDINARY_UPLOAD_PRESET", "cloudinary_upload_preset"),
+    )
+    cloudinary_folder: str = Field(
+        default="aarif-fragrances",
+        validation_alias=AliasChoices("CLOUDINARY_FOLDER", "cloudinary_folder"),
+    )
 
     cors_origins: str = "http://127.0.0.1:8001,http://localhost:8001"
 
     @property
     def cloudinary_configured(self) -> bool:
-        return bool(self.cloudinary_cloud_name and self.cloudinary_api_key and self.cloudinary_api_secret)
+        c = (self.cloudinary_cloud_name or "").strip()
+        k = (self.cloudinary_api_key or "").strip()
+        s = (self.cloudinary_api_secret or "").strip()
+        if not c or not k or not s:
+            return False
+        if "YOUR_CLOUDINARY" in c or "YOUR_CLOUDINARY" in k or "YOUR_CLOUDINARY" in s:
+            return False
+        return True
 
     @property
-    def database_url(self) -> str:
-        base = (
-            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
-        if self.db_ssl:
-            return f"{base}?ssl={self.db_ssl}"
-        return base
+    def is_neon_configured(self) -> bool:
+        return bool(self.database_connection_url and self.database_connection_url.strip())
+
+    @property
+    def database_url(self) -> URL:
+        raw_url = (self.database_connection_url or "").strip()
+        if not raw_url:
+            raise ValueError(
+                "DATABASE_URL is not configured. Neon Cloud PostgreSQL is required."
+            )
+        parsed = make_url(raw_url)
+        drivername = parsed.drivername.replace("postgres://", "postgresql://")
+        if drivername in {"postgresql", "postgres"}:
+            drivername = "postgresql+asyncpg"
+        query = dict(parsed.query)
+        # Remove libpq parameters unsupported by asyncpg
+        query.pop("channel_binding", None)
+        if query.get("sslmode") and "ssl" not in query:
+            query["ssl"] = query.pop("sslmode")
+        elif "ssl" not in query:
+            query["ssl"] = "require"
+        return parsed.set(drivername=drivername, query=query)
 
     @property
     def cors_origin_list(self) -> list[str]:

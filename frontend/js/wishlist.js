@@ -6,13 +6,15 @@ function renderWishlistPage() {
   const sub = document.getElementById('wishlist-subtitle');
   if (!root || typeof AarifStore === 'undefined') return;
   AarifStore.hydrate?.(true);
-  const names = AarifStore.getWishlist();
+  const rawList = typeof AarifStore.getWishlistItems === 'function'
+    ? AarifStore.getWishlistItems()
+    : AarifStore.getWishlist().map(n => ({ name: n }));
   if (sub) {
-    sub.textContent = names.length
-      ? `${names.length} saved fragrance${names.length === 1 ? '' : 's'}`
+    sub.textContent = rawList.length
+      ? `${rawList.length} saved fragrance${rawList.length === 1 ? '' : 's'}`
       : 'No saved fragrances yet';
   }
-  if (!names.length) {
+  if (!rawList.length) {
     root.innerHTML = `<div class="cart-empty" style="grid-column:1/-1">
       <div class="cart-empty-icon"><i class="fa-regular fa-heart"></i></div>
       <h2>Your wishlist is empty</h2>
@@ -21,10 +23,19 @@ function renderWishlistPage() {
     </div>`;
     return;
   }
-  const items = names
-    .map((n) => (typeof resolveStoredProductKey === 'function' ? resolveStoredProductKey(n) : null))
+  const items = rawList
+    .map((it) => {
+      const name = typeof it === 'string' ? it : it.name;
+      const p = (typeof resolveStoredProductKey === 'function' ? resolveStoredProductKey(name) : null);
+      if (!p) return null;
+      return {
+        perfume: p,
+        type: typeof it === 'object' ? it.type : '',
+        size: typeof it === 'object' ? it.size : '',
+      };
+    })
     .filter(Boolean);
-  root.innerHTML = items.map((p, i) => buildProductCardHTML(p, i)).join('');
+  root.innerHTML = items.map((it, i) => buildProductCardHTML(it.perfume, i, it.type, it.size, true)).join('');
   if (typeof bindProductCards === 'function') bindProductCards(root);
 }
 

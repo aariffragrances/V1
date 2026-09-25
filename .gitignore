@@ -1,14 +1,46 @@
+# ==========================================
+# Environment & Secrets (NEVER COMMIT)
+# ==========================================
 .env
+.env.local
+.env.production
+*.env
+
+# ==========================================
+# Python & Virtual Environments
+# ==========================================
 __pycache__/
 *.py[cod]
-.venv/
+*$py.class
+*.so
+.Python
 venv/
-*.egg-info/
-dist/
+.venv/
+env/
+ENV/
 build/
+dist/
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
-node_modules/
-*.log
+
+# ==========================================
+# Application Caches & Scratch Files
+# ==========================================
 .cache_invalidated
+app/core/.cache_invalidated
+scratch/
+*.log
 frontend/uploads/
+
+# ==========================================
+# OS & Editor Files
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+node_modules/

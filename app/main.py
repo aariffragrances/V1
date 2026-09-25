@@ -48,23 +48,30 @@ def _html_response(filename: str, status_code: int = 200) -> FileResponse:
 async def _warmup_db() -> None:
     try:
         from sqlalchemy import text
-        from app.core.db_setup import (
-            ensure_schema,
-            ensure_admin_account,
-            seed_fragrance_types,
-            seed_perfumes,
-            seed_testimonials,
-            seed_banners,
-        )
-
         async with AsyncSessionLocal() as db:
             await db.execute(text("SELECT 1"))
-            await ensure_schema(db)
-            await ensure_admin_account(db)
-            await seed_fragrance_types(db)
-            await seed_perfumes(db)
-            await seed_testimonials(db)
-            await seed_banners(db)
+            # Only run heavy seeding if table is unpopulated
+            has_perfumes = False
+            try:
+                has_perfumes = bool((await db.execute(text("SELECT 1 FROM perfumes LIMIT 1"))).scalar_one_or_none())
+            except Exception:
+                has_perfumes = False
+
+            if not has_perfumes:
+                from app.core.db_setup import (
+                    ensure_schema,
+                    ensure_admin_account,
+                    seed_fragrance_types,
+                    seed_perfumes,
+                    seed_testimonials,
+                    seed_banners,
+                )
+                await ensure_schema(db)
+                await ensure_admin_account(db)
+                await seed_fragrance_types(db)
+                await seed_perfumes(db)
+                await seed_testimonials(db)
+                await seed_banners(db)
         logger.info("Database ready.")
     except Exception as exc:
         logger.exception("Database warmup failed: %s", exc)
@@ -73,11 +80,14 @@ async def _warmup_db() -> None:
 
 async def _warmup_cache() -> None:
     try:
-        from app.routers.catalog import _load_active_perfumes, _load_fragrance_types
+        from app.routers.catalog import _load_active_perfumes, _load_fragrance_types, _load_active_banners
+        from app.core.site_settings import load_public_site_settings
         async with AsyncSessionLocal() as db:
             await _load_fragrance_types(db)
             await _load_active_perfumes(db)
-        logger.info("Catalog cache warmed up.")
+            await _load_active_banners(db)
+            await load_public_site_settings(db)
+        logger.info("Catalog cache fully warmed up.")
     except Exception as exc:
         logger.warning("Cache warmup failed: %s", exc)
 
@@ -104,7 +114,7 @@ class CachedStaticFiles(StaticFiles):
         if response.status_code == 200:
             p_lower = path.lower()
             if any(p_lower.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff2", ".woff", ".ttf")):
-                response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
             elif any(p_lower.endswith(ext) for ext in (".css", ".js")):
                 response.headers["Cache-Control"] = "public, max-age=86400"
         return response
@@ -139,6 +149,18 @@ app.include_router(admin.router)
 @app.get("/api/v1/health")
 async def health():
     return {"status": "ok", "service": "aarif-fragrances"}
+
+
+@app.get("/sw.js")
+async def serve_service_worker():
+    sw_file = FRONTEND_DIR / "sw.js"
+    if sw_file.is_file():
+        return FileResponse(
+            sw_file,
+            media_type="application/javascript",
+            headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Service worker not found"})
 
 
 @app.exception_handler(404)

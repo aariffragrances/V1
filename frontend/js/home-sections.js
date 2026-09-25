@@ -47,12 +47,13 @@ function renderTypeCards(types) {
   carousel.innerHTML = types.map(t => {
     const icon = TYPE_ICONS[t.type_id] || 'fa-spray-can-sparkles';
     const grad = TYPE_GRADIENTS[t.type_id] || 'linear-gradient(135deg,#1a1508,#3d2a00)';
-    const imgUrl = t.icon_image_url || '';
+    const rawImgUrl = t.icon_image_url || '';
     const href = `products.html?type=${encodeURIComponent(t.type_id)}`;
     const name = t.type_name || '';
+    const imgUrl = typeof getOptimizedImageUrl === 'function' ? getOptimizedImageUrl(rawImgUrl, 240) : rawImgUrl;
 
     const imageInner = imgUrl
-      ? `<img src="${escHtml(imgUrl)}${imgUrl.includes('?') ? '&' : '?'}v=5" alt="" class="top-cat-card-img" loading="lazy" decoding="async">`
+      ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(name)}" class="top-cat-card-img" loading="lazy" decoding="async">`
       : `<div class="top-cat-card-image--fallback" style="background:${grad}">
            <i class="fa-solid ${icon} top-cat-card-fallback-icon" aria-hidden="true"></i>
          </div>`;
@@ -178,7 +179,8 @@ function refreshHeroSlider() {
 
   banners.forEach((b, i) => {
     const div = document.createElement('div');
-    const imgUrl = b.imageUrl || b.image_url || '';
+    const rawImgUrl = b.imageUrl || b.image_url || '';
+    const imgUrl = typeof getOptimizedImageUrl === 'function' ? getOptimizedImageUrl(rawImgUrl, 1200) : rawImgUrl;
     const title = b.title || '';
     const subtitle = b.subtitle || '';
     const link = b.linkUrl || b.link_url || 'products.html';
@@ -192,6 +194,7 @@ function refreshHeroSlider() {
            alt="${escHtml(title || 'Aarif Fragrances banner')}"
            class="hero-slide-img"
            loading="${i === 0 ? 'eager' : 'lazy'}"
+           ${i === 0 ? 'fetchpriority="high"' : ''}
            decoding="async"
            width="1776" height="602">` : ''}
       ${hasCopy ? `<div class="hero-content">
@@ -237,11 +240,30 @@ function renderProductStrip(gridId, products, maxItems) {
   initAutoScrollStrip(grid, { itemSelector: '.fp-card', intervalMs: 2800 });
 }
 
+function renderProductStripSkeletons(gridId, count = 6) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.closest('.section')?.classList.remove('hidden');
+  grid.innerHTML = Array.from({ length: count }, () => `
+    <article class="fp-card fp-card--skeleton" aria-hidden="true">
+      <div class="fp-image-area" style="background:linear-gradient(135deg,#1a1508,#2a200a);min-height:160px;display:flex;align-items:center;justify-content:center;">
+        <div class="skeleton" style="width:60%;height:80%;border-radius:8px;"></div>
+      </div>
+      <div class="fp-content">
+        <div class="skeleton fp-meta-skel" style="height:10px;width:40%;margin-bottom:8px;"></div>
+        <div class="skeleton fp-title-skel" style="height:15px;width:75%;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:10px;width:55%;margin-bottom:12px;"></div>
+        <div class="skeleton" style="height:28px;width:100%;margin-top:auto;border-radius:6px;"></div>
+      </div>
+    </article>
+  `).join('');
+}
+
 function renderHomeProductStrips() {
-  const featured    = typeof getFeaturedProducts    === 'function' ? getFeaturedProducts(12)    : [];
-  const bestSellers = typeof getBestSellerProducts  === 'function' ? getBestSellerProducts(12)  : [];
-  renderProductStrip('featured-grid',     featured,    12);
-  renderProductStrip('best-sellers-grid', bestSellers, 12);
+  const featured    = typeof getFeaturedProducts    === 'function' ? getFeaturedProducts(18)    : [];
+  const bestSellers = typeof getBestSellerProducts  === 'function' ? getBestSellerProducts(18)  : [];
+  renderProductStrip('featured-grid',     featured,    18);
+  renderProductStrip('best-sellers-grid', bestSellers, 18);
 }
 
 function stopAutoScrollStrip(el) {

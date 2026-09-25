@@ -51,14 +51,18 @@ function getSizesForType(perfume, type) {
   return sizes;
 }
 
-function getDefaultTypeAndSize(perfume) {
+function getDefaultTypeAndSize(perfume, preferredType, preferredSize) {
   const types = getPerfumeTypes(perfume);
-  let type = types.includes('perfume') ? 'perfume' : types[0];
-  if (typeof filterState !== 'undefined' && filterState.productType && types.includes(filterState.productType)) {
+  let type = (preferredType && types.includes(normalizeProductType(preferredType)))
+    ? normalizeProductType(preferredType)
+    : (types.includes('perfume') ? 'perfume' : types[0]);
+  if (!preferredType && typeof filterState !== 'undefined' && filterState.productType && types.includes(filterState.productType)) {
     type = filterState.productType;
   }
   const sizes = getSizesForType(perfume, type);
-  if (sizes.length) return { type, size: sizes[0].label, price: sizes[0].price, sizes, types };
+  let sizeObj = preferredSize ? sizes.find(s => s.label === preferredSize) : null;
+  if (!sizeObj && sizes.length) sizeObj = sizes[0];
+  if (sizeObj) return { type, size: sizeObj.label, price: sizeObj.price, sizes, types };
   return { type, size: '', price: 0, sizes: [], types };
 }
 
@@ -132,23 +136,25 @@ const DEFAULT_PRODUCT_IMAGE = 'assets/bottle-blue.png?v=1';
 
 function getProductImageUrl(perfume) {
   if (!perfume) return DEFAULT_PRODUCT_IMAGE;
-  return perfume.primaryImageUrl || perfume.imageUrl || perfume.image_url || perfume.image || DEFAULT_PRODUCT_IMAGE;
+  const raw = perfume.primaryImageUrl || perfume.imageUrl || perfume.image_url || perfume.image || DEFAULT_PRODUCT_IMAGE;
+  return typeof getOptimizedImageUrl === 'function' ? getOptimizedImageUrl(raw, 400) : raw;
 }
 
-function buildProductCardHTML(perfume, idx) {
+function buildProductCardHTML(perfume, idx, initialType, initialSize, isWishlist) {
   const key = perfume.perfumeName || perfume.productName || '';
   const inBasket = typeof AarifStore !== 'undefined' && AarifStore.isInCart(key);
   const basketQty = inBasket ? AarifStore.getCartQty(key) : 0;
   const reviews = getReviewCount(perfume, idx);
   const typeName = perfume.fragranceTypeName || perfume.categoryName || '';
   const perfumeId = perfume.perfumeId || perfume.productId || '';
-  const def = getDefaultTypeAndSize(perfume);
+  const def = getDefaultTypeAndSize(perfume, initialType, initialSize);
   const typeBtns = buildTypeButtonsHTML(perfume, def.type);
   const sizeBtns = buildSizeButtonsHTML(perfume, def.size, def.type);
   const name = perfume.displayName || perfume.perfumeName || perfume.productName || '';
   const desc = perfume.description || '';
   const priceTxt = def.price ? `<span class="fp-currency">₹</span>${def.price}` : '';
   const imgUrl = getProductImageUrl(perfume);
+  const activeTypeLabel = getTypeLabel(def.type);
 
   const imgInner = `<img src="${escStr(imgUrl)}" alt="${escStr(name)}" loading="lazy" decoding="async"
     onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'">`;
@@ -161,6 +167,7 @@ function buildProductCardHTML(perfume, idx) {
       data-wish="${escStr(key)}" aria-label="Save to wishlist" title="Wishlist">
       <i class="fa-${(typeof AarifStore !== 'undefined' && AarifStore.isInWishlist(key)) ? 'solid' : 'regular'} fa-heart"></i>
     </button>
+    ${isWishlist ? `<div class="fp-wish-type-badge">${escStr(activeTypeLabel)}</div>` : ''}
     <div class="fp-image-frame">${imgInner}</div>
   </div>
   <div class="fp-content">
@@ -178,8 +185,10 @@ function buildProductCardHTML(perfume, idx) {
     <div class="fp-type-label">TYPE</div>
     ${typeBtns}
     <div class="fp-type-label">SIZE</div>
-    ${sizeBtns}
-    ${priceTxt ? `<div class="fp-price">${priceTxt}</div>` : ''}
+    <div class="fp-size-price-row">
+      ${sizeBtns}
+      <div class="fp-price">${priceTxt}</div>
+    </div>
     <div class="fp-body-spacer" aria-hidden="true"></div>
     ${buildProductCardBottomHTML(name, inBasket, basketQty)}
   </div>
@@ -236,6 +245,9 @@ function _applyTypeOnCard(card, perfume, type) {
     b.classList.toggle('active', b.dataset.type === type);
   });
 
+  const wishTag = card.querySelector('.fp-wish-type-badge');
+  if (wishTag) wishTag.textContent = getTypeLabel(type);
+
   const hintEl = card.querySelector('.fp-type-hint');
   const hint = getTypeHint(type);
   if (hintEl) {
@@ -285,8 +297,11 @@ function bindProductCards(container) {
     if (wishBtn) {
       e.stopPropagation();
       const wname = wishBtn.dataset.wish || name;
+      const type = card.dataset.type || '';
+      const size = card.dataset.size || '';
+      const price = Number(card.dataset.price) || 0;
       if (typeof AarifStore !== 'undefined') {
-        const on = AarifStore.toggleWishlist(wname);
+        const on = AarifStore.toggleWishlist(wname, type, size, price);
         wishBtn.classList.toggle('is-active', on);
         wishBtn.innerHTML = `<i class="fa-${on ? 'solid' : 'regular'} fa-heart"></i>`;
         if (typeof updateWishlistBadge === 'function') updateWishlistBadge();
@@ -317,7 +332,8 @@ function bindProductCards(container) {
       e.stopPropagation();
       const size = card.dataset.size || '';
       const price = Number(card.dataset.price) || 0;
-      if (typeof addToCart === 'function') addToCart(name, 1, size, price);
+      const type = card.dataset.type || '';
+      if (typeof addToCart === 'function') addToCart(name, 1, size, price, type);
       return;
     }
 

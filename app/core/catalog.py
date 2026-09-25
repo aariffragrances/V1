@@ -4,6 +4,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from app.core.cloudinary_storage import get_optimized_url
+
 _CACHE_TTL = 1800  # 30 minutes
 _CACHE_MAX_ENTRIES = 500
 _cache: dict[str, tuple[float, Any]] = {}
@@ -91,5 +93,5 @@ def perfume_to_dict(p, primary_image: str | None = None) -> dict[str, Any]:
         "isFeatured": bool(p.is_featured),
         "isBestSeller": bool(p.is_best_seller),
         "isNewArrival": bool(p.is_new_arrival),
-        "primaryImageUrl": primary_image,
+        "primaryImageUrl": get_optimized_url(primary_image, width=400) if primary_image else None,
     }

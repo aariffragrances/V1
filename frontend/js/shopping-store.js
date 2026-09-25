@@ -13,14 +13,21 @@ const AarifStore = (function () {
   let _ready = false;
   let _wishReady = false;
 
+  const wishlistMap = new Map();
+
   function persist() {
     const obj = {};
     cart.forEach((v, k) => { obj[k] = v; });
-    try { localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, cart: obj })); } catch (_) {}
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ v: 2, cart: obj })); } catch (_) {}
   }
 
   function persistWishlist() {
-    try { localStorage.setItem(WISHLIST_KEY, JSON.stringify({ v: 1, items: [...wishlist] })); } catch (_) {}
+    try {
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify({
+        v: 2,
+        items: [...wishlistMap.values()]
+      }));
+    } catch (_) {}
   }
 
   function load() {
@@ -31,7 +38,15 @@ const AarifStore = (function () {
       if (!raw) return;
       const data = JSON.parse(raw);
       const src = data.cart || {};
-      Object.entries(src).forEach(([k, v]) => { if (k && v && v.qty > 0) cart.set(k, v); });
+      Object.entries(src).forEach(([k, v]) => {
+        if (k && v && v.qty > 0) {
+          if (!v.type) {
+            if (v.size === '30ml' || v.size === '50ml') v.type = 'perfume';
+            else v.type = 'attar';
+          }
+          cart.set(k, v);
+        }
+      });
     } catch (_) {}
   }
 
@@ -42,7 +57,16 @@ const AarifStore = (function () {
       const raw = localStorage.getItem(WISHLIST_KEY);
       if (!raw) return;
       const data = JSON.parse(raw);
-      (data.items || []).forEach((k) => { if (k) wishlist.add(k); });
+      (data.items || []).forEach((k) => {
+        if (!k) return;
+        if (typeof k === 'string') {
+          wishlist.add(k);
+          wishlistMap.set(k, { name: k, type: '', size: '', price: 0 });
+        } else if (k && k.name) {
+          wishlist.add(k.name);
+          wishlistMap.set(k.name, k);
+        }
+      });
     } catch (_) {}
   }
 
@@ -68,15 +92,31 @@ const AarifStore = (function () {
     getCartQty(name) { load(); return cart.has(name) ? cart.get(name).qty : 0; },
     getCartItem(name) { load(); return cart.get(name) || null; },
 
-    addToCartStore(name, qty, size, price) {
+    addToCartStore(name, qty, size, price, type) {
       load();
+      let resolvedType = type || '';
+      if (!resolvedType) {
+        if (size === '30ml' || size === '50ml') resolvedType = 'perfume';
+        else resolvedType = 'attar';
+      }
       const prev = cart.get(name);
       if (prev) {
-        cart.set(name, { qty: prev.qty + (qty||1), size: size||prev.size, price: price||prev.price });
+        cart.set(name, {
+          qty: prev.qty + (qty || 1),
+          size: size || prev.size,
+          price: price || prev.price,
+          type: type || prev.type || resolvedType
+        });
       } else {
-        cart.set(name, { qty: qty||1, size: size||'30ml', price: price||0 });
+        cart.set(name, {
+          qty: qty || 1,
+          size: size || '30ml',
+          price: price || 0,
+          type: resolvedType
+        });
       }
-      persist(); return resolveStoredProductKey(name);
+      persist();
+      return resolveStoredProductKey(name);
     },
 
     setCartQuantityStore(name, qty) {
@@ -95,12 +135,19 @@ const AarifStore = (function () {
 
     /* Wishlist */
     getWishlist() { loadWishlist(); return [...wishlist]; },
+    getWishlistItems() { loadWishlist(); return [...wishlistMap.values()]; },
     getWishlistCount() { loadWishlist(); return wishlist.size; },
     isInWishlist(name) { loadWishlist(); return wishlist.has(name); },
-    addToWishlist(name) {
+    addToWishlist(name, type, size, price) {
       loadWishlist();
       if (!name) return false;
       wishlist.add(name);
+      wishlistMap.set(name, {
+        name,
+        type: type || (size === '30ml' || size === '50ml' ? 'perfume' : 'attar'),
+        size: size || '',
+        price: price || 0
+      });
       persistWishlist();
       emitWish();
       return true;
@@ -108,14 +155,25 @@ const AarifStore = (function () {
     removeFromWishlist(name) {
       loadWishlist();
       wishlist.delete(name);
+      wishlistMap.delete(name);
       persistWishlist();
       emitWish();
     },
-    toggleWishlist(name) {
+    toggleWishlist(name, type, size, price) {
       loadWishlist();
       if (!name) return false;
-      if (wishlist.has(name)) wishlist.delete(name);
-      else wishlist.add(name);
+      if (wishlist.has(name)) {
+        wishlist.delete(name);
+        wishlistMap.delete(name);
+      } else {
+        wishlist.add(name);
+        wishlistMap.set(name, {
+          name,
+          type: type || (size === '30ml' || size === '50ml' ? 'perfume' : 'attar'),
+          size: size || '',
+          price: price || 0
+        });
+      }
       persistWishlist();
       emitWish();
       return wishlist.has(name);

@@ -183,15 +183,17 @@ function openProductModal(perfume) {
     const pname = btn.dataset.name;
     const size = btn.dataset.size;
     const price = Number(btn.dataset.price) || 0;
-    if (typeof addToCart === 'function') addToCart(pname, qty, size, price);
+    if (typeof addToCart === 'function') addToCart(pname, qty, size, price, currentType);
     closeProductModal();
   });
 
   modal.querySelector('#modal-wish-btn')?.addEventListener('click', () => {
     const btn = modal.querySelector('#modal-wish-btn');
     const wname = btn?.dataset.name;
+    const size = btn?.dataset.size || def.label;
+    const price = Number(btn?.dataset.price) || def.price;
     if (!wname || typeof AarifStore === 'undefined') return;
-    const on = AarifStore.toggleWishlist(wname);
+    const on = AarifStore.toggleWishlist(wname, currentType, size, price);
     btn.classList.toggle('is-active', on);
     btn.innerHTML = `<i class="fa-${on ? 'solid' : 'regular'} fa-heart"></i>`;
     if (typeof updateWishlistBadge === 'function') updateWishlistBadge();

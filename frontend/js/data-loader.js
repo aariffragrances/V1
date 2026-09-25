@@ -1,7 +1,11 @@
 'use strict';
 /* ============================================================
-   data-loader.js  — API fetch + in-memory catalog
+   data-loader.js  — High-performance SWR Cache + API Catalog
+   Instant 0ms LocalStorage hydration with background revalidation
    ============================================================ */
+
+const STORAGE_KEY_META    = 'aarif_meta_cache_v2';
+const STORAGE_KEY_CATALOG = 'aarif_cat_cache_v2';
 
 const ALL_PERFUMES = [];
 const PERFUME_BY_NAME = new Map();
@@ -14,6 +18,7 @@ let _dataReady = false;
 let _metaReady = false;
 let _dataPromise = null;
 let _metaPromise = null;
+let _isRevalidating = false;
 
 /* ── Normalise one perfume object from API ──────────────────── */
 function normaliseApiPerfume(p) {
@@ -56,10 +61,21 @@ function rebuildLookups() {
 }
 
 /* ── Apply metadata (fragrance types, banners, settings) ────── */
-function applyMetadata(data) {
+function applyMetadata(data, persist = true) {
+  if (!data) return;
   FRAGRANCE_TYPES   = data.fragranceTypes  || [];
   PROMOTION_BANNERS = data.promotionBanners || [];
   SITE_SETTINGS     = data.siteSettings    || {};
+
+  if (persist) {
+    try {
+      localStorage.setItem(STORAGE_KEY_META, JSON.stringify({
+        fragranceTypes:   FRAGRANCE_TYPES,
+        promotionBanners: PROMOTION_BANNERS,
+        siteSettings:     SITE_SETTINGS,
+      }));
+    } catch (_) {}
+  }
 
   if (typeof applySiteSettings === 'function') applySiteSettings(SITE_SETTINGS);
   _metaReady = true;
@@ -67,13 +83,47 @@ function applyMetadata(data) {
 }
 
 /* ── Apply full product list ─────────────────────────────────── */
-function applyCatalog(perfumes) {
+function applyCatalog(perfumes, persist = true) {
+  if (!Array.isArray(perfumes)) return;
   ALL_PERFUMES.length = 0;
-  (perfumes || []).forEach(p => ALL_PERFUMES.push(normaliseApiPerfume(p)));
+  perfumes.forEach(p => ALL_PERFUMES.push(normaliseApiPerfume(p)));
   rebuildLookups();
+
+  if (persist) {
+    try {
+      localStorage.setItem(STORAGE_KEY_CATALOG, JSON.stringify(perfumes));
+    } catch (_) {}
+  }
+
   _dataReady = true;
   document.dispatchEvent(new CustomEvent('aarif:catalog-ready'));
 }
+
+/* ── Synchronous Instant Hydration from LocalStorage ─────────── */
+function hydrateFromStorage() {
+  try {
+    const rawMeta = localStorage.getItem(STORAGE_KEY_META);
+    if (rawMeta) {
+      const parsed = JSON.parse(rawMeta);
+      if (parsed && Array.isArray(parsed.fragranceTypes) && parsed.fragranceTypes.length > 0) {
+        applyMetadata(parsed, false);
+      }
+    }
+
+    const rawCat = localStorage.getItem(STORAGE_KEY_CATALOG);
+    if (rawCat) {
+      const parsed = JSON.parse(rawCat);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        applyCatalog(parsed, false);
+      }
+    }
+  } catch (err) {
+    console.warn('LocalStorage hydration failed:', err);
+  }
+}
+
+// Hydrate immediately upon script parse for 0ms initial render
+hydrateFromStorage();
 
 /* ── Public: get promotion banners (used by home-sections.js) ── */
 function getPromotionBanners() { return PROMOTION_BANNERS; }
@@ -112,18 +162,74 @@ function whenMetadataReady() {
 function whenCatalogReady() {
   if (_dataReady) return Promise.resolve();
   if (!_dataPromise) {
-    _dataPromise = whenMetadataReady()
-      .then(() => fetchPerfumesBulk())
-      .then(data => applyCatalog(data.perfumes || []))
+    // Fast single-request bootstrap gets both metadata and catalog concurrently
+    _dataPromise = fetchBootstrap()
+      .then(data => {
+        applyMetadata(data);
+        applyCatalog(data.perfumes || []);
+      })
       .catch(err => {
-        console.warn('Split load failed, trying bootstrap', err);
-        return fetchBootstrap().then(data => {
-          applyMetadata(data);
-          applyCatalog(data.perfumes || []);
-        }).catch(e => { _dataPromise = null; throw e; });
+        console.warn('Bootstrap fetch failed, trying parallel split fetch:', err);
+        return Promise.all([
+          fetchMetadata().then(applyMetadata),
+          fetchPerfumesBulk().then(d => applyCatalog(d.perfumes || []))
+        ]).catch(e => { _dataPromise = null; throw e; });
       });
   }
   return _dataPromise;
+}
+
+/* ── Background Stale-While-Revalidate (SWR) ─────────────────── */
+function revalidateInBackground() {
+  if (_isRevalidating) return;
+  _isRevalidating = true;
+
+  // Small delay so initial DOM paint happens without any CPU competition
+  setTimeout(() => {
+    fetchBootstrap()
+      .then(data => {
+        let metaChanged = false;
+        let catChanged = false;
+
+        if (data && Array.isArray(data.fragranceTypes) && data.fragranceTypes.length > 0) {
+          const freshMetaStr = JSON.stringify({
+            fragranceTypes:   data.fragranceTypes,
+            promotionBanners: data.promotionBanners || [],
+            siteSettings:     data.siteSettings    || {},
+          });
+          if (localStorage.getItem(STORAGE_KEY_META) !== freshMetaStr) {
+            applyMetadata(data, true);
+            metaChanged = true;
+          }
+        }
+
+        if (data && Array.isArray(data.perfumes) && data.perfumes.length > 0) {
+          const freshCatStr = JSON.stringify(data.perfumes);
+          if (localStorage.getItem(STORAGE_KEY_CATALOG) !== freshCatStr) {
+            applyCatalog(data.perfumes, true);
+            catChanged = true;
+          }
+        }
+
+        if (metaChanged || catChanged) {
+          document.dispatchEvent(new CustomEvent('aarif:data-revalidated', {
+            detail: { metaChanged, catChanged }
+          }));
+        }
+      })
+      .catch(err => {
+        // Silently keep cached data if network error
+        console.debug('Background revalidation skipped:', err);
+      })
+      .finally(() => {
+        _isRevalidating = false;
+      });
+  }, 100);
+}
+
+// Auto-trigger background revalidation if data was restored from cache
+if (_dataReady && _metaReady) {
+  revalidateInBackground();
 }
 
 /* ── Product flag getters ─────────────────────────────────────── */

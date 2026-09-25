@@ -3,7 +3,7 @@
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 
 from app.core.catalog import (
     _cache_get,
@@ -11,6 +11,7 @@ from app.core.catalog import (
     perfume_to_dict,
     primary_image_url,
 )
+from app.core.cloudinary_storage import get_optimized_url
 from app.core.site_settings import load_public_site_settings
 from app.database import get_db
 from app.models import FragranceType, Perfume, SiteBanner, Testimonial
@@ -85,7 +86,7 @@ async def _load_active_perfumes(db: AsyncSession) -> list[dict]:
             "isFeatured": bool(row.is_featured),
             "isBestSeller": bool(row.is_best_seller),
             "isNewArrival": bool(row.is_new_arrival),
-            "primaryImageUrl": row.primary_image_url,
+            "primaryImageUrl": get_optimized_url(row.primary_image_url, width=400) if row.primary_image_url else None,
         })
 
     _cache_set("active_perfumes", perfumes)
@@ -112,7 +113,7 @@ async def _load_fragrance_types(db: AsyncSession) -> list[dict]:
             "type_id": row.type_id,
             "type_name": row.type_name,
             "description": row.description or "",
-            "icon_image_url": row.icon_image_url or "",
+            "icon_image_url": get_optimized_url(row.icon_image_url or "", width=240),
             "display_order": row.display_order,
             "product_count": row.product_count,
         }
@@ -138,7 +139,7 @@ async def _load_active_banners(db: AsyncSession) -> list[dict]:
             "id": b.id,
             "title": b.title,
             "subtitle": b.subtitle,
-            "imageUrl": b.image_url,
+            "imageUrl": get_optimized_url(b.image_url, width=1200) if b.image_url else "",
             "linkUrl": b.link_url or "products.html",
         }
         for b in result.scalars()
@@ -147,8 +148,12 @@ async def _load_active_banners(db: AsyncSession) -> list[dict]:
     return banners
 
 
+_CATALOG_CACHE_CONTROL = "public, max-age=180, stale-while-revalidate=86400"
+
+
 @router.get("/catalog/metadata", response_model=CatalogMetadataOut)
-async def catalog_metadata(db: AsyncSession = Depends(get_db)):
+async def catalog_metadata(response: Response, db: AsyncSession = Depends(get_db)):
+    response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
     fragrance_types = await _load_fragrance_types(db)
     site_settings = await load_public_site_settings(db)
     banners = await _load_active_banners(db)
@@ -160,12 +165,14 @@ async def catalog_metadata(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/catalog/perfumes-bulk", response_model=CatalogProductsBulkOut)
-async def catalog_perfumes_bulk(db: AsyncSession = Depends(get_db)):
+async def catalog_perfumes_bulk(response: Response, db: AsyncSession = Depends(get_db)):
+    response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
     return CatalogProductsBulkOut(perfumes=await _load_active_perfumes(db))
 
 
 @router.get("/catalog/bootstrap", response_model=BootstrapOut)
-async def catalog_bootstrap(db: AsyncSession = Depends(get_db)):
+async def catalog_bootstrap(response: Response, db: AsyncSession = Depends(get_db)):
+    response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
     fragrance_types = await _load_fragrance_types(db)
     perfumes = await _load_active_perfumes(db)
     site_settings = await load_public_site_settings(db)
@@ -284,7 +291,8 @@ async def get_perfume(perfume_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/testimonials", response_model=list[TestimonialOut])
-async def list_testimonials(db: AsyncSession = Depends(get_db)):
+async def list_testimonials(response: Response, db: AsyncSession = Depends(get_db)):
+    response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
     cached = _cache_get("public_testimonials")
     if cached is not None:
         return cached

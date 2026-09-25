@@ -176,12 +176,12 @@ function renderProductPage(perfume) {
   });
 
   root.querySelector('#pp-add-btn')?.addEventListener('click', () => {
-    if (typeof addToCart === 'function') addToCart(key, qty, currentSize, currentPrice);
+    if (typeof addToCart === 'function') addToCart(key, qty, currentSize, currentPrice, currentType);
   });
 
   root.querySelector('#pp-wish-btn')?.addEventListener('click', () => {
     if (typeof AarifStore === 'undefined') return;
-    AarifStore.toggleWishlist(key);
+    AarifStore.toggleWishlist(key, currentType, currentSize, currentPrice);
     const on = AarifStore.isInWishlist(key);
     const b = root.querySelector('#pp-wish-btn');
     if (b) {

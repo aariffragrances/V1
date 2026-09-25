@@ -8,10 +8,10 @@ function resolveWaNumber() {
   return (typeof getWhatsAppNumber === 'function') ? getWhatsAppNumber() : WA_NUMBER;
 }
 
-function addToCart(name, qty, size, price) {
+function addToCart(name, qty, size, price, type) {
   if (typeof AarifStore === 'undefined') return;
   const fromWishlist = AarifStore.isInWishlist(name);
-  AarifStore.addToCartStore(name, qty || 1, size, price);
+  AarifStore.addToCartStore(name, qty || 1, size, price, type);
   if (fromWishlist) {
     AarifStore.removeFromWishlist(name);
     if (typeof updateProductCardWishlistState === 'function') updateProductCardWishlistState(name);
@@ -72,6 +72,15 @@ function showToast(msg, type) {
 function escBt(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ── Basket page ────────────────────────────────────────────── */
+function formatProductTypeLabel(type) {
+  if (!type) return '';
+  const t = String(type).toLowerCase().replace(/[-_]/g, '');
+  if (t === 'carhanger' || t === 'carhangover') return 'Car Hanger';
+  if (t === 'perfume' || t === 'spray') return 'Perfume';
+  if (t === 'attar' || t === 'rollon') return 'Attar';
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
 function getCartLineItems() {
   if (typeof AarifStore === 'undefined') return [];
   const map = AarifStore.getCartMapObject();
@@ -87,7 +96,22 @@ function getCartLineItems() {
         primaryImageUrl: 'assets/bottle-blue.png?v=1',
       };
     }
-    return { product: p, qty: info.qty || 1, size: info.size || '', price: info.price || (p.minPrice || 0) };
+    const size = info.size || '';
+    let type = info.type || '';
+    if (!type) {
+      if (size === '30ml' || size === '50ml') {
+        type = 'perfume';
+      } else {
+        type = 'attar';
+      }
+    }
+    return {
+      product: p,
+      qty: info.qty || 1,
+      size: size,
+      price: info.price || (p.minPrice || 0),
+      type: type
+    };
   }).filter(Boolean);
 }
 
@@ -96,7 +120,11 @@ function buildWhatsAppUrl(lines, orderRef) {
   const totalPrice = lines.reduce((s,l) => s + (l.price ? Number(l.price) * l.qty : 0), 0);
   const ref = orderRef || generateOrderRef();
   let msg = `Hello Aarif Fragrances,\n\nOrder Ref: ${ref}\n\nI'd like to order the following ${total} item${total===1?'':'s'}:\n\n`;
-  msg += lines.map(l => `• ${l.product.displayName||l.product.perfumeName} — ${l.size||'30ml'} × ${l.qty}${l.price ? ' (₹'+l.price+')' : ''}`).join('\n');
+  msg += lines.map(l => {
+    const t = formatProductTypeLabel(l.type);
+    const typePrefix = t ? `${t} ` : '';
+    return `• ${l.product.displayName || l.product.perfumeName} — ${typePrefix}${l.size || '30ml'} × ${l.qty}${l.price ? ' (₹' + l.price + ')' : ''}`;
+  }).join('\n');
   if (totalPrice > 0) {
     msg += `\n\nEstimated Total: ₹${totalPrice.toLocaleString('en-IN')}`;
   }
@@ -184,6 +212,7 @@ function renderBasketPage() {
             const display = l.product.displayName || name;
             const cat = l.product.fragranceTypeName || l.product.categoryName || '';
             const id = l.product.perfumeId || l.product.productId || '';
+            const typeLabel = formatProductTypeLabel(l.type);
             const img = typeof getProductImageUrl === 'function' ? getProductImageUrl(l.product) : (l.product.primaryImageUrl || 'assets/bottle-blue.png?v=1');
             return `
             <article class="cart-line" data-name="${escBt(name)}">
@@ -196,6 +225,7 @@ function renderBasketPage() {
                 <h2 class="cart-line-name">${escBt(display)}</h2>
                 <div class="cart-line-meta">
                   ${id ? `<span class="cart-sku-badge">${escBt(id)}</span>` : ''}
+                  ${typeLabel ? `<span class="cart-type-chip">${escBt(typeLabel)}</span>` : ''}
                   ${l.size ? `<span class="cart-size-chip">${escBt(l.size)}</span>` : ''}
                   ${l.price ? `<span class="cart-price-chip">₹${l.price}</span>` : ''}
                 </div>
