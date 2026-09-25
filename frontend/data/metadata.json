@@ -1,0 +1,171 @@
+{
+  "fragranceTypes": [
+    {
+      "type_id": "FT001",
+      "type_name": "Aquatic Fresh",
+      "description": "Cool aquatic & fresh breezes",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276396/aarif-fragrances/types/aquatic-fresh.png",
+      "display_order": 1,
+      "product_count": 7
+    },
+    {
+      "type_id": "FT002",
+      "type_name": "Fruity Delights",
+      "description": "Bright fruity accords",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276399/aarif-fragrances/types/fruity-delights.png",
+      "display_order": 2,
+      "product_count": 9
+    },
+    {
+      "type_id": "FT003",
+      "type_name": "Spicy & Aromatic",
+      "description": "Spicy, aromatic & bold blends",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276404/aarif-fragrances/types/spicy-aromatic.png",
+      "display_order": 3,
+      "product_count": 9
+    },
+    {
+      "type_id": "FT004",
+      "type_name": "Mystic Oud",
+      "description": "Rich oud compositions",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276401/aarif-fragrances/types/mystic-oud.png",
+      "display_order": 4,
+      "product_count": 7
+    },
+    {
+      "type_id": "FT005",
+      "type_name": "Floral Elegance",
+      "description": "Soft floral bouquets",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276397/aarif-fragrances/types/floral-elegance.png",
+      "display_order": 5,
+      "product_count": 6
+    },
+    {
+      "type_id": "FT006",
+      "type_name": "Rich Woody",
+      "description": "Warm woody bases",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276403/aarif-fragrances/types/rich-woody.png",
+      "display_order": 6,
+      "product_count": 4
+    },
+    {
+      "type_id": "FT007",
+      "type_name": "Sweet Gourmand",
+      "description": "Sweet dessert-inspired scents",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276406/aarif-fragrances/types/sweet-gourmand.png",
+      "display_order": 7,
+      "product_count": 5
+    },
+    {
+      "type_id": "FT008",
+      "type_name": "Heritage Traditional",
+      "description": "Classic attars & heritage blends",
+      "icon_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_240/v1790276400/aarif-fragrances/types/heritage-traditional.png",
+      "display_order": 8,
+      "product_count": 3
+    }
+  ],
+  "siteSettings": {
+    "store_name": "Aarif Fragrances",
+    "store_tagline": "Premium Attar & Perfumes",
+    "store_phone": "+91 9688498926",
+    "whatsapp_number": "919688498926",
+    "contact_email": "aariffragrances@gmail.com",
+    "store_address": "Tamil Nadu, India",
+    "store_city": "Tamil Nadu",
+    "store_postcode": "",
+    "opening_hours": "Open Daily — Mon to Sun",
+    "opening_hours_mon_fri": "9:00am – 9:00pm",
+    "opening_hours_saturday": "9:00am – 9:00pm",
+    "opening_hours_sunday": "10:00am – 8:00pm",
+    "footer_desc": "Aarif Fragrances — your destination for premium attars and perfumes. Authentic, long-lasting fragrances crafted for every occasion.",
+    "home_about_teaser": "Aarif Fragrances is a Tamil Nadu based perfume house offering a wide range of premium attars and perfumes in multiple quantities — 6ml, 12ml, 30ml and 50ml.",
+    "home_about_teaser_extra": "From Mystic Oud and Heritage Traditional attars to Aquatic Fresh and Fruity Delights, we have the perfect fragrance for every mood and occasion.",
+    "about_us_text": "Aarif Fragrances is a dedicated perfume and attar brand based in Tamil Nadu, India. Our collection follows eight premium fragrance families: Aquatic Fresh, Fruity Delights, Spicy & Aromatic, Mystic Oud, Floral Elegance, Rich Woody, Sweet Gourmand, and Heritage Traditional.\n\nAll our perfumes are available in convenient sizes: 6ml, 12ml, 30ml, and 50ml — making them perfect for personal use, gifting, or travel.\n\nWe believe that everyone deserves access to authentic, long-lasting fragrances at fair prices.",
+    "delivery_area": "Tamil Nadu & all over India",
+    "maps_embed_url": "",
+    "social_facebook": "",
+    "social_instagram": "",
+    "social_twitter": "",
+    "store_logo_url": ""
+  },
+  "promotionBanners": [
+    {
+      "id": 2,
+      "title": "Banner 01",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276388/aarif-fragrances/banners/banner-01.png",
+      "linkUrl": "products.html"
+    },
+    {
+      "id": 3,
+      "title": "Banner 02",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276389/aarif-fragrances/banners/banner-02.png",
+      "linkUrl": "products.html"
+    },
+    {
+      "id": 4,
+      "title": "Banner 03",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276390/aarif-fragrances/banners/banner-03.png",
+      "linkUrl": "products.html"
+    },
+    {
+      "id": 5,
+      "title": "Banner 04",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276391/aarif-fragrances/banners/banner-04.png",
+      "linkUrl": "products.html"
+    },
+    {
+      "id": 6,
+      "title": "Banner 05",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276392/aarif-fragrances/banners/banner-05.png",
+      "linkUrl": "products.html"
+    },
+    {
+      "id": 7,
+      "title": "Spicy & Aromatic",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276395/aarif-fragrances/banners/banner-spicy-aromatic.png",
+      "linkUrl": "products.html?type=FT003"
+    },
+    {
+      "id": 10,
+      "title": "Aquatic Fresh",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276393/aarif-fragrances/banners/banner-aquatic-fresh.png",
+      "linkUrl": "products.html?type=FT001"
+    },
+    {
+      "id": 8,
+      "title": "Aquatic Fresh",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276393/aarif-fragrances/banners/banner-aquatic-fresh.png",
+      "linkUrl": "products.html?type=FT001"
+    },
+    {
+      "id": 11,
+      "title": "Fruity Delights",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276394/aarif-fragrances/banners/banner-fruity-delights.png",
+      "linkUrl": "products.html?type=FT002"
+    },
+    {
+      "id": 9,
+      "title": "Fruity Delights",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276394/aarif-fragrances/banners/banner-fruity-delights.png",
+      "linkUrl": "products.html?type=FT002"
+    },
+    {
+      "id": 1,
+      "title": "Fruity Delights",
+      "subtitle": "",
+      "imageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_1200/v1790276394/aarif-fragrances/banners/banner-fruity-delights.png",
+      "linkUrl": "products.html?type=FT002"
+    }
+  ]
+}

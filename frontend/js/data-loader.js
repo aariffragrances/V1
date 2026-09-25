@@ -128,23 +128,35 @@ hydrateFromStorage();
 /* ── Public: get promotion banners (used by home-sections.js) ── */
 function getPromotionBanners() { return PROMOTION_BANNERS; }
 
-/* ── Fetch helpers ───────────────────────────────────────────── */
+/* ── Fetch helpers (API with seamless Netlify static fallback) ── */
 async function fetchBootstrap() {
-  const res = await fetch('/api/v1/catalog/bootstrap');
-  if (!res.ok) throw new Error('bootstrap ' + res.status);
-  return res.json();
+  try {
+    const res = await fetch('/api/v1/catalog/bootstrap');
+    if (res.ok) return await res.json();
+  } catch (_) {}
+  const fallback = await fetch('data/bootstrap.json');
+  if (!fallback.ok) throw new Error('Catalog data unavailable');
+  return fallback.json();
 }
 
 async function fetchMetadata() {
-  const res = await fetch('/api/v1/catalog/metadata');
-  if (!res.ok) throw new Error('metadata ' + res.status);
-  return res.json();
+  try {
+    const res = await fetch('/api/v1/catalog/metadata');
+    if (res.ok) return await res.json();
+  } catch (_) {}
+  const fallback = await fetch('data/metadata.json');
+  if (!fallback.ok) throw new Error('Metadata unavailable');
+  return fallback.json();
 }
 
 async function fetchPerfumesBulk() {
-  const res = await fetch('/api/v1/catalog/perfumes-bulk');
-  if (!res.ok) throw new Error('perfumes-bulk ' + res.status);
-  return res.json();
+  try {
+    const res = await fetch('/api/v1/catalog/perfumes-bulk');
+    if (res.ok) return await res.json();
+  } catch (_) {}
+  const fallback = await fetch('data/perfumes.json');
+  if (!fallback.ok) throw new Error('Perfumes data unavailable');
+  return fallback.json();
 }
 
 /* ── whenMetadataReady ───────────────────────────────────────── */
@@ -245,11 +257,16 @@ function resolveStoredProductKey(key) {
 
 /* ── Cart products (basket page) ─────────────────────────────── */
 async function fetchCartProducts(names) {
-  const joined = names.join(',');
-  const res = await fetch('/api/v1/catalog/cart-perfumes?names=' + encodeURIComponent(joined));
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.perfumes || []).map(normaliseApiPerfume);
+  try {
+    const joined = names.join(',');
+    const res = await fetch('/api/v1/catalog/cart-perfumes?names=' + encodeURIComponent(joined));
+    if (res.ok) {
+      const data = await res.json();
+      return (data.perfumes || []).map(normaliseApiPerfume);
+    }
+  } catch (_) {}
+  const wanted = new Set((names || []).map(n => String(n).trim().toUpperCase()));
+  return ALL_PERFUMES.filter(p => wanted.has(p.perfumeName.toUpperCase()));
 }
 
 function mergeProductsIntoCatalog(products) {

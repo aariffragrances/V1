@@ -361,9 +361,13 @@ function renderTestimonials() {
   const wrap = document.getElementById('testimonials-carousel');
   if (!wrap) return;
   fetch('/api/v1/testimonials')
-    .then(r => r.ok ? r.json() : [])
+    .then(r => {
+      if (r.ok) return r.json();
+      return fetch('data/testimonials.json').then(f => f.ok ? f.json() : []);
+    })
+    .catch(() => fetch('data/testimonials.json').then(f => f.ok ? f.json() : []))
     .then(list => {
-      if (!list.length) { wrap.closest('.section')?.classList.add('hidden'); return; }
+      if (!list || !list.length) { wrap.closest('.section')?.classList.add('hidden'); return; }
       wrap.innerHTML = list.map(t => `
         <div class="testimonial-card">
           <div class="testimonial-avatar">${escHtml(t.initials || '?')}</div>
