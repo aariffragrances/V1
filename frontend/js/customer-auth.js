@@ -102,6 +102,12 @@ function initSignupPage() {
   form.addEventListener('submit', async e => {
     e.preventDefault();
     if (errorEl) { errorEl.textContent=''; errorEl.className='auth-error hidden'; }
+    const pass = form.password.value;
+    const confirm = form.password_confirm ? form.password_confirm.value : pass;
+    if (pass !== confirm) {
+      if (errorEl) { errorEl.textContent='Passwords do not match.'; errorEl.className='auth-error'; }
+      return;
+    }
     const btn = form.querySelector('button[type="submit"]');
     const orig = btn.innerHTML;
     btn.disabled = true;
