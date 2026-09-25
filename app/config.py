@@ -47,7 +47,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("CLOUDINARY_FOLDER", "cloudinary_folder"),
     )
 
-    cors_origins: str = "http://127.0.0.1:8001,http://localhost:8001"
+    cors_origins: str = "http://127.0.0.1:8001,http://localhost:8001,https://aariffragnances.netlify.app"
 
     @property
     def cloudinary_configured(self) -> bool:

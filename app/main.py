@@ -74,8 +74,7 @@ async def _warmup_db() -> None:
                 await seed_banners(db)
         logger.info("Database ready.")
     except Exception as exc:
-        logger.exception("Database warmup failed: %s", exc)
-        raise
+        logger.warning("Database warmup deferred or failed: %s", exc)
 
 
 async def _warmup_cache() -> None:
@@ -133,6 +132,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=r"https://.*\.netlify\.app|https://.*\.vercel\.app|http://localhost:.*|http://127\.0\.0\.1:.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -181,8 +181,11 @@ for folder in ("css", "js", "assets"):
     if path.exists():
         app.mount(f"/{folder}", CachedStaticFiles(directory=str(path)), name=folder)
 
-PRODUCT_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", CachedStaticFiles(directory=str(PRODUCT_UPLOADS_DIR.parent)), name="uploads")
+try:
+    PRODUCT_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", CachedStaticFiles(directory=str(PRODUCT_UPLOADS_DIR.parent)), name="uploads")
+except OSError:
+    logger.info("Read-only filesystem detected; skipping local uploads directory creation")
 
 
 @app.get("/")
