@@ -1,7 +1,9 @@
-# Netlify configuration inside frontend directory
 [build]
   publish = "."
   command = "echo 'Pure static site - ready to deploy'"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "APP_ENV,ENVIRONMENT,APP_HOST,APP_PORT"
 
 [[headers]]
   for = "/*"

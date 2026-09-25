@@ -1,5 +1,5 @@
 /**
- * Aarif Fragrances — Production Service Worker
+ * Aarif Fragrances — Service Worker
  * High-performance Cache-First image delivery with instant 0ms disk cache for Cloudinary and local assets.
  */
 

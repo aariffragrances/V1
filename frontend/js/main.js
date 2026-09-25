@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => {});
   }
 
-  // Register production Service Worker for disk caching
+  // Register Service Worker for disk caching
   if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});

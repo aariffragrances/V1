@@ -3,10 +3,12 @@
 # ============================================================
 
 [build]
-  # Setting base to frontend ensures Netlify skips root requirements.txt and Python builds!
   base = "frontend"
   publish = "."
   command = "echo 'Pure static site - ready to deploy'"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "APP_ENV,ENVIRONMENT,APP_HOST,APP_PORT"
 
 # Production security and performance headers
 [[headers]]
