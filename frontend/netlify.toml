@@ -1,14 +1,8 @@
-# ============================================================
-# Netlify Configuration — Aarif Fragrances
-# ============================================================
-
+# Netlify configuration inside frontend directory
 [build]
-  # Setting base to frontend ensures Netlify skips root requirements.txt and Python builds!
-  base = "frontend"
   publish = "."
   command = "echo 'Pure static site - ready to deploy'"
 
-# Production security and performance headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -16,7 +10,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# Cache-Control headers for immutable assets
 [[headers]]
   for = "/css/*"
   [headers.values]
@@ -32,7 +25,6 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Service worker must revalidate
 [[headers]]
   for = "/sw.js"
   [headers.values]
