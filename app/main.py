@@ -190,8 +190,12 @@ except OSError:
 
 
 @app.get("/")
+@app.get("/index.html")
 @app.get("/frontend")
 @app.get("/frontend/")
+@app.get("/api/index.py")
+@app.get("/api")
+@app.get("/api/")
 async def serve_index():
     return _html_response("index.html")
 
@@ -216,10 +220,13 @@ for page in HTML_PAGES[1:]:
 
 @app.get("/{page_path:path}")
 async def spa_fallback(page_path: str):
-    if page_path.startswith("api/"):
+    p_clean = page_path.strip("/")
+    if p_clean in ("", "index", "index.html", "frontend", "frontend/index.html", "api/index.py", "api"):
+        return _html_response("index.html")
+    if any(p_clean.startswith(prefix) for prefix in ("api/v1/", "api/auth", "api/catalog", "api/orders", "api/contact", "api/admin")):
         return JSONResponse(status_code=404, content={"detail": "Not found"})
-    clean_path = page_path[9:] if page_path.startswith("frontend/") else page_path
-    if not clean_path or clean_path == "index.html":
+    clean_path = p_clean[9:] if p_clean.startswith("frontend/") else p_clean
+    if not clean_path or clean_path in ("index.html", "index"):
         return _html_response("index.html")
     candidate = FRONTEND_DIR / clean_path
     if candidate.is_file():
