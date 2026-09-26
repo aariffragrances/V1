@@ -14,8 +14,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="css/main.css?v=73">
+  <link rel="stylesheet" href="css/main.css?v=90">
   <link rel="icon" href="assets/aarif-logo.png" type="image/png">
+  <script>
+    function openMobileDrawer(){var d=document.getElementById('mobile-drawer'),o=document.getElementById('drawer-overlay'),b=document.getElementById('mobile-menu-toggle');if(d)d.classList.add('open');if(o)o.classList.add('open');document.body.classList.add('drawer-is-open');document.body.style.overflow='hidden';if(b)b.setAttribute('aria-expanded','true');}
+    function closeMobileDrawer(){var d=document.getElementById('mobile-drawer'),o=document.getElementById('drawer-overlay'),b=document.getElementById('mobile-menu-toggle');if(d)d.classList.remove('open');if(o)o.classList.remove('open');document.body.classList.remove('drawer-is-open');document.body.style.overflow='';if(b)b.setAttribute('aria-expanded','false');}
+    function toggleDrawerCat(e){if(e){e.preventDefault();e.stopPropagation();}var p=document.getElementById('drawer-cat-panel'),t=document.getElementById('drawer-cat-trigger');if(p&&t){var o=p.classList.toggle('is-open');t.classList.toggle('is-open',o);t.setAttribute('aria-expanded',o?'true':'false');}}
+  </script>
 </head>
 <body data-page="policies">
 
@@ -58,7 +63,7 @@
             <span class="header-action-label">Cart</span>
             <span class="header-action-badge" id="basket-count">0</span>
           </a>
-          <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false">
+          <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" onclick="openMobileDrawer()" aria-label="Open menu" aria-expanded="false">
             <i class="fa-solid fa-bars"></i>
           </button>
         </div>
@@ -86,29 +91,87 @@
     </div>
   </div>
 
-  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <div id="drawer-overlay" class="drawer-overlay" onclick="closeMobileDrawer()"></div>
   <aside id="mobile-drawer" class="mobile-drawer" aria-label="Mobile navigation">
     <div class="drawer-header">
       <div class="drawer-brand">
         <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--drawer">
         <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
       </div>
-      <button type="button" id="drawer-close" class="drawer-close" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" id="drawer-close" class="drawer-close" onclick="closeMobileDrawer()" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <nav class="drawer-nav">
-      <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
-      <a href="products.html"><i class="fa-solid fa-spray-can-sparkles"></i> All Perfumes</a>
-      <a href="wishlist.html"><i class="fa-regular fa-heart"></i> Wishlist</a>
-      <a href="basket.html"><i class="fa-solid fa-cart-shopping"></i> Cart</a>
-      <a href="https://wa.me/919688498926" target="_blank" rel="noopener" class="site-whatsapp-link"><i class="fa-brands fa-whatsapp"></i> WhatsApp Order</a>
-      <a href="about.html"><i class="fa-solid fa-circle-info"></i> About</a>
-      <a href="contact.html"><i class="fa-solid fa-envelope"></i> Contact</a>
-      <a href="policies.html"><i class="fa-solid fa-file-lines"></i> Policies</a>
+      <a href="index.html" class="drawer-link">
+        <i class="fa-solid fa-house"></i> Home
+      </a>
+      <a href="products.html" class="drawer-link">
+        <i class="fa-solid fa-spray-can-sparkles"></i> All Perfumes
+      </a>
+
+      <!-- Category accordion -->
+      <div class="drawer-accordion">
+        <button type="button" class="drawer-acc-trigger is-open" id="drawer-cat-trigger" onclick="toggleDrawerCat(event)" aria-expanded="true">
+          <span class="drawer-acc-label">
+            <span class="drawer-acc-dot" aria-hidden="true"></span>
+            Category
+          </span>
+          <i class="fa-solid fa-chevron-down drawer-acc-chevron"></i>
+        </button>
+        <div class="drawer-acc-panel is-open" id="drawer-cat-panel">
+          <a href="products.html?type=FT001" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-wind drawer-cat-icon"></i><span class="drawer-cat-name">Aquatic Fresh</span></span>
+            <span class="drawer-cat-count">7</span>
+          </a>
+          <a href="products.html?type=FT002" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-apple-whole drawer-cat-icon"></i><span class="drawer-cat-name">Fruity Delights</span></span>
+            <span class="drawer-cat-count">9</span>
+          </a>
+          <a href="products.html?type=FT003" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-fire drawer-cat-icon"></i><span class="drawer-cat-name">Spicy &amp; Aromatic</span></span>
+            <span class="drawer-cat-count">9</span>
+          </a>
+          <a href="products.html?type=FT004" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-gem drawer-cat-icon"></i><span class="drawer-cat-name">Mystic Oud</span></span>
+            <span class="drawer-cat-count">7</span>
+          </a>
+          <a href="products.html?type=FT005" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-spa drawer-cat-icon"></i><span class="drawer-cat-name">Floral Elegance</span></span>
+            <span class="drawer-cat-count">6</span>
+          </a>
+          <a href="products.html?type=FT006" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-tree drawer-cat-icon"></i><span class="drawer-cat-name">Rich Woody</span></span>
+            <span class="drawer-cat-count">4</span>
+          </a>
+          <a href="products.html?type=FT007" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-cookie-bite drawer-cat-icon"></i><span class="drawer-cat-name">Sweet Gourmand</span></span>
+            <span class="drawer-cat-count">5</span>
+          </a>
+          <a href="products.html?type=FT008" class="drawer-cat-item">
+            <span class="drawer-cat-item-left"><i class="fa-solid fa-scroll drawer-cat-icon"></i><span class="drawer-cat-name">Heritage Traditional</span></span>
+            <span class="drawer-cat-count">3</span>
+          </a>
+        </div>
+      </div>
+
+      <a href="products.html?collection=featured" class="drawer-link drawer-link--bullet">
+        <span class="drawer-acc-dot" aria-hidden="true"></span> Featured products
+      </a>
+      <a href="products.html?collection=bestsellers" class="drawer-link drawer-link--bullet">
+        <span class="drawer-acc-dot" aria-hidden="true"></span> Best Sellers
+      </a>
+      <a href="about.html" class="drawer-link">
+        <i class="fa-solid fa-circle-info"></i> About
+      </a>
+      <a href="policies.html" class="drawer-link active">
+        <i class="fa-solid fa-file-lines"></i> Policies
+      </a>
+      <a href="contact.html" class="drawer-link">
+        <i class="fa-solid fa-envelope"></i> Contact
+      </a>
+      <a href="https://wa.me/919688498926" target="_blank" rel="noopener" class="drawer-link site-whatsapp-link">
+        <i class="fa-brands fa-whatsapp"></i> WhatsApp Order
+      </a>
     </nav>
-    <div class="drawer-categories">
-      <h3>Fragrance Types</h3>
-      <ul id="mobile-type-list"></ul>
-    </div>
   </aside>
 
 
@@ -189,7 +252,7 @@
   <script src="js/site-settings.js?v=2"></script>
   <script src="js/data-loader.js?v=75"></script>
   <script src="js/search.js?v=2"></script>
-  <script src="js/navigation.js?v=4"></script>
+  <script src="js/navigation.js?v=90"></script>
   <script src="js/shopping-store.js?v=73"></script>
   <script src="js/customer-api.js?v=2"></script>
   <script src="js/customer-auth.js?v=3"></script>
