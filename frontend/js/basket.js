@@ -224,7 +224,6 @@ function renderBasketPage() {
                 <div class="cart-line-category">${escBt(cat)}</div>
                 <h2 class="cart-line-name">${escBt(display)}</h2>
                 <div class="cart-line-meta">
-                  ${id ? `<span class="cart-sku-badge">${escBt(id)}</span>` : ''}
                   ${typeLabel ? `<span class="cart-type-chip">${escBt(typeLabel)}</span>` : ''}
                   ${l.size ? `<span class="cart-size-chip">${escBt(l.size)}</span>` : ''}
                   ${l.price ? `<span class="cart-price-chip">₹${l.price}</span>` : ''}
