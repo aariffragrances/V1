@@ -20,9 +20,9 @@ if env_path.exists():
             key, _, val = line.partition("=")
             os.environ.setdefault(key.strip(), val.strip())
 
-HOST   = os.environ.get("HOST") or os.environ.get("APP_HOST") or ("0.0.0.0" if (os.environ.get("PORT") or os.environ.get("RENDER")) else "127.0.0.1")
-PORT   = int(os.environ.get("PORT") or os.environ.get("APP_PORT") or "8001")
-RELOAD = os.environ.get("APP_ENV", "development").lower() != "production" and not os.environ.get("RENDER")
+HOST   = os.environ.get("APP_HOST", "127.0.0.1")
+PORT   = int(os.environ.get("APP_PORT", "8001"))
+RELOAD = os.environ.get("APP_ENV", "development").lower() != "production"
 
 # ── Check uvicorn is installed ───────────────────────────────────────────────
 try:
