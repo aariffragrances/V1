@@ -37,12 +37,30 @@ _HTML_HEADERS = {
 }
 
 
-def _html_response(filename: str, status_code: int = 200) -> FileResponse:
-    target = FRONTEND_DIR / filename
-    if not target.is_file():
-        target = FRONTEND_DIR / "404.html"
-        status_code = 404
-    return FileResponse(target, status_code=status_code, headers=_HTML_HEADERS)
+def _html_response(filename: str, status_code: int = 200) -> Response:
+    from pathlib import Path
+    from fastapi.responses import Response
+    candidates = [
+        FRONTEND_DIR / filename,
+        Path.cwd() / "frontend" / filename,
+        Path("/var/task/frontend") / filename,
+    ]
+    for target in candidates:
+        if target.is_file():
+            return FileResponse(target, status_code=status_code, headers=_HTML_HEADERS)
+    fallback_404 = FRONTEND_DIR / "404.html"
+    if fallback_404.is_file():
+        return FileResponse(fallback_404, status_code=404, headers=_HTML_HEADERS)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "service": "Aarif Fragrances API",
+            "status": "online",
+            "docs": "/docs",
+            "health": "/health",
+            "frontend": "https://aariffragnances.netlify.app",
+        },
+    )
 
 
 async def _warmup_db() -> None:
@@ -176,11 +194,18 @@ async def server_error_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
+from pathlib import Path
+
 for folder in ("css", "js", "assets"):
-    path = FRONTEND_DIR / folder
-    if path.exists():
-        app.mount(f"/{folder}", CachedStaticFiles(directory=str(path)), name=folder)
-        app.mount(f"/frontend/{folder}", CachedStaticFiles(directory=str(path)), name=f"fe_{folder}")
+    folder_path = None
+    for base in (FRONTEND_DIR, Path.cwd() / "frontend", Path("/var/task/frontend")):
+        candidate = base / folder
+        if candidate.is_dir():
+            folder_path = candidate
+            break
+    if folder_path:
+        app.mount(f"/{folder}", CachedStaticFiles(directory=str(folder_path)), name=folder)
+        app.mount(f"/frontend/{folder}", CachedStaticFiles(directory=str(folder_path)), name=f"fe_{folder}")
 
 try:
     PRODUCT_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -228,12 +253,13 @@ async def spa_fallback(page_path: str):
     clean_path = p_clean[9:] if p_clean.startswith("frontend/") else p_clean
     if not clean_path or clean_path in ("index.html", "index"):
         return _html_response("index.html")
-    candidate = FRONTEND_DIR / clean_path
-    if candidate.is_file():
-        if candidate.suffix.lower() == ".html":
-            return FileResponse(candidate, headers=_HTML_HEADERS)
-        return FileResponse(candidate)
-    html_candidate = FRONTEND_DIR / f"{clean_path}.html"
-    if html_candidate.is_file():
-        return FileResponse(html_candidate, headers=_HTML_HEADERS)
+    for base in (FRONTEND_DIR, Path.cwd() / "frontend", Path("/var/task/frontend")):
+        candidate = base / clean_path
+        if candidate.is_file():
+            if candidate.suffix.lower() == ".html":
+                return FileResponse(candidate, headers=_HTML_HEADERS)
+            return FileResponse(candidate)
+        html_candidate = base / f"{clean_path}.html"
+        if html_candidate.is_file():
+            return FileResponse(html_candidate, headers=_HTML_HEADERS)
     return _html_response("404.html", status_code=404)
