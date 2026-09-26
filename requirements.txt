@@ -5,6 +5,8 @@ asyncpg==0.30.0
 pydantic==2.10.3
 pydantic-settings==2.6.1
 pydantic[email]==2.10.3
+email-validator==2.2.0
+python-dotenv==1.0.1
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.1
 cloudinary==1.41.0
