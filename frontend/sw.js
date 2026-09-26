@@ -3,7 +3,7 @@
  * High-performance Cache-First image delivery with instant 0ms disk cache for Cloudinary and local assets.
  */
 
-const STATIC_CACHE = 'aarif-static-v4';
+const STATIC_CACHE = 'aarif-static-v5';
 const IMAGE_CACHE  = 'aarif-images-v2';
 
 const PRECACHE_ASSETS = [

@@ -7,10 +7,12 @@
 const TYPE_LABELS = { attar: 'Attar', perfume: 'Perfume', car_hanger: 'Car Hanger' };
 
 function normalizeProductType(type) {
-  if (type === 'rollon') return 'attar';
-  if (type === 'spray') return 'perfume';
-  if (type === 'car-hanger' || type === 'carhanger' || type === 'car_hangover' || type === 'car-hangover' || type === 'carhangover') return 'car_hanger';
-  return type;
+  if (!type) return 'perfume';
+  const clean = String(type).trim().toLowerCase().replace(/[-\s]/g, '_');
+  if (clean === 'rollon') return 'attar';
+  if (clean === 'spray') return 'perfume';
+  if (clean === 'car_hanger' || clean === 'carhanger' || clean === 'car_hangover' || clean === 'carhangover') return 'car_hanger';
+  return clean;
 }
 
 function getTypeLabel(type) {
@@ -73,13 +75,16 @@ const TYPE_HINTS = {
 };
 
 const TYPE_IMAGES = {
-  attar: 'assets/product-types/attar.png?v=1',
-  perfume: 'assets/product-types/perfume.png?v=1',
-  car_hanger: 'assets/product-types/attar.png?v=1',
+  attar: 'assets/product-types/attar.png?v=2',
+  perfume: 'assets/product-types/perfume.png?v=2',
+  car_hanger: 'assets/product-types/car%20hanger.png?v=2',
 };
 
 function getTypeImageUrl(type) {
   const t = normalizeProductType(type);
+  if (t === 'car_hanger') {
+    return 'assets/product-types/car%20hanger.png?v=2';
+  }
   return TYPE_IMAGES[t] || TYPE_IMAGES.perfume;
 }
 
@@ -338,7 +343,7 @@ function bindProductCards(container) {
     }
 
     if (typeof openProductModal === 'function' && perfume) {
-      openProductModal(perfume);
+      openProductModal(perfume, card.dataset.type, card.dataset.size);
     }
   });
 }

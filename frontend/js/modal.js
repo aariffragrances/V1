@@ -12,18 +12,20 @@ function initModal() {
   });
 }
 
-function openProductModal(perfume) {
+function openProductModal(perfume, initialType, initialSize) {
   const overlay = document.getElementById('product-modal-overlay');
   const modal = document.getElementById('product-modal');
   if (!overlay || !modal || !perfume) return;
 
   const types = typeof getPerfumeTypes === 'function' ? getPerfumeTypes(perfume) : ['perfume'];
-  // Prefer Perfume when both types exist
-  const activeType = types.includes('perfume') ? 'perfume' : types[0];
+  const normInit = initialType ? (typeof normalizeProductType === 'function' ? normalizeProductType(initialType) : initialType) : null;
+  const activeType = (normInit && types.includes(normInit))
+    ? normInit
+    : (types.includes('perfume') ? 'perfume' : types[0]);
   const sizes = typeof getSizesForType === 'function'
     ? getSizesForType(perfume, activeType)
     : [];
-  const def = sizes[0] || { label: '', price: 0 };
+  const def = (initialSize && sizes.find(s => s.label === initialSize)) || sizes[0] || { label: '', price: 0 };
   const name = perfume.displayName || perfume.perfumeName || '';
   const desc = perfume.description || 'Premium fragrance from Aarif Fragrances — crafted for lasting elegance.';
 
@@ -40,13 +42,13 @@ function openProductModal(perfume) {
   }).join('');
 
   const sizeBtns = sizes.map((s, i) => `
-    <button type="button" class="pd-size-btn${i === 0 ? ' active' : ''}"
+    <button type="button" class="pd-size-btn${s.label === def.label ? ' active' : ''}"
       data-size="${s.label}" data-price="${s.price}">
       <span class="pd-size-label">${s.label}</span>
       <span class="pd-size-price">₹${s.price}</span>
     </button>`).join('');
 
-  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType) : 'assets/product-types/perfume.png?v=1';
+  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType) : 'assets/product-types/perfume.png?v=2';
 
   modal.className = 'product-modal product-modal--luxury';
   modal.innerHTML = `
@@ -83,7 +85,7 @@ function openProductModal(perfume) {
             </div>
           </div>
           <div class="pd-type-visual" aria-hidden="true">
-            <img id="pd-type-img" src="${m(typeImg)}" alt="" onerror="this.style.visibility='hidden'">
+            <img id="pd-type-img" class="pd-type-img pd_type_img" src="${m(typeImg)}" alt="${m(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='assets/product-types/car-hanger.png';">
           </div>
         </div>
 
@@ -109,10 +111,13 @@ function openProductModal(perfume) {
   let qty = 1;
 
   function setTypeImage(type) {
-    const imgEl = modal.querySelector('#pd-type-img');
+    const imgEl = modal.querySelector('#pd-type-img') || modal.querySelector('#pd_type_img') || modal.querySelector('.pd_type_img');
     if (!imgEl || typeof getTypeImageUrl !== 'function') return;
-    imgEl.style.visibility = '';
-    imgEl.src = getTypeImageUrl(type);
+    imgEl.style.visibility = 'visible';
+    imgEl.style.display = 'block';
+    const nextSrc = getTypeImageUrl(type);
+    imgEl.src = nextSrc;
+    imgEl.alt = typeof getTypeLabel === 'function' ? getTypeLabel(type) : type;
   }
 
   function paintSizes(type) {

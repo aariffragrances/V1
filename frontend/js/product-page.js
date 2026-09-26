@@ -77,7 +77,7 @@ function renderProductPage(perfume) {
             </div>
           </div>
           <div class="pd-type-visual" aria-hidden="true">
-            <img id="pp-type-img" src="${escPp(typeImg)}" alt="" onerror="this.style.visibility='hidden'">
+            <img id="pp-type-img" class="pd-type-img pd_type_img" src="${escPp(typeImg)}" alt="${escPp(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='assets/product-types/car-hanger.png';">
           </div>
         </div>
 
@@ -115,10 +115,12 @@ function renderProductPage(perfume) {
   let currentPrice = def.price;
 
   function setTypeImage(type) {
-    const imgEl = root.querySelector('#pp-type-img');
+    const imgEl = root.querySelector('#pp-type-img') || root.querySelector('.pd_type_img');
     if (!imgEl || typeof getTypeImageUrl !== 'function') return;
-    imgEl.style.visibility = '';
+    imgEl.style.visibility = 'visible';
+    imgEl.style.display = 'block';
     imgEl.src = getTypeImageUrl(type);
+    imgEl.alt = typeof getTypeLabel === 'function' ? getTypeLabel(type) : type;
   }
 
   function paintSizes(type) {

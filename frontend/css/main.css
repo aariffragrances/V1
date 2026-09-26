@@ -1451,22 +1451,30 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   min-width: 0;
 }
 .pd-type-visual {
-  flex: 0 0 96px;
-  width: 96px;
+  flex: 0 0 100px;
+  width: 100px;
   align-self: stretch;
   border-radius: 16px;
   overflow: hidden;
-  background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  background: #141210;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   min-height: 140px;
+  position: relative;
 }
-.pd-type-visual img {
+.pd-type-visual img,
+#pd-type-img,
+#pp-type-img,
+.pd_type_img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: center 52%;
+  transition: opacity 0.25s ease, transform 0.3s ease;
+}
+.pd-type-visual:hover img {
+  transform: scale(1.04);
 }
 .pd-price-row {
   display: flex;
