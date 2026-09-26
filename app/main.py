@@ -180,6 +180,7 @@ for folder in ("css", "js", "assets"):
     path = FRONTEND_DIR / folder
     if path.exists():
         app.mount(f"/{folder}", CachedStaticFiles(directory=str(path)), name=folder)
+        app.mount(f"/frontend/{folder}", CachedStaticFiles(directory=str(path)), name=f"fe_{folder}")
 
 try:
     PRODUCT_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -189,12 +190,16 @@ except OSError:
 
 
 @app.get("/")
+@app.get("/frontend")
+@app.get("/frontend/")
 async def serve_index():
     return _html_response("index.html")
 
 
 @app.get("/admin")
 @app.get("/admin.html")
+@app.get("/frontend/admin")
+@app.get("/frontend/admin.html")
 async def serve_admin():
     return _html_response("admin.html")
 
@@ -206,18 +211,22 @@ for page in HTML_PAGES[1:]:
         return handler
 
     app.get(f"/{page}")(make_handler(page))
+    app.get(f"/frontend/{page}")(make_handler(page))
 
 
 @app.get("/{page_path:path}")
 async def spa_fallback(page_path: str):
     if page_path.startswith("api/"):
         return JSONResponse(status_code=404, content={"detail": "Not found"})
-    candidate = FRONTEND_DIR / page_path
+    clean_path = page_path[9:] if page_path.startswith("frontend/") else page_path
+    if not clean_path or clean_path == "index.html":
+        return _html_response("index.html")
+    candidate = FRONTEND_DIR / clean_path
     if candidate.is_file():
         if candidate.suffix.lower() == ".html":
             return FileResponse(candidate, headers=_HTML_HEADERS)
         return FileResponse(candidate)
-    html_candidate = FRONTEND_DIR / f"{page_path}.html"
+    html_candidate = FRONTEND_DIR / f"{clean_path}.html"
     if html_candidate.is_file():
         return FileResponse(html_candidate, headers=_HTML_HEADERS)
     return _html_response("404.html", status_code=404)
