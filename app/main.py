@@ -1,10 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
@@ -38,8 +39,6 @@ _HTML_HEADERS = {
 
 
 def _html_response(filename: str, status_code: int = 200) -> Response:
-    from pathlib import Path
-    from fastapi.responses import Response
     candidates = [
         FRONTEND_DIR / filename,
         Path.cwd() / "frontend" / filename,
@@ -146,6 +145,30 @@ async def security_headers_middleware(request: Request, call_next):
     return response
 
 
+class VercelPathFixMiddleware:
+    """Restores the original request path from Vercel rewrite headers (x-matched-path, x-forwarded-uri, etc.)"""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "")
+            if path in ("/api/index.py", "api/index.py", "/api/index.py/", "/api/index") or path.endswith("/api/index.py"):
+                headers = dict(scope.get("headers", []))
+                matched = headers.get(b"x-matched-path", b"").decode("latin-1")
+                if matched and matched not in ("/api/index.py", "api/index.py", "/api/index.py/"):
+                    scope["path"] = matched
+                else:
+                    for h in (b"x-forwarded-uri", b"x-original-url", b"x-rewrite-url"):
+                        orig = headers.get(h, b"").decode("latin-1")
+                        if orig and orig not in ("/api/index.py", "api/index.py", "/api/index.py/"):
+                            scope["path"] = orig
+                            break
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(VercelPathFixMiddleware)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
@@ -163,10 +186,26 @@ app.include_router(orders.router)
 app.include_router(admin.router)
 
 
-@app.get("/health")
-@app.get("/api/v1/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
+@app.api_route("/api/v1/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok", "service": "aarif-fragrances"}
+
+
+@app.api_route("/api/index.py", methods=["GET", "HEAD"])
+@app.api_route("/api", methods=["GET", "HEAD"])
+@app.api_route("/api/", methods=["GET", "HEAD"])
+async def serve_api_root():
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "healthy",
+            "service": "Aarif Fragrances API",
+            "version": "1.0.0",
+            "docs": "/docs",
+            "health": "/health",
+        },
+    )
 
 
 @app.get("/sw.js")
@@ -194,8 +233,6 @@ async def server_error_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
-from pathlib import Path
-
 for folder in ("css", "js", "assets"):
     folder_path = None
     for base in (FRONTEND_DIR, Path.cwd() / "frontend", Path("/var/task/frontend")):
@@ -214,21 +251,18 @@ except OSError:
     logger.info("Read-only filesystem detected; skipping local uploads directory creation")
 
 
-@app.get("/")
-@app.get("/index.html")
-@app.get("/frontend")
-@app.get("/frontend/")
-@app.get("/api/index.py")
-@app.get("/api")
-@app.get("/api/")
+@app.api_route("/", methods=["GET", "HEAD"])
+@app.api_route("/index.html", methods=["GET", "HEAD"])
+@app.api_route("/frontend", methods=["GET", "HEAD"])
+@app.api_route("/frontend/", methods=["GET", "HEAD"])
 async def serve_index():
     return _html_response("index.html")
 
 
-@app.get("/admin")
-@app.get("/admin.html")
-@app.get("/frontend/admin")
-@app.get("/frontend/admin.html")
+@app.api_route("/admin", methods=["GET", "HEAD"])
+@app.api_route("/admin.html", methods=["GET", "HEAD"])
+@app.api_route("/frontend/admin", methods=["GET", "HEAD"])
+@app.api_route("/frontend/admin.html", methods=["GET", "HEAD"])
 async def serve_admin():
     return _html_response("admin.html")
 
@@ -239,15 +273,25 @@ for page in HTML_PAGES[1:]:
             return _html_response(filename)
         return handler
 
-    app.get(f"/{page}")(make_handler(page))
-    app.get(f"/frontend/{page}")(make_handler(page))
+    app.add_api_route(f"/{page}", make_handler(page), methods=["GET", "HEAD"])
+    app.add_api_route(f"/frontend/{page}", make_handler(page), methods=["GET", "HEAD"])
 
 
-@app.get("/{page_path:path}")
+@app.api_route("/{page_path:path}", methods=["GET", "HEAD"])
 async def spa_fallback(page_path: str):
     p_clean = page_path.strip("/")
-    if p_clean in ("", "index", "index.html", "frontend", "frontend/index.html", "api/index.py", "api"):
+    if p_clean in ("", "index", "index.html", "frontend", "frontend/index.html"):
         return _html_response("index.html")
+    if p_clean in ("api/index.py", "api", "api/"):
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "healthy",
+                "service": "Aarif Fragrances API",
+                "docs": "/docs",
+                "health": "/health",
+            },
+        )
     if any(p_clean.startswith(prefix) for prefix in ("api/v1/", "api/auth", "api/catalog", "api/orders", "api/contact", "api/admin")):
         return JSONResponse(status_code=404, content={"detail": "Not found"})
     clean_path = p_clean[9:] if p_clean.startswith("frontend/") else p_clean
