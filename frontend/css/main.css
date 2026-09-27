@@ -2354,6 +2354,24 @@ html, body.customer-login-body {
 .account-page { max-width: 520px; }
 .account-form { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; }
 
+/* Contact Page Desktop */
+.contact-page-main { padding: 56px 0; min-height: 60vh; }
+.contact-container { max-width: 860px; }
+.contact-title { font-family: 'Cormorant Garamond', serif; font-size: 38px; margin-bottom: 8px; color: var(--dark); }
+.contact-lead { color: var(--muted); margin-bottom: 40px; font-size: 15px; }
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+.contact-form-col { width: 100%; }
+.contact-info-col { display: flex; flex-direction: column; gap: 20px; }
+.contact-card { background: #fdf6e3; border-radius: 12px; padding: 24px; box-shadow: 0 4px 18px rgba(0,0,0,0.15); }
+.contact-card-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: #2d2d2d; }
+.contact-card-list { display: flex; flex-direction: column; gap: 12px; }
+.contact-card-link { display: flex; align-items: center; gap: 10px; color: #2d2d2d; font-size: 14px; text-decoration: none; }
+.contact-card-link:hover { opacity: 0.85; }
+.contact-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 14px; }
+.contact-icon--gold { background: #b8860b; }
+.contact-icon--green { background: #25d366; font-size: 16px; }
+.contact-wa-btn { justify-content: center; background: #25d366 !important; border-color: #25d366 !important; color: #fff !important; font-size: 16px; padding: 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px; }
+
 .location-wrapper { max-width: none; width: 100%; margin: 36px 0 0; }
 .location-card {
   display: grid;
@@ -2424,7 +2442,106 @@ html, body.customer-login-body {
   .location-card .left h2 { font-size: 30px; }
 }
 @media (max-width: 768px) {
-  .page-title { font-size: 30px; }
+  .page-title { font-size: 24px; }
+  .page-lead { font-size: 13.5px; margin-bottom: 16px; line-height: 1.4; }
+  .about-page { padding-top: 10px; }
+  .about-body { font-size: 13.5px; line-height: 1.6; }
+  .about-body p { margin-bottom: 12px; }
+
+  /* Compact location card in mobile view */
+  .location-wrapper { margin: 24px 0 0; }
+  .location-card {
+    grid-template-columns: 1fr;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.6);
+  }
+  .location-card .left {
+    padding: 20px 16px;
+  }
+  .location-card .small-title {
+    font-size: 10.5px;
+    letter-spacing: 2px;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .location-card .small-title i {
+    font-size: 13px;
+  }
+  .location-card .left h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .location-card .left > p {
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+    color: #a8a8a8;
+  }
+  .location-card .info {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .location-card .row {
+    gap: 10px;
+  }
+  .location-card .icon {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+  .location-card .text h3 {
+    font-size: 13px;
+    margin-bottom: 1px;
+  }
+  .location-card .text span {
+    font-size: 12px;
+  }
+  .location-card .btn-directions {
+    padding: 9px 18px;
+    font-size: 12px;
+    gap: 6px;
+  }
+  .location-card .right {
+    min-height: 260px;
+    position: relative;
+    overflow: hidden;
+  }
+  .location-card .right iframe {
+    position: absolute;
+    top: -135px;
+    left: 0;
+    width: 100%;
+    height: calc(100% + 135px);
+  }
+  .location-card .overlay {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+  .location-card .overlay h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .location-card .overlay p {
+    font-size: 11.5px;
+    line-height: 1.4;
+    margin-bottom: 0;
+  }
+  .location-card .overlay a {
+    display: none !important;
+  }
+
+  /* Contact Page Mobile */
+  .contact-page-main { padding: 24px 0 44px; min-height: auto; }
+  .contact-title { font-size: 28px; margin-bottom: 6px; }
+  .contact-lead { font-size: 13.5px; margin-bottom: 24px; line-height: 1.5; }
+  .contact-grid { grid-template-columns: 1fr; gap: 28px; }
+  .contact-card { padding: 20px 16px; }
+  .contact-card-title { font-size: 15px; margin-bottom: 12px; }
+  .contact-card-link { font-size: 13.5px; gap: 10px; word-break: break-word; }
+  .contact-wa-btn { font-size: 14.5px; padding: 13px; }
 }
 
 /* ============================================================
@@ -2854,17 +2971,17 @@ body.filter-drawer-open { overflow: hidden; }
 
   /* Promo strip: compact height & reduced font size on mobile */
   .promo-strip {
-    padding: 5px 0 !important;
+    padding: 6px 0 !important;
   }
   .promo-strip-inner {
-    gap: 16px !important;
+    gap: 0 !important;
   }
   .promo-strip-item {
-    font-size: 10.5px !important;
-    padding: 0 16px !important;
+    font-size: 11px !important;
+    padding: 0 18px !important;
   }
   .promo-strip-item i {
-    font-size: 9.5px !important;
+    font-size: 10px !important;
   }
 
   /* Top categories: Display 3 cards per row on mobile */
@@ -3666,8 +3783,32 @@ body.filter-drawer-open { overflow: hidden; }
 .policy-block h2 { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:28px; margin-bottom:10px; }
 .policy-block p, .policy-block li { color:rgba(245,230,184,.85); line-height:1.65; font-size:14.5px; }
 .policy-block ul { margin:10px 0 0 18px; }
-@media (max-width:760px) {
+@media (max-width:768px) {
   .pp-layout { grid-template-columns:1fr; }
   .pp-media { min-height:320px; border-right:none; border-bottom:1px solid rgba(212,175,55,.2); }
   .pp-media-frame { inset:16px; }
+
+  /* Policy section card - reduced size in mobile view only */
+  .policies-page { padding: 20px 0 36px; }
+  .policies-toc { gap: 8px; margin: 12px 0 18px; }
+  .policies-toc a { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+  .policy-block {
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+  .policy-block h2 {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .policy-block p, .policy-block li {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .policy-block ul {
+    margin: 8px 0 0 16px;
+  }
+  .policy-block li {
+    margin-bottom: 4px;
+  }
 }

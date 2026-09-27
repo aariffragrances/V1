@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="css/main.css?v=104">
+  <link rel="stylesheet" href="css/main.css?v=110">
   <link rel="icon" href="assets/aarif-logo.png" type="image/png">
   <script>
     function openMobileDrawer(){var d=document.getElementById('mobile-drawer'),o=document.getElementById('drawer-overlay'),b=document.getElementById('mobile-menu-toggle');if(d)d.classList.add('open');if(o)o.classList.add('open');document.body.classList.add('drawer-is-open');document.body.style.overflow='hidden';if(b)b.setAttribute('aria-expanded','true');}
@@ -251,28 +251,53 @@
     </div>
   </main>
 
-  <footer class="site-footer"><div class="footer-top"><div class="container"><div class="footer-grid">
-    <div class="footer-brand-col">
-      <div class="footer-logo">
-        <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--footer">
-        <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
-      </div>
-      <p class="footer-desc site-footer-desc">Your destination for premium attars and perfumes from Tamil Nadu, India.</p>
-      <div class="footer-contact-items">
-        <div class="footer-contact-item"><i class="fa-solid fa-phone"></i><a href="tel:+919688498926" style="color:inherit">+91 9688498926</a></div>
-        <div class="footer-contact-item"><i class="fa-regular fa-envelope"></i><a href="mailto:aariffragrances@gmail.com" style="color:inherit">aariffragrances@gmail.com</a></div>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand-col">
+            <div class="footer-logo">
+              <img src="assets/aarif-logo.png?v=3" alt="Aarif Fragrances" class="logo-img logo-img--footer">
+              <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
+            </div>
+            <p class="footer-desc site-footer-desc">Aarif Fragrances &mdash; your destination for premium attars and perfumes from Tamil Nadu, India.</p>
+            <div class="footer-contact-items">
+              <div class="footer-contact-item"><i class="fa-solid fa-location-dot"></i><span class="site-footer-address">Tamil Nadu, India</span></div>
+              <div class="footer-contact-item"><i class="fa-solid fa-phone"></i><span><a href="tel:+919688498926" style="color:inherit">+91 9688498926</a></span></div>
+              <div class="footer-contact-item"><i class="fa-regular fa-envelope"></i><span><a href="mailto:aariffragrances@gmail.com" style="color:inherit">aariffragrances@gmail.com</a></span></div>
+            </div>
+          </div>
+          <div class="footer-col">
+            <h4>Quick Links</h4>
+            <div class="footer-links">
+              <a href="index.html"><i class="fa-solid fa-chevron-right"></i> Home</a>
+              <a href="products.html"><i class="fa-solid fa-chevron-right"></i> All Perfumes</a>
+              <a href="about.html"><i class="fa-solid fa-chevron-right"></i> About Us</a>
+              <a href="contact.html"><i class="fa-solid fa-chevron-right"></i> Contact</a>
+              <a href="policies.html"><i class="fa-solid fa-chevron-right"></i> Policies</a>
+            </div>
+          </div>
+          <div class="footer-col">
+            <h4>Fragrance Types</h4>
+            <div id="footer-types-list" class="footer-types-list">
+              <a href="products.html?type=FT001">Aquatic Fresh</a>
+              <a href="products.html?type=FT002">Fruity Delights</a>
+              <a href="products.html?type=FT003">Spicy &amp; Aromatic</a>
+              <a href="products.html?type=FT004">Mystic Oud</a>
+              <a href="products.html?type=FT005">Floral Elegance</a>
+              <a href="products.html?type=FT006">Rich Woody</a>
+              <a href="products.html?type=FT007">Sweet Gourmand</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="footer-col"><h4>Quick Links</h4><div class="footer-links">
-      <a href="index.html"><i class="fa-solid fa-chevron-right"></i> Home</a>
-      <a href="products.html"><i class="fa-solid fa-chevron-right"></i> All Perfumes</a>
-      <a href="about.html"><i class="fa-solid fa-chevron-right"></i> About</a>
-      <a href="contact.html"><i class="fa-solid fa-chevron-right"></i> Contact</a>
-      <a href="policies.html"><i class="fa-solid fa-chevron-right"></i> Policies</a>
-    </div></div>
-    <div class="footer-col"><h4>Fragrance Types</h4><div id="footer-types-list" class="footer-types-list"></div></div>
-  </div></div></div>
-  <div class="footer-bottom"><div class="container"><p>&copy; 2026 Aarif Fragrances. All rights reserved.</p></div></div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; 2026 Aarif Fragrances. All rights reserved. Tamil Nadu, India.</p>
+      </div>
+    </div>
   </footer>
 
   <button type="button" id="back-to-top" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></button>
