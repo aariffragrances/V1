@@ -33,22 +33,41 @@ function getPerfumeTypes(perfume) {
   if (perfume.isPerfume || perfume.perfumeSpray) types.push('perfume');
   if (perfume.isCarHanger || perfume.isCarHangover) types.push('car_hanger');
   if (!types.length) {
-    if (perfume.price6ml != null || perfume.price12ml != null) types.push('attar');
-    if (perfume.price30ml != null || perfume.price50ml != null) types.push('perfume');
+    if (perfume.price6ml != null || perfume.price12ml != null || perfume.price24ml != null) types.push('attar');
+    if (perfume.price20ml != null || perfume.price30ml != null || perfume.price50ml != null || perfume.price100ml != null) types.push('perfume');
+    if (perfume.priceCar6ml != null || perfume.priceCar12ml != null) types.push('car_hanger');
   }
   if (!types.length) types.push('perfume');
   return types;
 }
 
 function getSizesForType(perfume, type) {
+  if (!perfume) return [];
   const sizes = [];
   const t = normalizeProductType(type);
-  if (t === 'attar' || t === 'car_hanger') {
-    if (perfume.price6ml != null) sizes.push({ label: '6ml', price: perfume.price6ml });
-    if (perfume.price12ml != null) sizes.push({ label: '12ml', price: perfume.price12ml });
+
+  if (t === 'attar') {
+    const p6 = perfume.price6ml != null ? Number(perfume.price6ml) : null;
+    const p12 = perfume.price12ml != null ? Number(perfume.price12ml) : null;
+    const p24 = perfume.price24ml != null ? Number(perfume.price24ml) : (p12 != null ? p12 * 2 : (p6 != null ? p6 * 4 : null));
+    if (p6 != null) sizes.push({ label: '6ml', price: p6 });
+    if (p12 != null) sizes.push({ label: '12ml', price: p12 });
+    if (p24 != null) sizes.push({ label: '24ml', price: p24 });
+  } else if (t === 'car_hanger') {
+    const pCar6 = perfume.priceCar6ml != null ? Number(perfume.priceCar6ml) : (perfume.price6ml != null ? Number(perfume.price6ml) : null);
+    const pCar12 = perfume.priceCar12ml != null ? Number(perfume.priceCar12ml) : (perfume.price12ml != null ? Number(perfume.price12ml) : null);
+    if (pCar6 != null) sizes.push({ label: '6ml', price: pCar6 });
+    if (pCar12 != null) sizes.push({ label: '12ml', price: pCar12 });
   } else {
-    if (perfume.price30ml != null) sizes.push({ label: '30ml', price: perfume.price30ml });
-    if (perfume.price50ml != null) sizes.push({ label: '50ml', price: perfume.price50ml });
+    // perfume spray
+    const p30 = perfume.price30ml != null ? Number(perfume.price30ml) : null;
+    const p50 = perfume.price50ml != null ? Number(perfume.price50ml) : null;
+    const p20 = perfume.price20ml != null ? Number(perfume.price20ml) : (p30 != null ? Math.round((p30 * 20 / 30) / 10) * 10 : (p50 != null ? Math.round((p50 * 20 / 50) / 10) * 10 : null));
+    const p100 = perfume.price100ml != null ? Number(perfume.price100ml) : (p50 != null ? p50 * 2 : (p30 != null ? Math.round(p30 * 3.3 / 10) * 10 : null));
+    if (p20 != null) sizes.push({ label: '20ml', price: p20 });
+    if (p30 != null) sizes.push({ label: '30ml', price: p30 });
+    if (p50 != null) sizes.push({ label: '50ml', price: p50 });
+    if (p100 != null) sizes.push({ label: '100ml', price: p100 });
   }
   return sizes;
 }
@@ -69,8 +88,8 @@ function getDefaultTypeAndSize(perfume, preferredType, preferredSize) {
 }
 
 const TYPE_HINTS = {
-  attar: 'Traditional alcohol-free concentrated fragrance oil',
-  perfume: 'Alcohol-based wearable fragrance.',
+  attar: 'Traditional alcohol-free concentrated fragrance oil — 6ml, 12ml and 24ml.',
+  perfume: 'Alcohol-based wearable fragrance — 20ml, 30ml, 50ml and 100ml.',
   car_hanger: 'Car fragrance hanging bottle — 6ml and 12ml.',
 };
 

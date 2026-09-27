@@ -159,8 +159,13 @@ class AdminPerfumeIn(StrictBaseModel):
     description: str | None = Field(default=None, max_length=5000)
     price_6ml: float | None = Field(default=None, ge=0)
     price_12ml: float | None = Field(default=None, ge=0)
+    price_24ml: float | None = Field(default=None, ge=0)
+    price_20ml: float | None = Field(default=None, ge=0)
     price_30ml: float | None = Field(default=None, ge=0)
     price_50ml: float | None = Field(default=None, ge=0)
+    price_100ml: float | None = Field(default=None, ge=0)
+    price_car_6ml: float | None = Field(default=None, ge=0)
+    price_car_12ml: float | None = Field(default=None, ge=0)
     is_attar: bool | None = None
     is_perfume: bool | None = None
     is_car_hanger: bool | None = None

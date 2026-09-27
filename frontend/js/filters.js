@@ -64,11 +64,11 @@ function applyFilters(skipReset) {
     );
   }
   if (filterState.productType === 'attar') {
-    results = results.filter(p => p.isAttar || ((p.price6ml != null || p.price12ml != null) && !(p.isCarHanger || p.isCarHangover)));
+    results = results.filter(p => p.isAttar || ((p.price6ml != null || p.price12ml != null || p.price24ml != null) && !(p.isCarHanger || p.isCarHangover)));
   } else if (filterState.productType === 'perfume') {
-    results = results.filter(p => p.isPerfume || p.perfumeSpray || p.price30ml != null || p.price50ml != null);
+    results = results.filter(p => p.isPerfume || p.perfumeSpray || p.price20ml != null || p.price30ml != null || p.price50ml != null || p.price100ml != null);
   } else if (filterState.productType === 'car_hanger') {
-    results = results.filter(p => p.isCarHanger || p.isCarHangover);
+    results = results.filter(p => p.isCarHanger || p.isCarHangover || p.priceCar6ml != null || p.priceCar12ml != null);
   }
   if (filterState.searchQuery.trim()) {
     const q = filterState.searchQuery.toLowerCase();
@@ -99,7 +99,7 @@ function applyFilters(skipReset) {
 }
 
 function getMinPrice(p) {
-  const prices = [p.price6ml,p.price12ml,p.price30ml,p.price50ml].filter(x => x != null);
+  const prices = [p.price6ml, p.price12ml, p.price24ml, p.price20ml, p.price30ml, p.price50ml, p.price100ml, p.priceCar6ml, p.priceCar12ml].filter(x => x != null);
   return prices.length ? Math.min(...prices) : 0;
 }
 

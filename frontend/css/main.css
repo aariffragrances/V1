@@ -1387,11 +1387,17 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   color: #d4af37;
   margin-bottom: 7px;
 }
-.pd-type-row, .pd-size-row {
+.pd-type-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+.pd-size-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
 }
 .pd-type-hint {
   margin: 8px 0 2px;
@@ -1418,8 +1424,10 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   border-color: transparent;
 }
 .pd-size-btn {
-  min-width: 84px;
-  padding: 8px 14px;
+  min-width: 58px;
+  max-width: 76px;
+  flex: 1 1 0;
+  padding: 6px 6px;
   border: 1px solid rgba(212,175,55,0.55);
   border-radius: 8px;
   background: #0a0a0a;
@@ -1428,8 +1436,9 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
+  box-sizing: border-box;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 .pd-size-btn.active, .pd-size-btn:hover {
@@ -1437,13 +1446,13 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   color: #111;
   border-color: transparent;
 }
-.pd-size-label { font-size: 14px; font-weight: 700; line-height: 1.2; }
-.pd-size-price { font-size: 12.5px; font-weight: 600; opacity: 0.95; line-height: 1.2; }
+.pd-size-label { font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.pd-size-price { font-size: 11.5px; font-weight: 600; opacity: 0.95; line-height: 1.2; white-space: nowrap; }
 .pd-empty { font-size: 13px; color: rgba(232,210,140,0.55); }
 .pd-select-row {
   display: flex;
   align-items: stretch;
-  gap: 16px;
+  gap: 12px;
   margin: 2px 0 16px;
 }
 .pd-select-main {
@@ -1451,10 +1460,10 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   min-width: 0;
 }
 .pd-type-visual {
-  flex: 0 0 100px;
-  width: 100px;
+  flex: 0 0 92px;
+  width: 92px;
   align-self: stretch;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   background: #141210;
   border: 1px solid rgba(212, 175, 55, 0.28);

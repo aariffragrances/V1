@@ -511,8 +511,13 @@ function openPerfumeModal(p) {
   document.getElementById('pf-description').value = p?.description || '';
   document.getElementById('pf-price-6').value = p?.price6ml ?? '';
   document.getElementById('pf-price-12').value = p?.price12ml ?? '';
+  document.getElementById('pf-price-24').value = p?.price24ml ?? '';
+  document.getElementById('pf-price-20').value = p?.price20ml ?? '';
   document.getElementById('pf-price-30').value = p?.price30ml ?? '';
   document.getElementById('pf-price-50').value = p?.price50ml ?? '';
+  document.getElementById('pf-price-100').value = p?.price100ml ?? '';
+  document.getElementById('pf-price-car-6').value = p?.priceCar6ml ?? '';
+  document.getElementById('pf-price-car-12').value = p?.priceCar12ml ?? '';
   document.getElementById('pf-is-attar').checked = !!p?.isAttar;
   document.getElementById('pf-is-perfume').checked = p ? !!p.isPerfume : true;
   document.getElementById('pf-is-car-hanger').checked = !!(p?.isCarHanger ?? p?.isCarHangover);
@@ -1523,8 +1528,13 @@ function bindEvents() {
       stock_quantity: Number(document.getElementById('pf-stock').value) || 0,
       price_6ml: numOrNull(document.getElementById('pf-price-6')),
       price_12ml: numOrNull(document.getElementById('pf-price-12')),
+      price_24ml: numOrNull(document.getElementById('pf-price-24')),
+      price_20ml: numOrNull(document.getElementById('pf-price-20')),
       price_30ml: numOrNull(document.getElementById('pf-price-30')),
       price_50ml: numOrNull(document.getElementById('pf-price-50')),
+      price_100ml: numOrNull(document.getElementById('pf-price-100')),
+      price_car_6ml: numOrNull(document.getElementById('pf-price-car-6')),
+      price_car_12ml: numOrNull(document.getElementById('pf-price-car-12')),
       is_attar: document.getElementById('pf-is-attar').checked,
       is_perfume: document.getElementById('pf-is-perfume').checked,
       is_car_hanger: document.getElementById('pf-is-car-hanger').checked,
