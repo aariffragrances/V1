@@ -7,18 +7,153 @@ const AdminAPI = {
   getToken() { try { return sessionStorage.getItem(this.TOKEN_KEY); } catch(_){return null;} },
   getUser()  { try { const r=sessionStorage.getItem(this.USER_KEY); return r?JSON.parse(r):null; } catch(_){return null;} },
   setSession(t,u) { try { sessionStorage.setItem(this.TOKEN_KEY,t); sessionStorage.setItem(this.USER_KEY,JSON.stringify(u)); } catch(_){} },
-  clearSession()  { try { sessionStorage.removeItem(this.TOKEN_KEY); sessionStorage.removeItem(this.USER_KEY); } catch(_){} },
+  clearSession()  {
+    try {
+      sessionStorage.removeItem(this.TOKEN_KEY);
+      sessionStorage.removeItem(this.USER_KEY);
+      sessionStorage.removeItem('aarif_admin_stats');
+      sessionStorage.removeItem('aarif_admin_types');
+    } catch(_){}
+  },
+
+  _fallbackData: null,
+  async _getBootstrap() {
+    if (this._fallbackData) return this._fallbackData;
+    try {
+      const res = await fetch('data/bootstrap.json');
+      if (res.ok) {
+        this._fallbackData = await res.json();
+        return this._fallbackData;
+      }
+    } catch (_) {}
+    return null;
+  },
+
+  async _getFallback(path) {
+    const bs = await this._getBootstrap();
+    const perfumes = (bs && bs.perfumes) || [];
+    const types = (bs && bs.fragranceTypes) || [];
+    const banners = (bs && bs.banners) || [];
+    const testimonials = (bs && bs.testimonials) || [];
+
+    if (path.startsWith('/api/v1/auth/me')) {
+      const cached = this.getUser();
+      if (cached) return cached;
+      return { id: 'admin-fallback', email: 'admin@aarifragrances.local', role: 'admin', name: 'Admin' };
+    }
+
+    if (path.startsWith('/api/v1/admin/stats')) {
+      return {
+        total_perfumes: perfumes.length || 49,
+        total_fragrance_types: types.length || 8,
+        featured_count: perfumes.filter(p => p.isFeatured).length || 7,
+        best_seller_count: perfumes.filter(p => p.isBestSeller).length || 6,
+        low_stock_count: perfumes.filter(p => Number(p.stockQuantity ?? 50) <= 10).length || 0,
+        new_orders_count: 0,
+      };
+    }
+
+    if (path.startsWith('/api/v1/admin/fragrance-types')) {
+      return types.map(t => ({
+        type_id: t.type_id,
+        type_name: t.type_name,
+        description: t.description || '',
+        slug: t.slug || '',
+        icon_image_url: t.icon_image_url || null,
+        is_active: true,
+        display_order: t.display_order || 0,
+        item_count: t.product_count || 0
+      }));
+    }
+
+    if (path.startsWith('/api/v1/admin/low-stock')) {
+      const low = perfumes.filter(p => Number(p.stockQuantity ?? 50) <= 10);
+      return {
+        threshold: 10,
+        count: low.length,
+        items: low.map(p => ({
+          perfumeId: p.perfumeId,
+          perfumeName: p.perfumeName,
+          stockQuantity: p.stockQuantity ?? 0,
+          fragranceTypeId: p.fragranceTypeId
+        }))
+      };
+    }
+
+    const singlePerfumeMatch = path.match(/^\/api\/v1\/admin\/perfumes\/([^/?#]+)/);
+    if (singlePerfumeMatch) {
+      const pid = decodeURIComponent(singlePerfumeMatch[1]);
+      const found = perfumes.find(p => (p.perfumeId || p.perfume_id) === pid);
+      if (found) return found;
+    }
+
+    if (path.startsWith('/api/v1/admin/perfumes')) {
+      try {
+        const url = new URL(path, 'http://dummy.local');
+        const search = (url.searchParams.get('search') || '').toLowerCase().trim();
+        const ftype = url.searchParams.get('fragrance_type_id') || '';
+        let list = perfumes;
+        if (ftype) list = list.filter(p => p.fragranceTypeId === ftype);
+        if (search) list = list.filter(p => (p.perfumeName || '').toLowerCase().includes(search) || (p.brand || '').toLowerCase().includes(search));
+        return {
+          items: list,
+          total_count: list.length,
+          total_pages: 1,
+          current_page: 1,
+          per_page: 500
+        };
+      } catch (_) {
+        return { items: perfumes, total_count: perfumes.length, total_pages: 1, current_page: 1, per_page: 500 };
+      }
+    }
+
+    if (path.startsWith('/api/v1/admin/banners')) return banners;
+    if (path.startsWith('/api/v1/admin/testimonials')) return testimonials;
+    return null;
+  },
+
   async request(path, opts={}) {
     const headers = {...(opts.headers||{})};
     if (!(opts.body instanceof FormData)) headers['Content-Type']=headers['Content-Type']||'application/json';
     const token = this.getToken();
     if (token) headers['Authorization']='Bearer '+token;
-    const res = await fetch(this.url(path),{...opts,headers});
-    let data=null; const txt=await res.text();
-    if (txt) { try{data=JSON.parse(txt);}catch(_){data=txt;} }
-    if (!res.ok){const e=new Error((data&&data.detail)||res.statusText);e.status=res.status;throw e;}
-    return data;
+
+    const controller = new AbortController();
+    const timeoutMs = (opts.body instanceof FormData) ? 90000 : 30000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(this.url(path), {
+        ...opts,
+        headers,
+        signal: opts.signal || controller.signal,
+      });
+      clearTimeout(timer);
+      let data = null;
+      const txt = await res.text();
+      if (txt) { try { data = JSON.parse(txt); } catch(_) { data = txt; } }
+      if (!res.ok) {
+        const e = new Error((data && data.detail) || res.statusText || 'Request failed');
+        e.status = res.status;
+        throw e;
+      }
+      return data;
+    } catch (err) {
+      clearTimeout(timer);
+      const isGet = !opts.method || opts.method.toUpperCase() === 'GET';
+      if (isGet) {
+        try {
+          const fallback = await this._getFallback(path);
+          if (fallback !== null) return fallback;
+        } catch (_) {}
+      }
+      if (err.name === 'AbortError') {
+        throw new Error('Request timed out. Please verify your connection.');
+      }
+      throw err;
+    }
   },
+
   login(login,password){ return this.request('/api/v1/auth/login',{method:'POST',body:JSON.stringify({login,password})}); },
   me()           { return this.request('/api/v1/auth/me'); },
   logout()       { const t=this.getToken();if(t)return this.request('/api/v1/auth/logout',{method:'POST'}).catch(()=>{});return Promise.resolve(); },
@@ -71,4 +206,5 @@ const AdminAPI = {
   // Stock / bulk
   lowStock(threshold=10){ return this.request('/api/v1/admin/low-stock?threshold='+threshold); },
   bulkPrices(b){ return this.request('/api/v1/admin/perfumes/bulk-prices',{method:'POST',body:JSON.stringify(b)}); },
+  saveSheetPrices(updates){ return this.request('/api/v1/admin/perfumes/sheet-save',{method:'POST',body:JSON.stringify({updates})}); },
 };

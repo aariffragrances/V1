@@ -39,16 +39,39 @@ async def create_session(db: AsyncSession, user_id: uuid.UUID) -> str:
     return token
 
 
+import time
+
+_SESSION_CACHE: dict[str, tuple[float, User]] = {}
+_SESSION_CACHE_TTL = 60.0  # 60 seconds
+
+
+def invalidate_session_cache(token: str | None = None) -> None:
+    if token:
+        _SESSION_CACHE.pop(hash_session_token(token), None)
+    else:
+        _SESSION_CACHE.clear()
+
+
 async def get_user_by_session(db: AsyncSession, token: str | None) -> User | None:
     if not token:
         return None
     token_hash = hash_session_token(token)
+    cached = _SESSION_CACHE.get(token_hash)
+    if cached:
+        cached_time, user = cached
+        if time.time() - cached_time < _SESSION_CACHE_TTL:
+            return user
+        _SESSION_CACHE.pop(token_hash, None)
+
     result = await db.execute(
         select(User)
         .join(Session, Session.user_id == User.id)
         .where(Session.session_token == token_hash, Session.expires > datetime.now(timezone.utc))
     )
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    if user:
+        _SESSION_CACHE[token_hash] = (time.time(), user)
+    return user
 
 
 async def get_current_user(

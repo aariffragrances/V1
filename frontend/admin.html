@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="css/admin.css?v=11">
+<link rel="stylesheet" href="css/admin.css?v=15">
 <link rel="icon" href="assets/aarif-logo.png" type="image/png">
 </head>
 <body data-page="admin">
@@ -46,6 +46,7 @@
     <nav class="adm-nav">
       <button type="button" class="adm-nav-link active" data-section="dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
       <button type="button" class="adm-nav-link" data-section="perfumes"><i class="fa-solid fa-spray-can-sparkles"></i><span>Perfumes</span></button>
+      <button type="button" class="adm-nav-link" data-section="sheet"><i class="fa-solid fa-table-cells"></i><span>Sheet</span></button>
       <button type="button" class="adm-nav-link" data-section="fragrance-types"><i class="fa-solid fa-layer-group"></i><span>Fragrance Types</span></button>
       <button type="button" class="adm-nav-link" data-section="banners"><i class="fa-solid fa-images"></i><span>Banners</span></button>
       <button type="button" class="adm-nav-link" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
@@ -148,27 +149,39 @@
 
       <!-- PERFUMES -->
       <section class="adm-section" id="section-perfumes">
-        <div class="adm-page-header">
-          <div>
-            <h1>Perfumes</h1>
-            <p id="perfumes-subtitle">Manage catalog items, prices, and flags</p>
-          </div>
-          <div class="adm-page-actions">
-            <button type="button" class="adm-btn adm-btn--primary" id="add-perfume-btn"><i class="fa-solid fa-plus"></i> Add Perfume</button>
-          </div>
-        </div>
-        <div class="adm-card adm-filter-card">
-          <div class="adm-filter-row">
-            <div class="adm-filter-group">
-              <label>Search</label>
-              <input type="search" class="adm-input" id="perfume-search" placeholder="Name or brand">
+        <!-- UNIFIED SINGLE FILTER CARD -->
+        <div class="adm-card adm-perfumes-filter-card">
+          <!-- Top Row: Title, Subtitle, and Add Perfume Action -->
+          <div class="adm-perfumes-card-top">
+            <div class="adm-perfumes-title-group">
+              <h1 class="adm-perfumes-title">Perfumes</h1>
+              <p class="adm-perfumes-subtitle" id="perfumes-subtitle">49 perfumes across 8 fragrance types</p>
             </div>
-            <div class="adm-filter-group">
-              <label>Type</label>
-              <select class="adm-select" id="perfume-type-filter"><option value="">All Types</option></select>
+            <div class="adm-perfumes-card-actions">
+              <button type="button" class="adm-btn adm-btn--primary" id="add-perfume-btn">
+                <i class="fa-solid fa-plus"></i> <span>Add Perfume</span>
+              </button>
             </div>
           </div>
-          <p class="adm-filter-showing" id="perfumes-filter-showing"></p>
+
+          <!-- Middle Row: Search and Type Filters -->
+          <div class="adm-perfumes-controls-row">
+            <div class="adm-filter-group adm-filter-search">
+              <label for="perfume-search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
+              <input type="search" class="adm-input" id="perfume-search" placeholder="Search by name, brand, or notes...">
+            </div>
+            <div class="adm-filter-group adm-filter-type">
+              <label for="perfume-type-filter"><i class="fa-solid fa-layer-group"></i> Type</label>
+              <select class="adm-select" id="perfume-type-filter">
+                <option value="">All Types</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Counter -->
+          <div class="adm-perfumes-card-footer">
+            <p class="adm-filter-showing" id="perfumes-filter-showing">Showing 49 of 49 perfumes</p>
+          </div>
         </div>
         <div id="bulk-bar" class="bulk-bar hidden">
           <span id="bulk-count">0 selected</span>
@@ -198,6 +211,82 @@
         </div>
       </section>
 
+      <!-- SHEET (PRICING SPREADSHEET) -->
+      <section class="adm-section" id="section-sheet">
+        <div class="adm-card adm-perfumes-filter-card adm-sheet-filter-card">
+          <div class="adm-perfumes-card-top">
+            <div class="adm-perfumes-title-group">
+              <h1 class="adm-perfumes-title">Pricing Sheet</h1>
+              <p class="adm-perfumes-subtitle" id="sheet-subtitle">All products and pricing across Attar, Perfume, and Car Hanger</p>
+            </div>
+            <div class="adm-perfumes-card-actions">
+              <button type="button" class="adm-btn adm-btn--outline" id="sheet-export-csv-btn">
+                <i class="fa-solid fa-file-csv"></i> <span>Export CSV</span>
+              </button>
+              <button type="button" class="adm-btn adm-btn--outline" id="sheet-print-btn">
+                <i class="fa-solid fa-print"></i> <span>Print Sheet</span>
+              </button>
+              <button type="button" class="adm-btn adm-btn--primary" id="sheet-edit-btn" title="Edit prices directly in sheet">
+                <i class="fa-solid fa-pen-to-square"></i> <span>Edit Sheet</span>
+              </button>
+              <button type="button" class="adm-btn adm-btn--primary hidden" id="sheet-save-btn" title="Save changes">
+                <i class="fa-solid fa-check"></i> <span>Save</span>
+              </button>
+              <button type="button" class="adm-btn adm-btn--outline hidden" id="sheet-cancel-btn" title="Cancel editing">
+                <i class="fa-solid fa-xmark"></i> <span>Cancel</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="adm-perfumes-controls-row">
+            <div class="adm-filter-group adm-filter-search">
+              <label for="sheet-search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
+              <input type="search" class="adm-input" id="sheet-search" placeholder="Search product ID or perfume name...">
+            </div>
+            <div class="adm-filter-group adm-filter-type">
+              <label for="sheet-type-filter"><i class="fa-solid fa-layer-group"></i> Type</label>
+              <select class="adm-select" id="sheet-type-filter">
+                <option value="">All Types</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="adm-perfumes-card-footer">
+            <p class="adm-filter-showing" id="sheet-filter-showing">Showing 49 of 49 products</p>
+          </div>
+        </div>
+
+        <div class="adm-card sheet-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap sheet-table-wrap">
+            <table class="sheet-table" id="sheet-table">
+              <thead>
+                <tr class="sheet-group-header">
+                  <th rowspan="2" class="sheet-th sheet-th--id">ID</th>
+                  <th rowspan="2" class="sheet-th sheet-th--name">perfume_name</th>
+                  <th colspan="3" class="sheet-th sheet-th--group sheet-group-attar">ATTAR</th>
+                  <th colspan="4" class="sheet-th sheet-th--group sheet-group-perfume">PERFUME</th>
+                  <th colspan="2" class="sheet-th sheet-th--group sheet-group-car">CAR HANGER</th>
+                </tr>
+                <tr class="sheet-sub-header">
+                  <th class="sheet-th sheet-th--sub sheet-sub-attar">6 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-attar">12 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-attar">24ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-perfume">20 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-perfume">30 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-perfume">50 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-perfume">100 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-car">6 ml</th>
+                  <th class="sheet-th sheet-th--sub sheet-sub-car">12 ml</th>
+                </tr>
+              </thead>
+              <tbody id="sheet-tbody">
+                <tr><td colspan="11" class="table-empty">Loading sheet...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- FRAGRANCE TYPES -->
       <section class="adm-section" id="section-fragrance-types">
         <div class="adm-page-header">
@@ -211,7 +300,16 @@
           <div class="adm-table-wrap">
             <table class="adm-table">
               <thead>
-                <tr><th>ID</th><th>Name</th><th>Slug</th><th>Description</th><th>Items</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+                <tr>
+                  <th style="width:72px">Image</th>
+                  <th>Category</th>
+                  <th>Slug</th>
+                  <th>Description</th>
+                  <th>Items</th>
+                  <th>Order</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
               <tbody id="types-tbody">
                 <tr><td colspan="8" class="table-empty">Loading...</td></tr>
@@ -407,68 +505,148 @@
 
 <!-- ============ PERFUME MODAL ============ -->
 <div class="admin-modal-overlay" id="perfume-modal-overlay">
-  <div class="admin-modal admin-modal--wide" role="dialog" aria-modal="true">
+  <div class="admin-modal admin-modal--wide admin-modal--perfume" role="dialog" aria-modal="true">
     <button type="button" class="admin-modal-close" data-close-modal="perfume-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
-    <h2 id="perfume-modal-title">Add Perfume</h2>
-    <form id="perfume-form">
+    <h2 id="perfume-modal-title"><i class="fa-solid fa-spray-can-sparkles" style="color: var(--adm-green);"></i> <span>Edit Perfume</span></h2>
+
+    <!-- Modal Tab Bar -->
+    <div class="adm-modal-tabs" id="perfume-modal-tabs">
+      <button type="button" class="adm-modal-tab-btn active" data-pf-tab="details">
+        <i class="fa-solid fa-circle-info"></i> <span>Details</span>
+      </button>
+      <button type="button" class="adm-modal-tab-btn" data-pf-tab="pricing-stock">
+        <i class="fa-solid fa-tags"></i> <span>Pricing &amp; Stock</span>
+      </button>
+      <button type="button" class="adm-modal-tab-btn" data-pf-tab="images">
+        <i class="fa-solid fa-images"></i> <span>Image</span>
+      </button>
+      <button type="button" class="adm-modal-tab-btn" data-pf-tab="availability">
+        <i class="fa-solid fa-sliders"></i> <span>Availability</span>
+      </button>
+    </div>
+
+    <form id="perfume-form" novalidate>
       <input type="hidden" id="pf-original-id">
-      <div class="settings-grid">
-        <div class="form-group">
-          <label for="pf-id">Perfume ID *</label>
-          <input type="text" id="pf-id" required maxlength="25" placeholder="PF031">
+
+      <!-- TAB 1: DETAILS -->
+      <div class="adm-tab-panel active" id="pf-tab-details">
+        <div class="form-row-2col">
+          <div class="form-group">
+            <label for="pf-id">Perfume ID <span class="field-badge-lock"><i class="fa-solid fa-lock"></i> Auto-assigned</span></label>
+            <input type="text" id="pf-id" readonly class="adm-input-readonly" placeholder="e.g. PF053">
+            <p class="field-hint">Permanent sequence identifier. Cannot be edited.</p>
+          </div>
+          <div class="form-group">
+            <label for="pf-type">Fragrance Type *</label>
+            <select id="pf-type" required></select>
+            <p class="field-hint">Primary category classification.</p>
+          </div>
         </div>
-        <div class="form-group">
+
+        <div class="form-group" style="margin-top: 6px;">
           <label for="pf-name">Perfume Name *</label>
-          <input type="text" id="pf-name" required maxlength="255">
+          <input type="text" id="pf-name" required maxlength="255" placeholder="e.g. Bvlgari Aqua">
         </div>
+
         <div class="form-group">
-          <label for="pf-brand">Brand</label>
-          <input type="text" id="pf-brand" maxlength="100">
-        </div>
-        <div class="form-group">
-          <label for="pf-type">Fragrance Type *</label>
-          <select id="pf-type" required></select>
-        </div>
-        <div class="form-group">
-          <label for="pf-stock">Stock Quantity</label>
-          <input type="number" id="pf-stock" min="0" value="0">
-        </div>
-        <div class="form-group form-group--wide">
-          <label for="pf-description">Description</label>
-          <textarea id="pf-description" rows="3" maxlength="5000"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="pf-price-6">Price 6ml (&#8377;)</label>
-          <input type="number" id="pf-price-6" min="0" step="0.01">
-        </div>
-        <div class="form-group">
-          <label for="pf-price-12">Price 12ml (&#8377;)</label>
-          <input type="number" id="pf-price-12" min="0" step="0.01">
-        </div>
-        <div class="form-group">
-          <label for="pf-price-30">Price 30ml (&#8377;)</label>
-          <input type="number" id="pf-price-30" min="0" step="0.01">
-        </div>
-        <div class="form-group">
-          <label for="pf-price-50">Price 50ml (&#8377;)</label>
-          <input type="number" id="pf-price-50" min="0" step="0.01">
+          <label for="pf-description">Description / Scent Notes</label>
+          <textarea id="pf-description" rows="4" maxlength="5000" placeholder="Fragrance accords, top/heart/base notes, fragrance story..."></textarea>
         </div>
       </div>
-      <div class="checkbox-row">
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-attar"> Attar (6ml ? 12ml)</label>
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-perfume" checked> Perfume (30ml ? 50ml)</label>
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-car-hanger"> Car Hanger (6ml ? 12ml)</label>
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-featured"> Featured</label>
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-bestseller"> Best Seller</label>
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-newarrival"> New Arrival</label>
-        <label class="checkbox-pill"><input type="checkbox" id="pf-is-active" checked> Active</label>
+
+      <!-- TAB 2: PRICING AND STOCK -->
+      <div class="adm-tab-panel" id="pf-tab-pricing-stock">
+        <div class="form-group" style="max-width: 320px; margin-bottom: 20px;">
+          <label for="pf-stock"><i class="fa-solid fa-cubes"></i> Total Stock Quantity</label>
+          <input type="number" id="pf-stock" min="0" value="100" placeholder="Available inventory count">
+          <p class="field-hint">Items with 10 units or less trigger Low Stock Alerts on the dashboard.</p>
+        </div>
+
+        <div class="pf-pricing-section">
+          <h4 class="pf-tab-subheading"><i class="fa-solid fa-indian-rupee-sign"></i> Bottle Size Pricing</h4>
+          <p class="form-hint" style="margin-bottom: 14px;">Set individual retail prices for available bottle sizes. Leave empty for sizes not offered.</p>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="pf-price-6">Price 6ml Attar / Roll-on (&#8377;)</label>
+              <div class="adm-input-icon-wrap">
+                <input type="number" id="pf-price-6" min="0" step="0.01" placeholder="e.g. 199">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pf-price-12">Price 12ml Attar / Roll-on (&#8377;)</label>
+              <div class="adm-input-icon-wrap">
+                <input type="number" id="pf-price-12" min="0" step="0.01" placeholder="e.g. 349">
+              </div>
+            </div>
+          </div>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="pf-price-30">Price 30ml Spray (&#8377;)</label>
+              <div class="adm-input-icon-wrap">
+                <input type="number" id="pf-price-30" min="0" step="0.01" placeholder="e.g. 599">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pf-price-50">Price 50ml Spray (&#8377;)</label>
+              <div class="adm-input-icon-wrap">
+                <input type="number" id="pf-price-50" min="0" step="0.01" placeholder="e.g. 899">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-group image-upload-group" id="pf-image-group">
-        <label>Images</label>
-        <div class="pf-images-preview" id="pf-images-preview"></div>
-        <input type="file" id="pf-image-files" accept="image/*" multiple>
-        <p class="field-hint">Save the perfume first, then upload images. JPG/PNG/WEBP, max 5MB each.</p>
+
+      <!-- TAB 3: IMAGE -->
+      <div class="adm-tab-panel" id="pf-tab-images">
+        <div class="pf-image-upload-card">
+          <div class="pf-upload-header">
+            <h4><i class="fa-solid fa-cloud-arrow-up"></i> Upload Product Images</h4>
+            <p class="field-hint">Upload bottle product shots (JPG, PNG, or WebP). Max 5MB each.</p>
+          </div>
+          <div class="image-upload-row" style="margin-top: 10px;">
+            <input type="file" id="pf-image-files" accept="image/*" multiple class="adm-input">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 18px;">
+          <label style="font-weight: 700; margin-bottom: 8px;">Product Image Gallery</label>
+          <div class="pf-images-preview" id="pf-images-preview"></div>
+          <p class="field-hint" style="margin-top: 8px;">Images appear on product pages and catalog cards.</p>
+        </div>
       </div>
+
+      <!-- TAB 4: AVAILABILITY -->
+      <div class="adm-tab-panel" id="pf-tab-availability">
+        <div class="pf-avail-block">
+          <h4 class="pf-tab-subheading"><i class="fa-solid fa-bottle-droplet"></i> Product Formats Available</h4>
+          <p class="form-hint" style="margin-bottom: 12px;">Select which formats customers can order:</p>
+          <div class="checkbox-row">
+            <label class="checkbox-pill"><input type="checkbox" id="pf-is-attar"> <span>Attar (6ml &bull; 12ml)</span></label>
+            <label class="checkbox-pill"><input type="checkbox" id="pf-is-perfume" checked> <span>Perfume Spray (30ml &bull; 50ml)</span></label>
+            <label class="checkbox-pill"><input type="checkbox" id="pf-is-car-hanger"> <span>Car Hanger (6ml &bull; 12ml)</span></label>
+          </div>
+        </div>
+
+        <div class="pf-avail-block" style="margin-top: 20px;">
+          <h4 class="pf-tab-subheading"><i class="fa-solid fa-award"></i> Storefront Badges &amp; Highlights</h4>
+          <p class="form-hint" style="margin-bottom: 12px;">Display promotional badges across storefront strips:</p>
+          <div class="checkbox-row">
+            <label class="checkbox-pill"><input type="checkbox" id="pf-is-featured"> <span>Featured on Homepage</span></label>
+            <label class="checkbox-pill"><input type="checkbox" id="pf-is-bestseller"> <span>Best Seller</span></label>
+            <label class="checkbox-pill"><input type="checkbox" id="pf-is-newarrival"> <span>New Arrival</span></label>
+          </div>
+        </div>
+
+        <div class="pf-avail-block" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--adm-border);">
+          <h4 class="pf-tab-subheading"><i class="fa-solid fa-eye"></i> Storefront Status</h4>
+          <div class="checkbox-row" style="margin-top: 8px;">
+            <label class="checkbox-pill" style="font-weight: 700;">
+              <input type="checkbox" id="pf-is-active" checked> <span>Active (Publicly visible &amp; purchasable)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <p class="modal-feedback" id="perfume-form-feedback" role="status"></p>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" data-close-modal="perfume-modal-overlay">Cancel</button>
@@ -480,33 +658,80 @@
 
 <!-- ============ FRAGRANCE TYPE MODAL ============ -->
 <div class="admin-modal-overlay" id="type-modal-overlay">
-  <div class="admin-modal" role="dialog" aria-modal="true">
-    <button type="button" class="admin-modal-close" data-close-modal="type-modal-overlay"><i class="fa-solid fa-xmark"></i></button>
-    <h2 id="type-modal-title">Add Fragrance Type</h2>
-    <form id="type-form">
+  <div class="admin-modal admin-modal--wide admin-modal--type" role="dialog" aria-modal="true">
+    <button type="button" class="admin-modal-close" data-close-modal="type-modal-overlay" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 id="type-modal-title">Edit Fragrance Type</h2>
+
+    <!-- Modal Tab Bar -->
+    <div class="adm-modal-tabs" id="type-modal-tabs">
+      <button type="button" class="adm-modal-tab-btn active" data-type-tab="details">
+        <i class="fa-solid fa-sliders"></i> <span>Details</span>
+      </button>
+      <button type="button" class="adm-modal-tab-btn" data-type-tab="image">
+        <i class="fa-solid fa-image"></i> <span>Category Image</span>
+      </button>
+    </div>
+
+    <form id="type-form" novalidate>
       <input type="hidden" id="ft-original-id">
-      <div class="form-group">
-        <label for="ft-id">Type ID *</label>
-        <input type="text" id="ft-id" required maxlength="10" placeholder="FT010">
+
+      <!-- DETAILS TAB PANEL -->
+      <div class="adm-tab-panel active" id="type-tab-details">
+        <div class="form-row-2col">
+          <div class="form-group">
+            <label for="ft-id">Type ID *</label>
+            <input type="text" id="ft-id" required maxlength="10" placeholder="FT010">
+          </div>
+          <div class="form-group">
+            <label for="ft-order">Display Order</label>
+            <input type="number" id="ft-order" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="form-row-2col">
+          <div class="form-group">
+            <label for="ft-name">Type Name *</label>
+            <input type="text" id="ft-name" required maxlength="100" placeholder="e.g. Aquatic Fresh">
+          </div>
+          <div class="form-group">
+            <label for="ft-slug">Slug</label>
+            <input type="text" id="ft-slug" maxlength="120" placeholder="auto-generated if blank">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ft-description">Description / Subtitle</label>
+          <textarea id="ft-description" rows="3" maxlength="2000" placeholder="Tagline or subtitle displayed under category name..."></textarea>
+        </div>
+
+        <label class="checkbox-pill">
+          <input type="checkbox" id="ft-is-active" checked> <span>Active on storefront</span>
+        </label>
       </div>
-      <div class="form-group">
-        <label for="ft-name">Type Name *</label>
-        <input type="text" id="ft-name" required maxlength="100">
+
+      <!-- IMAGE TAB PANEL -->
+      <div class="adm-tab-panel" id="type-tab-image">
+        <div class="type-image-visibility-box">
+          <div class="type-image-preview-frame">
+            <img id="ft-image-preview" src="" alt="Category preview" class="type-preview-img hidden">
+            <div id="ft-image-empty" class="type-image-empty-state">
+              <i class="fa-solid fa-layer-group"></i>
+              <span>No image selected</span>
+            </div>
+          </div>
+          <div class="type-image-meta">
+            <h4>Category Image Visibility</h4>
+            <p>This image is displayed across storefront category strips, navigation menus, and category cards.</p>
+            <span class="type-image-badge"><i class="fa-solid fa-circle-check"></i> Live Preview Active</span>
+          </div>
+        </div>
+        <input type="hidden" id="ft-image-url">
       </div>
-      <div class="form-group">
-        <label for="ft-slug">Slug</label>
-        <input type="text" id="ft-slug" maxlength="120" placeholder="auto-generated if blank">
-      </div>
-      <div class="form-group">
-        <label for="ft-description">Description</label>
-        <textarea id="ft-description" rows="3" maxlength="2000"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="ft-order">Display Order</label>
-        <input type="number" id="ft-order" min="0" value="0">
-      </div>
-      <label class="checkbox-pill"><input type="checkbox" id="ft-is-active" checked> Active</label>
+
       <p class="modal-feedback" id="type-form-feedback" role="status"></p>
+
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" data-close-modal="type-modal-overlay">Cancel</button>
         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Type</button>
@@ -698,8 +923,8 @@
 <!-- ============ TOAST ============ -->
 <div id="admin-toast" class="admin-toast" role="status" aria-live="polite"></div>
 
-<script src="js/admin-api.js?v=5"></script>
-<script src="js/admin.js?v=11"></script>
+<script src="js/admin-api.js?v=9"></script>
+<script src="js/admin.js?v=16"></script>
 </body>
 </html>
 

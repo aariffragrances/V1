@@ -84,7 +84,7 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790502455/aarif-fragrances/perfumes/bvlgari_aqva.png"
     },
     {
       "perfumeId": "PF002",
@@ -104,7 +104,7 @@
       "isFeatured": true,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512172/aarif-fragrances/perfumes/cool-water.png"
     },
     {
       "perfumeId": "PF004",
@@ -124,7 +124,7 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512174/aarif-fragrances/perfumes/hawas-rasasi.png"
     },
     {
       "perfumeId": "PF009",
@@ -144,7 +144,7 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512175/aarif-fragrances/perfumes/iceberg.jpg"
     },
     {
       "perfumeId": "PF005",
@@ -164,7 +164,7 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512175/aarif-fragrances/perfumes/invictus.png"
     },
     {
       "perfumeId": "PF006",
@@ -184,7 +184,7 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512176/aarif-fragrances/perfumes/royal-blue.png"
     },
     {
       "perfumeId": "PF008",
@@ -204,7 +204,7 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512177/aarif-fragrances/perfumes/sea-rose.png"
     },
     {
       "perfumeId": "PF013",
@@ -224,7 +224,7 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512170/aarif-fragrances/perfumes/blueberry.png"
     },
     {
       "perfumeId": "PF015",
@@ -244,7 +244,7 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512171/aarif-fragrances/perfumes/burberry-her.png"
     },
     {
       "perfumeId": "PF016",
@@ -264,7 +264,7 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790512173/aarif-fragrances/perfumes/creed-aventus.png"
     },
     {
       "perfumeId": "PF010",
@@ -413,7 +413,7 @@
       "perfumeName": "Azzaro Black",
       "displayName": "Azzaro Black",
       "brand": "",
-      "description": "A modern aromatic-woody fragrance with spicy notes, rich woods, subtle sweetness, and warm amber, delivering a smooth, masculine, mysterious scent with excellent projection — perfect for evenings and cooler weather.",
+      "description": "A modern aromatic-woody fragrance with spicy notes, rich woods, subtle sweetness, and warm amber, delivering a smooth, masculine, mysterious scent with excellent projection \u2014 perfect for evenings and cooler weather.",
       "price6ml": 80.0,
       "price12ml": 150.0,
       "price30ml": 150.0,
@@ -453,7 +453,7 @@
       "perfumeName": "Brut",
       "displayName": "Brut",
       "brand": "",
-      "description": "A classic aromatic fougère with lavender, citrus, geranium, oakmoss, and tonka, offering a traditional, masculine, and timeless scent for everyday use.",
+      "description": "A classic aromatic foug\u00e8re with lavender, citrus, geranium, oakmoss, and tonka, offering a traditional, masculine, and timeless scent for everyday use.",
       "price6ml": 100.0,
       "price12ml": 200.0,
       "price30ml": 200.0,
@@ -1155,14 +1155,14 @@
     "store_address": "Tamil Nadu, India",
     "store_city": "Tamil Nadu",
     "store_postcode": "",
-    "opening_hours": "Open Daily — Mon to Sun",
-    "opening_hours_mon_fri": "9:00am – 9:00pm",
-    "opening_hours_saturday": "9:00am – 9:00pm",
-    "opening_hours_sunday": "10:00am – 8:00pm",
-    "footer_desc": "Aarif Fragrances — your destination for premium attars and perfumes. Authentic, long-lasting fragrances crafted for every occasion.",
-    "home_about_teaser": "Aarif Fragrances is a Tamil Nadu based perfume house offering a wide range of premium attars and perfumes in multiple quantities — 6ml, 12ml, 30ml and 50ml.",
+    "opening_hours": "Open Daily \u2014 Mon to Sun",
+    "opening_hours_mon_fri": "9:00am \u2013 9:00pm",
+    "opening_hours_saturday": "9:00am \u2013 9:00pm",
+    "opening_hours_sunday": "10:00am \u2013 8:00pm",
+    "footer_desc": "Aarif Fragrances \u2014 your destination for premium attars and perfumes. Authentic, long-lasting fragrances crafted for every occasion.",
+    "home_about_teaser": "Aarif Fragrances is a Tamil Nadu based perfume house offering a wide range of premium attars and perfumes in multiple quantities \u2014 6ml, 12ml, 30ml and 50ml.",
     "home_about_teaser_extra": "From Mystic Oud and Heritage Traditional attars to Aquatic Fresh and Fruity Delights, we have the perfect fragrance for every mood and occasion.",
-    "about_us_text": "Aarif Fragrances is a dedicated perfume and attar brand based in Tamil Nadu, India. Our collection follows eight premium fragrance families: Aquatic Fresh, Fruity Delights, Spicy & Aromatic, Mystic Oud, Floral Elegance, Rich Woody, Sweet Gourmand, and Heritage Traditional.\n\nAll our perfumes are available in convenient sizes: 6ml, 12ml, 30ml, and 50ml — making them perfect for personal use, gifting, or travel.\n\nWe believe that everyone deserves access to authentic, long-lasting fragrances at fair prices.",
+    "about_us_text": "Aarif Fragrances is a dedicated perfume and attar brand based in Tamil Nadu, India. Our collection follows eight premium fragrance families: Aquatic Fresh, Fruity Delights, Spicy & Aromatic, Mystic Oud, Floral Elegance, Rich Woody, Sweet Gourmand, and Heritage Traditional.\n\nAll our perfumes are available in convenient sizes: 6ml, 12ml, 30ml, and 50ml \u2014 making them perfect for personal use, gifting, or travel.\n\nWe believe that everyone deserves access to authentic, long-lasting fragrances at fair prices.",
     "delivery_area": "Tamil Nadu & all over India",
     "maps_embed_url": "",
     "social_facebook": "",

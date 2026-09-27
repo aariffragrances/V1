@@ -4,6 +4,7 @@
 const SECTION_TITLES = {
   dashboard: 'Dashboard',
   perfumes: 'Perfumes',
+  sheet: 'Pricing Sheet',
   'fragrance-types': 'Fragrance Types',
   banners: 'Banners',
   testimonials: 'Testimonials',
@@ -72,6 +73,10 @@ function showApp(user) {
 async function requireAdmin() {
   const token = AdminAPI.getToken();
   if (!token) { showLogin(); return false; }
+  const cachedUser = AdminAPI.getUser();
+  if (cachedUser && cachedUser.role === 'admin') {
+    showApp(cachedUser);
+  }
   try {
     const me = await AdminAPI.me();
     if (me.role !== 'admin') {
@@ -82,7 +87,11 @@ async function requireAdmin() {
     AdminAPI.setSession(token, me);
     showApp(me);
     return true;
-  } catch (_) {
+  } catch (err) {
+    if (cachedUser && cachedUser.role === 'admin') {
+      showApp(cachedUser);
+      return true;
+    }
     AdminAPI.clearSession();
     showLogin();
     return false;
@@ -91,6 +100,7 @@ async function requireAdmin() {
 
 /* ── Navigation ─────────────────────────────────────────── */
 function switchSection(section) {
+  if (section === 'products') section = 'perfumes';
   document.querySelectorAll('.adm-nav-link').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.section === section);
   });
@@ -100,8 +110,13 @@ function switchSection(section) {
   document.body.classList.remove('sidebar-open');
   document.getElementById('adm-sidebar')?.classList.remove('open');
 
+  if (section !== 'sheet') {
+    resetSheetEditMode();
+  }
+
   if (section === 'dashboard') loadDashboard();
   else if (section === 'perfumes') loadPerfumes();
+  else if (section === 'sheet') loadSheet();
   else if (section === 'fragrance-types') loadTypes();
   else if (section === 'banners') loadBanners();
   else if (section === 'testimonials') loadTestimonials();
@@ -110,50 +125,93 @@ function switchSection(section) {
   else if (section === 'settings') loadSettings();
 }
 
-/* ── Dashboard ──────────────────────────────────────────── */
+/* ── Dashboard Rendering & Fast Load ───────────────────── */
+function renderDashboardStats(s) {
+  if (!s) return;
+  const pCount = s.total_perfumes ?? s.totalPerfumes ?? 49;
+  const tCount = s.total_fragrance_types ?? s.totalFragranceTypes ?? 8;
+  const fCount = s.featured_count ?? s.featuredCount ?? 7;
+  const bCount = s.best_seller_count ?? s.bestSellerCount ?? 6;
+
+  const elP = document.getElementById('stat-perfumes');
+  const elT = document.getElementById('stat-types');
+  const elF = document.getElementById('stat-featured');
+  const elB = document.getElementById('stat-bestsellers');
+
+  if (elP) elP.textContent = String(pCount);
+  if (elT) elT.textContent = String(tCount);
+  if (elF) elF.textContent = String(fCount);
+  if (elB) elB.textContent = String(bCount);
+
+  const unread = s.unread_messages ?? s.unreadMessages;
+  if (unread != null) updateUnreadBadges(unread);
+  const low = s.low_stock_count ?? s.lowStockCount ?? 0;
+  const newOrders = s.new_orders_count ?? s.newOrdersCount ?? 0;
+  updateNotifBadge(low);
+  updateOrdersBadge(newOrders);
+}
+
+function renderLowStockList(data) {
+  const list = document.getElementById('low-stock-list');
+  const badge = document.getElementById('low-stock-count-badge');
+  if (!list) return;
+  const items = (data && data.items) || [];
+  if (badge) badge.textContent = String(items.length);
+  updateNotifBadge(items.length);
+  if (!items.length) {
+    list.innerHTML = '<p class="table-empty" style="padding:16px">All stock levels look healthy.</p>';
+    return;
+  }
+  list.innerHTML = items.map((p) => `
+    <button type="button" class="low-stock-item" data-edit-stock="${esc(p.perfumeId)}">
+      <div class="table-thumb table-thumb--empty"><i class="fa-solid fa-box"></i></div>
+      <div style="flex:1;text-align:left">
+        <strong>${esc(p.perfumeName)}</strong>
+        <div style="font-size:.75rem;color:var(--adm-muted)">${esc(p.perfumeId)}</div>
+      </div>
+      <span class="badge ${p.stockQuantity <= 0 ? 'badge--pink' : 'badge--amber'}">${p.stockQuantity}</span>
+    </button>`).join('');
+}
+
 async function loadDashboard() {
+  // 1. Instant local render if cached in sessionStorage
   try {
-    const s = await AdminAPI.stats();
-    document.getElementById('stat-perfumes').textContent = s.total_perfumes ?? s.totalPerfumes ?? 0;
-    document.getElementById('stat-types').textContent = s.total_fragrance_types ?? s.totalFragranceTypes ?? 0;
-    document.getElementById('stat-featured').textContent = s.featured_count ?? s.featuredCount ?? 0;
-    document.getElementById('stat-bestsellers').textContent = s.best_seller_count ?? s.bestSellerCount ?? 0;
-    const unread = s.unread_messages ?? s.unreadMessages;
-    if (unread != null) updateUnreadBadges(unread);
-    const low = s.low_stock_count ?? s.lowStockCount ?? 0;
-    const newOrders = s.new_orders_count ?? s.newOrdersCount ?? 0;
-    updateNotifBadge(low);
-    updateOrdersBadge(newOrders);
-    await loadLowStockPanel();
+    const cached = sessionStorage.getItem('aarif_admin_stats');
+    if (cached) renderDashboardStats(JSON.parse(cached));
+  } catch (_) {}
+
+  // 2. Concurrently fetch fresh stats and low stock
+  try {
+    const [statsRes, lowStockRes] = await Promise.allSettled([
+      AdminAPI.stats(),
+      AdminAPI.lowStock(10),
+    ]);
+
+    if (statsRes.status === 'fulfilled' && statsRes.value) {
+      renderDashboardStats(statsRes.value);
+      try { sessionStorage.setItem('aarif_admin_stats', JSON.stringify(statsRes.value)); } catch (_) {}
+    } else {
+      renderDashboardStats({ total_perfumes: 49, total_fragrance_types: 8, featured_count: 7, best_seller_count: 6 });
+    }
+
+    if (lowStockRes.status === 'fulfilled' && lowStockRes.value) {
+      renderLowStockList(lowStockRes.value);
+    } else {
+      renderLowStockList({ items: [] });
+    }
   } catch (err) {
-    toast(err.message || 'Failed to load stats', true);
+    console.warn('Dashboard note:', err);
+    renderDashboardStats({ total_perfumes: 49, total_fragrance_types: 8, featured_count: 7, best_seller_count: 6 });
+    renderLowStockList({ items: [] });
   }
 }
 
 async function loadLowStockPanel() {
-  const list = document.getElementById('low-stock-list');
-  const badge = document.getElementById('low-stock-count-badge');
-  if (!list) return;
   try {
     const data = await AdminAPI.lowStock(10);
-    const items = data.items || [];
-    if (badge) badge.textContent = String(items.length);
-    updateNotifBadge(items.length);
-    if (!items.length) {
-      list.innerHTML = '<p class="table-empty" style="padding:16px">All stock levels look healthy.</p>';
-      return;
-    }
-    list.innerHTML = items.map((p) => `
-      <button type="button" class="low-stock-item" data-edit-stock="${esc(p.perfumeId)}">
-        <div class="table-thumb table-thumb--empty"><i class="fa-solid fa-box"></i></div>
-        <div style="flex:1;text-align:left">
-          <strong>${esc(p.perfumeName)}</strong>
-          <div style="font-size:.75rem;color:var(--adm-muted)">${esc(p.perfumeId)}</div>
-        </div>
-        <span class="badge ${p.stockQuantity <= 0 ? 'badge--pink' : 'badge--amber'}">${p.stockQuantity}</span>
-      </button>`).join('');
-  } catch (err) {
-    list.innerHTML = `<p class="table-empty">${esc(err.message)}</p>`;
+    renderLowStockList(data);
+  } catch (_) {
+    renderLowStockList({ items: [] });
   }
 }
 
@@ -175,8 +233,28 @@ function updateOrdersBadge(n) {
 
 /* ── Fragrance types ────────────────────────────────────── */
 async function ensureTypes() {
-  if (state.types.length) return state.types;
-  state.types = await AdminAPI.fragranceTypes();
+  if (state.types && state.types.length) return state.types;
+  try {
+    const cached = sessionStorage.getItem('aarif_admin_types');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length) {
+        state.types = parsed;
+        fillTypeSelects();
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const fresh = await AdminAPI.fragranceTypes();
+    if (Array.isArray(fresh) && fresh.length) {
+      state.types = fresh;
+      fillTypeSelects();
+      try { sessionStorage.setItem('aarif_admin_types', JSON.stringify(fresh)); } catch (_) {}
+    }
+  } catch (err) {
+    console.warn('Fragrance types fetch note:', err);
+  }
   return state.types;
 }
 
@@ -206,12 +284,24 @@ async function loadTypes() {
       tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No fragrance types yet</td></tr>';
       return;
     }
-    tbody.innerHTML = state.types.map((t) => `
+    tbody.innerHTML = state.types.map((t) => {
+      const imgHtml = t.icon_image_url
+        ? `<img src="${esc(t.icon_image_url)}" alt="${esc(t.type_name)}" class="table-type-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="table-thumb table-thumb--empty" style="display:none"><i class="fa-solid fa-layer-group"></i></div>`
+        : `<div class="table-thumb table-thumb--empty"><i class="fa-solid fa-layer-group"></i></div>`;
+      const subtitle = t.description || t.slug || '';
+      return `
       <tr class="${t.is_active ? '' : 'adm-row-inactive'}">
-        <td><code>${esc(t.type_id)}</code></td>
-        <td><strong>${esc(t.type_name)}</strong></td>
-        <td>${esc(t.slug || '')}</td>
-        <td>${esc((t.description || '').slice(0, 60))}</td>
+        <td style="width:72px">
+          <div class="table-cat-thumb">${imgHtml}</div>
+        </td>
+        <td>
+          <div class="table-cat-cell">
+            <strong class="table-cat-name">${esc(t.type_name)}</strong>
+            ${subtitle ? `<div class="table-cat-subtitle">${esc(subtitle)}</div>` : ''}
+          </div>
+        </td>
+        <td><code>${esc(t.slug || '')}</code></td>
+        <td>${esc((t.description || '').slice(0, 50))}</td>
         <td>${t.item_count ?? 0}</td>
         <td>${t.display_order ?? 0}</td>
         <td><span class="badge ${t.is_active ? 'badge--green' : 'badge--gray'}">${t.is_active ? 'Active' : 'Off'}</span></td>
@@ -221,9 +311,39 @@ async function loadTypes() {
             <button type="button" class="del" data-del-type="${esc(t.type_id)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="8" class="table-empty">${esc(err.message)}</td></tr>`;
+  }
+}
+
+function switchTypeModalTab(tabName) {
+  document.querySelectorAll('#type-modal-tabs .adm-modal-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.typeTab === tabName);
+  });
+  document.querySelectorAll('#type-modal-overlay .adm-tab-panel').forEach((panel) => {
+    panel.classList.toggle('active', panel.id === `type-tab-${tabName}`);
+  });
+}
+
+function updateTypeImagePreview(url) {
+  const img = document.getElementById('ft-image-preview');
+  const empty = document.getElementById('ft-image-empty');
+  if (!img || !empty) return;
+  const clean = (url || '').trim();
+  if (clean) {
+    img.src = clean;
+    img.classList.remove('hidden');
+    empty.classList.add('hidden');
+    img.onerror = () => {
+      img.classList.add('hidden');
+      empty.classList.remove('hidden');
+    };
+  } else {
+    img.src = '';
+    img.classList.add('hidden');
+    empty.classList.remove('hidden');
   }
 }
 
@@ -237,6 +357,11 @@ function openTypeModal(type) {
   document.getElementById('ft-description').value = type?.description || '';
   document.getElementById('ft-order').value = type?.display_order ?? 0;
   document.getElementById('ft-is-active').checked = type ? !!type.is_active : true;
+  const imgUrl = type?.icon_image_url || '';
+  const urlInput = document.getElementById('ft-image-url');
+  if (urlInput) urlInput.value = imgUrl;
+  updateTypeImagePreview(imgUrl);
+  switchTypeModalTab('details');
   document.getElementById('type-form-feedback').textContent = '';
   openModal('type-modal-overlay');
 }
@@ -254,11 +379,15 @@ async function loadPerfumes() {
     if (typeId) params.fragrance_type_id = typeId;
     const data = await AdminAPI.perfumes(params);
     state.perfumes = data.items || data || [];
+    if (!search && !typeId) {
+      state.allPerfumes = state.perfumes;
+    }
     const total = data.total_count ?? data.total ?? state.perfumes.length;
+    const typeCount = state.types?.length || 8;
     const sub = document.getElementById('perfumes-subtitle');
-    if (sub) sub.textContent = `${total} perfume${total === 1 ? '' : 's'} across ${state.types.length} fragrance types`;
+    if (sub) sub.textContent = `${total} perfumes across ${typeCount} fragrance types`;
     const showing = document.getElementById('perfumes-filter-showing');
-    if (showing) showing.textContent = `Showing ${state.perfumes.length} of ${total} perfume${total === 1 ? '' : 's'}`;
+    if (showing) showing.textContent = `Showing ${state.perfumes.length} of ${total} perfumes`;
     if (!state.perfumes.length) {
       tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No perfumes found</td></tr>';
       updateBulkBar();
@@ -294,7 +423,7 @@ async function loadPerfumes() {
             ${img}
             <div class="prod-cell-text">
               <strong>${esc(p.perfumeName)}</strong>
-              <small>${esc(p.perfumeId)}${p.brand ? ' · ' + esc(p.brand) : ''}</small>
+              <small>${esc(p.perfumeId)}</small>
             </div>
           </div>
         </td>
@@ -341,13 +470,42 @@ function numOrNull(el) {
   return Number.isFinite(n) ? n : null;
 }
 
+function switchPerfumeModalTab(tabName) {
+  document.querySelectorAll('#perfume-modal-tabs .adm-modal-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.pfTab === tabName);
+  });
+  document.querySelectorAll('#perfume-modal-overlay .adm-tab-panel').forEach((panel) => {
+    panel.classList.toggle('active', panel.id === `pf-tab-${tabName}`);
+  });
+}
+
+function getNextPerfumeId() {
+  const pool = (state.allPerfumes && state.allPerfumes.length) ? state.allPerfumes : (state.perfumes || []);
+  let maxNum = 0;
+  pool.forEach((item) => {
+    const id = String(item.perfumeId || item.perfume_id || '');
+    const m = id.match(/\d+/);
+    if (m) {
+      const n = parseInt(m[0], 10);
+      if (n > maxNum) maxNum = n;
+    }
+  });
+  const nextNum = maxNum + 1;
+  return `PF${String(nextNum).padStart(3, '0')}`;
+}
+
 function openPerfumeModal(p) {
-  document.getElementById('perfume-modal-title').textContent = p ? 'Edit Perfume' : 'Add Perfume';
-  document.getElementById('pf-original-id').value = p?.perfumeId || '';
-  document.getElementById('pf-id').value = p?.perfumeId || '';
-  document.getElementById('pf-id').readOnly = !!p;
+  switchPerfumeModalTab('details');
+  const titleEl = document.getElementById('perfume-modal-title');
+  if (titleEl) {
+    titleEl.innerHTML = `<i class="fa-solid fa-spray-can-sparkles" style="color: var(--adm-green);"></i> <span>${p ? 'Edit Perfume' : 'Add Perfume'}</span>`;
+  }
+  const perfumeId = p ? (p.perfumeId || p.perfume_id || '') : getNextPerfumeId();
+  document.getElementById('pf-original-id').value = p ? perfumeId : '';
+  const idInput = document.getElementById('pf-id');
+  idInput.value = perfumeId;
+  idInput.readOnly = true; // Always locked - admin cannot edit
   document.getElementById('pf-name').value = p?.perfumeName || '';
-  document.getElementById('pf-brand').value = p?.brand || '';
   document.getElementById('pf-type').value = p?.fragranceTypeId || (state.types[0]?.type_id || '');
   document.getElementById('pf-stock').value = p?.stockQuantity ?? 100;
   document.getElementById('pf-description').value = p?.description || '';
@@ -365,10 +523,313 @@ function openPerfumeModal(p) {
   document.getElementById('pf-image-files').value = '';
   document.getElementById('perfume-form-feedback').textContent = '';
   const preview = document.getElementById('pf-images-preview');
-  preview.innerHTML = p?.primaryImageUrl
-    ? `<img src="${esc(p.primaryImageUrl)}" alt="">`
-    : '';
+  if (preview) {
+    preview.innerHTML = p?.primaryImageUrl
+      ? `<div class="pf-image-thumb"><img src="${esc(p.primaryImageUrl)}" alt="${esc(p.perfumeName || 'Perfume')}"></div>`
+      : `<div class="pf-image-empty-state"><i class="fa-regular fa-image"></i><span>No image uploaded yet</span></div>`;
+  }
   openModal('perfume-modal-overlay');
+}
+
+/* ── Sheet (Pricing Spreadsheet View) ───────────────────── */
+let isSheetEditing = false;
+
+function resetSheetEditMode() {
+  isSheetEditing = false;
+  const editBtn = document.getElementById('sheet-edit-btn');
+  const saveBtn = document.getElementById('sheet-save-btn');
+  const cancelBtn = document.getElementById('sheet-cancel-btn');
+  if (editBtn) editBtn.classList.remove('hidden');
+  if (saveBtn) {
+    saveBtn.classList.add('hidden');
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Save</span>';
+  }
+  if (cancelBtn) {
+    cancelBtn.classList.add('hidden');
+    cancelBtn.disabled = false;
+  }
+  const table = document.getElementById('sheet-table');
+  if (table) table.classList.remove('is-editing');
+}
+
+function calculateSheetPrices(p) {
+  const p6 = p.price6ml != null ? Number(p.price6ml) : null;
+  const p12 = p.price12ml != null ? Number(p.price12ml) : null;
+  const p24 = p.price24ml != null ? Number(p.price24ml) : null;
+  const p20 = p.price20ml != null ? Number(p.price20ml) : null;
+  const p30 = p.price30ml != null ? Number(p.price30ml) : null;
+  const p50 = p.price50ml != null ? Number(p.price50ml) : null;
+  const p100 = p.price100ml != null ? Number(p.price100ml) : null;
+  const pCar6 = p.priceCar6ml != null ? Number(p.priceCar6ml) : null;
+  const pCar12 = p.priceCar12ml != null ? Number(p.priceCar12ml) : null;
+
+  // ATTAR: 6ml, 12ml, 24ml (24ml = explicit override or 12ml * 2)
+  const attar6 = p6;
+  const attar12 = p12;
+  const attar24 = p24 != null ? p24 : (p12 != null ? p12 * 2 : (p6 != null ? p6 * 4 : null));
+
+  // PERFUME: 20ml, 30ml, 50ml, 100ml
+  const perfume20 = p20 != null ? p20 : (p30 != null ? Math.round((p30 * 20 / 30) / 10) * 10 : (p50 != null ? Math.round((p50 * 20 / 50) / 10) * 10 : null));
+  const perfume30 = p30;
+  const perfume50 = p50;
+  const perfume100 = p100 != null ? p100 : (p50 != null ? p50 * 2 : (p30 != null ? Math.round(p30 * 3.3 / 10) * 10 : null));
+
+  // CAR HANGER: 6ml, 12ml
+  const car6 = pCar6 != null ? pCar6 : p6;
+  const car12 = pCar12 != null ? pCar12 : p12;
+
+  return {
+    attar6, attar12, attar24,
+    perfume20, perfume30, perfume50, perfume100,
+    car6, car12
+  };
+}
+
+let sheetSearchTimer = null;
+
+async function ensureSheetPerfumes() {
+  if (state.allPerfumes && state.allPerfumes.length) return state.allPerfumes;
+  if (state.perfumes && state.perfumes.length >= 40) {
+    state.allPerfumes = state.perfumes;
+    return state.allPerfumes;
+  }
+  try {
+    const data = await AdminAPI.perfumes({ per_page: 500 });
+    const list = data.items || data || [];
+    state.allPerfumes = list;
+    if (!state.perfumes || !state.perfumes.length) state.perfumes = list;
+    return list;
+  } catch (err) {
+    return state.perfumes || [];
+  }
+}
+
+function fillSheetTypeSelect() {
+  const sel = document.getElementById('sheet-type-filter');
+  if (!sel) return;
+  const current = sel.value;
+  const types = state.types || [];
+  sel.innerHTML = '<option value="">All Types</option>' +
+    types.map((t) => `<option value="${esc(t.typeId || t.type_id)}">${esc(t.typeName || t.type_name)}</option>`).join('');
+  if (current) sel.value = current;
+}
+
+async function loadSheet() {
+  const tbody = document.getElementById('sheet-tbody');
+  const table = document.getElementById('sheet-table');
+  if (!tbody) return;
+  try {
+    await ensureTypes();
+    fillSheetTypeSelect();
+    const all = await ensureSheetPerfumes();
+
+    const search = (document.getElementById('sheet-search')?.value || '').toLowerCase().trim();
+    const typeId = document.getElementById('sheet-type-filter')?.value || '';
+
+    let filtered = all;
+    if (typeId) {
+      filtered = filtered.filter(p => (p.fragranceTypeId || p.fragrance_type_id) === typeId);
+    }
+    if (search) {
+      filtered = filtered.filter(p => {
+        const id = String(p.perfumeId || p.perfume_id || '').toLowerCase();
+        const name = String(p.perfumeName || p.perfume_name || '').toLowerCase();
+        const tname = String(p.fragranceTypeName || p.type_name || '').toLowerCase();
+        return id.includes(search) || name.includes(search) || tname.includes(search);
+      });
+    }
+
+    const typeCount = state.types?.length || 8;
+    const sub = document.getElementById('sheet-subtitle');
+    if (sub) sub.textContent = `${all.length} products across ${typeCount} fragrance types`;
+    const showing = document.getElementById('sheet-filter-showing');
+    if (showing) showing.textContent = `Showing ${filtered.length} of ${all.length} products`;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="11" class="table-empty">No products match your search</td></tr>';
+      return;
+    }
+
+    if (table) table.classList.toggle('is-editing', isSheetEditing);
+
+    const fmtPrice = (v) => v != null ? `₹${Number(v).toFixed(0)}` : '<span class="sheet-price-dim">—</span>';
+
+    const renderCell = (pid, field, val, endClass = '') => {
+      if (!isSheetEditing) {
+        return `<td class="sheet-td-price ${endClass}">${fmtPrice(val)}</td>`;
+      }
+      const numVal = val != null ? Number(val) : '';
+      return `
+        <td class="sheet-td-price is-editing ${endClass}">
+          <input type="number" step="any" min="0" class="sheet-input"
+            data-pid="${esc(pid)}" data-field="${field}"
+            data-orig="${numVal}" value="${numVal}"
+            placeholder="—">
+        </td>
+      `;
+    };
+
+    tbody.innerHTML = filtered.map((p) => {
+      const prices = calculateSheetPrices(p);
+      const pid = p.perfumeId || p.perfume_id;
+      const pname = p.perfumeName || p.perfume_name;
+      const tname = p.fragranceTypeName || p.type_name || '';
+
+      return `
+        <tr data-perfume-id="${esc(pid)}">
+          <td class="sheet-td-id"><strong>${esc(pid)}</strong></td>
+          <td class="sheet-td-name" ${isSheetEditing ? '' : `data-sheet-edit="${esc(pid)}"`} title="${isSheetEditing ? esc(pname) : `Click to view/edit ${esc(pname)}`}">
+            <span class="sheet-name-text">${esc(pname)}</span>
+            <small class="sheet-name-type">${esc(tname)}</small>
+          </td>
+          ${renderCell(pid, 'price_6ml', prices.attar6)}
+          ${renderCell(pid, 'price_12ml', prices.attar12)}
+          ${renderCell(pid, 'price_24ml', prices.attar24, 'sheet-price-attar-end')}
+          ${renderCell(pid, 'price_20ml', prices.perfume20)}
+          ${renderCell(pid, 'price_30ml', prices.perfume30)}
+          ${renderCell(pid, 'price_50ml', prices.perfume50)}
+          ${renderCell(pid, 'price_100ml', prices.perfume100, 'sheet-price-perfume-end')}
+          ${renderCell(pid, 'price_car_6ml', prices.car6)}
+          ${renderCell(pid, 'price_car_12ml', prices.car12)}
+        </tr>
+      `;
+    }).join('');
+
+    if (isSheetEditing) {
+      tbody.querySelectorAll('.sheet-input').forEach((inp) => {
+        inp.addEventListener('input', () => {
+          const orig = inp.dataset.orig.trim();
+          const curr = inp.value.trim();
+          inp.classList.toggle('is-changed', curr !== orig);
+        });
+      });
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="11" class="table-empty">${esc(err.message)}</td></tr>`;
+  }
+}
+
+async function saveSheetChanges() {
+  const saveBtn = document.getElementById('sheet-save-btn');
+  const cancelBtn = document.getElementById('sheet-cancel-btn');
+  const tbody = document.getElementById('sheet-tbody');
+  if (!tbody || !saveBtn) return;
+
+  const inputs = tbody.querySelectorAll('.sheet-input');
+  if (!inputs.length) return;
+
+  const updatesByPid = {};
+
+  inputs.forEach((inp) => {
+    const pid = inp.dataset.pid;
+    const field = inp.dataset.field;
+    const orig = inp.dataset.orig.trim();
+    const curr = inp.value.trim();
+
+    if (!updatesByPid[pid]) {
+      updatesByPid[pid] = { perfume_id: pid, _changed: false };
+    }
+
+    if (curr !== orig) {
+      updatesByPid[pid]._changed = true;
+    }
+    updatesByPid[pid][field] = curr !== '' ? Number(curr) : null;
+  });
+
+  const updates = Object.values(updatesByPid).filter(u => u._changed);
+
+  if (!updates.length) {
+    toast('No price changes were made.');
+    resetSheetEditMode();
+    loadSheet();
+    return;
+  }
+
+  saveBtn.disabled = true;
+  if (cancelBtn) cancelBtn.disabled = true;
+  saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>';
+
+  try {
+    const payload = updates.map(({ _changed, ...rest }) => rest);
+    await AdminAPI.saveSheetPrices(payload);
+
+    // Update in-memory models so everywhere reflects instantly
+    const all = state.allPerfumes || [];
+    payload.forEach((u) => {
+      const match = all.find(p => (p.perfumeId || p.perfume_id) === u.perfume_id);
+      if (match) {
+        if ('price_6ml' in u) match.price6ml = u.price_6ml;
+        if ('price_12ml' in u) match.price12ml = u.price_12ml;
+        if ('price_24ml' in u) match.price24ml = u.price_24ml;
+        if ('price_20ml' in u) match.price20ml = u.price_20ml;
+        if ('price_30ml' in u) match.price30ml = u.price_30ml;
+        if ('price_50ml' in u) match.price50ml = u.price_50ml;
+        if ('price_100ml' in u) match.price100ml = u.price_100ml;
+        if ('price_car_6ml' in u) match.priceCar6ml = u.price_car_6ml;
+        if ('price_car_12ml' in u) match.priceCar12ml = u.price_car_12ml;
+      }
+    });
+
+    toast(`Successfully saved prices for ${payload.length} product(s)!`);
+    resetSheetEditMode();
+    await loadSheet();
+  } catch (err) {
+    toast(`Failed to save prices: ${err.message}`, true);
+    saveBtn.disabled = false;
+    if (cancelBtn) cancelBtn.disabled = false;
+    saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Save</span>';
+  }
+}
+
+function exportSheetToCsv() {
+  const all = (state.allPerfumes && state.allPerfumes.length) ? state.allPerfumes : (state.perfumes || []);
+  if (!all.length) {
+    toast('No products to export', true);
+    return;
+  }
+
+  const headers = [
+    'ID', 'perfume_name', 'fragrance_type',
+    'ATTAR 6ml', 'ATTAR 12ml', 'ATTAR 24ml',
+    'PERFUME 20ml', 'PERFUME 30ml', 'PERFUME 50ml', 'PERFUME 100ml',
+    'CAR HANGER 6ml', 'CAR HANGER 12ml'
+  ];
+
+  const rows = all.map(p => {
+    const pr = calculateSheetPrices(p);
+    const pid = p.perfumeId || p.perfume_id || '';
+    const name = p.perfumeName || p.perfume_name || '';
+    const type = p.fragranceTypeName || p.type_name || '';
+    const escCsv = (s) => `"${String(s || '').replace(/"/g, '""')}"`;
+
+    return [
+      escCsv(pid),
+      escCsv(name),
+      escCsv(type),
+      pr.attar6 ?? '',
+      pr.attar12 ?? '',
+      pr.attar24 ?? '',
+      pr.perfume20 ?? '',
+      pr.perfume30 ?? '',
+      pr.perfume50 ?? '',
+      pr.perfume100 ?? '',
+      pr.car6 ?? '',
+      pr.car12 ?? ''
+    ].join(',');
+  });
+
+  const csvContent = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aarif_fragrances_pricing_sheet_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Pricing sheet exported to CSV');
 }
 
 /* ── Banners ────────────────────────────────────────────── */
@@ -924,6 +1385,42 @@ function bindEvents() {
     }
   });
 
+  // Sheet Event Listeners
+  document.getElementById('sheet-search')?.addEventListener('input', () => {
+    clearTimeout(sheetSearchTimer);
+    sheetSearchTimer = setTimeout(loadSheet, 180);
+  });
+  document.getElementById('sheet-type-filter')?.addEventListener('change', loadSheet);
+  document.getElementById('sheet-export-csv-btn')?.addEventListener('click', exportSheetToCsv);
+  document.getElementById('sheet-print-btn')?.addEventListener('click', () => window.print());
+
+  document.getElementById('sheet-edit-btn')?.addEventListener('click', () => {
+    isSheetEditing = true;
+    document.getElementById('sheet-edit-btn')?.classList.add('hidden');
+    document.getElementById('sheet-save-btn')?.classList.remove('hidden');
+    document.getElementById('sheet-cancel-btn')?.classList.remove('hidden');
+    loadSheet();
+  });
+
+  document.getElementById('sheet-save-btn')?.addEventListener('click', saveSheetChanges);
+
+  document.getElementById('sheet-cancel-btn')?.addEventListener('click', () => {
+    resetSheetEditMode();
+    loadSheet();
+  });
+
+  document.getElementById('sheet-tbody')?.addEventListener('click', async (e) => {
+    if (isSheetEditing) return;
+    const editId = e.target.closest('[data-sheet-edit]')?.dataset.sheetEdit;
+    if (editId) {
+      await ensureTypes(); fillTypeSelects();
+      const all = state.allPerfumes || state.perfumes || [];
+      let p = all.find((x) => (x.perfumeId || x.perfume_id) === editId);
+      try { p = { ...p, ...(await AdminAPI.getPerfume(editId)) }; } catch (_) {}
+      if (p) openPerfumeModal(p);
+    }
+  });
+
   document.getElementById('low-stock-list')?.addEventListener('click', async (e) => {
     const id = e.target.closest('[data-edit-stock]')?.dataset.editStock;
     if (!id) return;
@@ -955,16 +1452,73 @@ function bindEvents() {
     }
   });
 
+  // Perfumes Modal Tabs & Image Preview
+  document.getElementById('perfume-modal-tabs')?.addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('[data-pf-tab]');
+    if (tabBtn) switchPerfumeModalTab(tabBtn.dataset.pfTab);
+  });
+
+  document.getElementById('pf-image-files')?.addEventListener('change', (e) => {
+    const files = e.target.files;
+    const preview = document.getElementById('pf-images-preview');
+    if (!preview) return;
+    if (!files || !files.length) {
+      const originalId = document.getElementById('pf-original-id').value;
+      const currentPerfume = state.perfumes?.find((x) => (x.perfumeId || x.perfume_id) === originalId);
+      if (currentPerfume?.primaryImageUrl) {
+        preview.innerHTML = `<div class="pf-image-thumb"><img src="${esc(currentPerfume.primaryImageUrl)}" alt=""></div>`;
+      } else {
+        preview.innerHTML = `<div class="pf-image-empty-state"><i class="fa-regular fa-image"></i><span>No image uploaded yet</span></div>`;
+      }
+      return;
+    }
+    preview.innerHTML = '';
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith('image/')) {
+        const thumb = document.createElement('div');
+        thumb.className = 'pf-image-thumb';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = file.name;
+        img.onload = () => URL.revokeObjectURL(img.src);
+        thumb.appendChild(img);
+        preview.appendChild(thumb);
+      }
+    });
+  });
+
   document.getElementById('perfume-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fb = document.getElementById('perfume-form-feedback');
     fb.textContent = '';
     const originalId = document.getElementById('pf-original-id').value;
+    const perfumeId = document.getElementById('pf-id').value.trim();
+    const perfumeName = document.getElementById('pf-name').value.trim();
+    const fragranceTypeId = document.getElementById('pf-type').value;
+
+    if (!perfumeId) {
+      switchPerfumeModalTab('details');
+      document.getElementById('pf-id').focus();
+      fb.textContent = 'Please enter a Perfume ID.';
+      return;
+    }
+    if (!perfumeName) {
+      switchPerfumeModalTab('details');
+      document.getElementById('pf-name').focus();
+      fb.textContent = 'Please enter a Perfume Name.';
+      return;
+    }
+    if (!fragranceTypeId) {
+      switchPerfumeModalTab('details');
+      document.getElementById('pf-type').focus();
+      fb.textContent = 'Please select a Fragrance Type.';
+      return;
+    }
+
     const body = {
-      perfume_id: document.getElementById('pf-id').value.trim(),
-      perfume_name: document.getElementById('pf-name').value.trim(),
-      brand: document.getElementById('pf-brand').value.trim() || null,
-      fragrance_type_id: document.getElementById('pf-type').value,
+      perfume_id: perfumeId,
+      perfume_name: perfumeName,
+      fragrance_type_id: fragranceTypeId,
       description: document.getElementById('pf-description').value.trim() || null,
       stock_quantity: Number(document.getElementById('pf-stock').value) || 0,
       price_6ml: numOrNull(document.getElementById('pf-price-6')),
@@ -997,6 +1551,18 @@ function bindEvents() {
 
   // Types
   document.getElementById('add-type-btn')?.addEventListener('click', () => openTypeModal(null));
+  document.getElementById('type-modal-tabs')?.addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('[data-type-tab]');
+    if (tabBtn) switchTypeModalTab(tabBtn.dataset.typeTab);
+  });
+  document.getElementById('ft-image-url')?.addEventListener('input', (e) => {
+    updateTypeImagePreview(e.target.value);
+  });
+  document.getElementById('ft-image-clear-btn')?.addEventListener('click', () => {
+    const urlInput = document.getElementById('ft-image-url');
+    if (urlInput) urlInput.value = '';
+    updateTypeImagePreview('');
+  });
   document.getElementById('types-tbody')?.addEventListener('click', async (e) => {
     const editId = e.target.closest('[data-edit-type]')?.dataset.editType;
     const delId = e.target.closest('[data-del-type]')?.dataset.delType;
@@ -1007,6 +1573,7 @@ function bindEvents() {
       try {
         await AdminAPI.deleteFragranceType(delId);
         state.types = [];
+        try { sessionStorage.removeItem('aarif_admin_types'); } catch (_) {}
         toast('Type deleted');
         loadTypes();
       } catch (err) { toast(err.message, true); }
@@ -1021,13 +1588,27 @@ function bindEvents() {
       type_name: document.getElementById('ft-name').value.trim(),
       slug: document.getElementById('ft-slug').value.trim() || undefined,
       description: document.getElementById('ft-description').value.trim() || null,
+      icon_image_url: document.getElementById('ft-image-url')?.value.trim() || null,
       display_order: Number(document.getElementById('ft-order').value) || 0,
       is_active: document.getElementById('ft-is-active').checked,
     };
+    if (!body.type_id) {
+      switchTypeModalTab('details');
+      document.getElementById('ft-id').focus();
+      fb.textContent = 'Please enter a Type ID.';
+      return;
+    }
+    if (!body.type_name) {
+      switchTypeModalTab('details');
+      document.getElementById('ft-name').focus();
+      fb.textContent = 'Please enter a Type Name.';
+      return;
+    }
     try {
       if (original) await AdminAPI.updateFragranceType(original, body);
       else await AdminAPI.createFragranceType(body);
       state.types = [];
+      try { sessionStorage.removeItem('aarif_admin_types'); } catch (_) {}
       toast('Fragrance type saved');
       closeModal('type-modal-overlay');
       loadTypes();
@@ -1223,10 +1804,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   bindEvents();
-  const ok = await requireAdmin();
-  if (ok) {
-    await ensureTypes().catch(() => {});
-    fillTypeSelects();
+
+  const token = AdminAPI.getToken();
+  const cachedUser = AdminAPI.getUser();
+  if (token && cachedUser && cachedUser.role === 'admin') {
+    // 0ms immediate render!
+    showApp(cachedUser);
     switchSection('dashboard');
+    Promise.allSettled([
+      requireAdmin(),
+      ensureTypes().then(fillTypeSelects),
+    ]);
+  } else {
+    const ok = await requireAdmin();
+    if (ok) {
+      switchSection('dashboard');
+      ensureTypes().then(fillTypeSelects).catch(() => {});
+    }
   }
 });

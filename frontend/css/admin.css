@@ -1,4 +1,4 @@
-﻿/* Aarif Fragrances — Admin Portal (chocolate brown theme) */
+/* Aarif Fragrances — Admin Portal (chocolate brown theme) */
 :root {
     --adm-bg: #f5f1eb;
     --adm-green: #4a3428;
@@ -523,6 +523,110 @@ ul { list-style: none; }
     font-weight: 600;
     color: var(--adm-green);
     letter-spacing: .01em;
+}
+
+/* Unified Perfumes Filter Card */
+.adm-perfumes-filter-card {
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    background: var(--adm-white);
+    border-radius: var(--adm-radius);
+    box-shadow: var(--adm-shadow);
+    border: 1px solid var(--adm-border);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.adm-perfumes-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--adm-border);
+}
+.adm-perfumes-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.adm-perfumes-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--adm-text);
+    line-height: 1.2;
+    margin: 0;
+}
+.adm-perfumes-subtitle {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--adm-muted);
+    margin: 0;
+}
+.adm-perfumes-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.adm-perfumes-controls-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.adm-perfumes-controls-row .adm-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.adm-perfumes-controls-row .adm-filter-search {
+    flex: 2 1 260px;
+}
+.adm-perfumes-controls-row .adm-filter-type {
+    flex: 1 1 200px;
+}
+.adm-perfumes-controls-row .adm-input,
+.adm-perfumes-controls-row .adm-select {
+    width: 100%;
+}
+.adm-perfumes-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 2px;
+}
+.adm-perfumes-filter-card .adm-filter-showing {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--adm-green);
+    letter-spacing: 0.01em;
+}
+@media (max-width: 640px) {
+    .adm-perfumes-filter-card {
+        padding: 16px;
+        gap: 14px;
+    }
+    .adm-perfumes-card-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .adm-perfumes-card-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+    .adm-perfumes-controls-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .adm-perfumes-controls-row .adm-filter-search,
+    .adm-perfumes-controls-row .adm-filter-type {
+        width: 100%;
+        flex: 1 1 100%;
+    }
 }
 .adm-filter-group label { display: block; font-size: .75rem; font-weight: 600; color: var(--adm-muted); margin-bottom: 4px; }
 .adm-input, .adm-select, .adm-textarea {
@@ -1755,6 +1859,687 @@ body.login-loading-active { overflow: hidden; }
 }
 .btn.btn-primary { background: var(--adm-green); color: #fff; border-color: var(--adm-green); }
 .btn.btn-outline { background: #fff; }
-.btn.btn-danger { background: var(--adm-danger); color: #fff; }
 .admin-logo-img { border-radius: 0 !important; }
+
+/* Fragrance Type Table Column Styles */
+.table-cat-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--adm-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 2px;
+}
+.table-type-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.table-cat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 160px;
+}
+.table-cat-name {
+  font-size: 0.925rem;
+  font-weight: 700;
+  color: var(--adm-text);
+  line-height: 1.25;
+}
+.table-cat-subtitle {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--adm-muted);
+  line-height: 1.35;
+}
+
+/* Fragrance Type Modal Wide & Tabs */
+.admin-modal--type {
+  max-width: 680px !important;
+  width: 95% !important;
+}
+.adm-modal-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1.5px solid var(--adm-border);
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.adm-modal-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--adm-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--adm-transition);
+}
+.adm-modal-tab-btn:hover {
+  color: var(--adm-green);
+  background: var(--adm-green-light);
+}
+.adm-modal-tab-btn.active {
+  background: var(--adm-green);
+  color: #fff;
+  border-color: var(--adm-green);
+}
+.adm-tab-panel {
+  display: none;
+}
+.adm-tab-panel.active {
+  display: block;
+  animation: fadeIn .2s ease;
+}
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .form-row-2col {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+/* Type Image Visibility Box */
+.type-image-visibility-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px;
+  background: #faf8f5;
+  border: 1.5px solid var(--adm-border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.type-image-preview-frame {
+  width: 110px;
+  height: 110px;
+  border-radius: 12px;
+  background: #fff;
+  border: 2px dashed var(--adm-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.03);
+}
+.type-preview-img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  display: block;
+}
+.type-image-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--adm-muted);
+  text-align: center;
+  padding: 8px;
+}
+.type-image-empty-state i {
+  font-size: 2rem;
+  color: var(--adm-muted);
+  opacity: 0.65;
+}
+.type-image-empty-state span {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.type-image-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.type-image-meta h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+.type-image-meta p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--adm-muted);
+  line-height: 1.45;
+}
+.type-image-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--adm-green-light);
+  color: var(--adm-green);
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+}
+.type-image-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Perfume Modal Tabs & Sections */
+.pf-pricing-section {
+  background: #faf8f5;
+  border: 1.5px solid var(--adm-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.pf-tab-subheading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--adm-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+.pf-tab-subheading i {
+  color: var(--adm-green);
+}
+.pf-image-upload-card {
+  background: #faf8f5;
+  border: 1.5px dashed var(--adm-border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+.pf-upload-header h4 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--adm-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.pf-upload-header h4 i {
+  color: var(--adm-green);
+}
+.pf-avail-block {
+  background: #faf8f5;
+  border: 1.5px solid var(--adm-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.pf-image-empty-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border: 1.5px dashed var(--adm-border);
+  border-radius: 10px;
+  background: #faf8f5;
+  color: var(--adm-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.pf-image-empty-state i {
+  font-size: 1.25rem;
+  opacity: 0.7;
+}
+.pf-images-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+.pf-images-preview .pf-image-thumb {
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid var(--adm-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: relative;
+  background: #fff;
+}
+.pf-images-preview .pf-image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Perfume Modal Size - Spacious & Elegant */
+.admin-modal--perfume {
+  max-width: 880px !important;
+  width: 95% !important;
+  max-height: 92vh !important;
+  padding: 32px 36px !important;
+  border-radius: 16px !important;
+}
+
+#perfume-modal-overlay .admin-modal h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#perfume-modal-tabs {
+  margin-bottom: 24px;
+  padding-bottom: 10px;
+  gap: 10px;
+}
+
+#perfume-modal-tabs .adm-modal-tab-btn {
+  font-size: 0.925rem;
+  padding: 10px 22px;
+  border-radius: 10px;
+}
+
+#pf-tab-details .form-row-2col {
+  margin-bottom: 12px;
+  gap: 20px;
+}
+
+#pf-tab-details textarea {
+  min-height: 110px;
+}
+
+#pf-tab-pricing-stock .pf-pricing-section {
+  padding: 22px 26px;
+  border-radius: 14px;
+}
+
+#pf-tab-pricing-stock .form-row-2col {
+  gap: 20px;
+}
+
+#pf-tab-images .pf-image-upload-card {
+  padding: 32px 24px;
+  border-radius: 14px;
+  background: #faf8f5;
+  border: 2px dashed var(--adm-border);
+}
+
+#pf-tab-availability .pf-avail-block {
+  padding: 20px 24px;
+  border-radius: 14px;
+}
+
+#perfume-modal-overlay .modal-actions {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1.5px solid var(--adm-border);
+}
+
+@media (max-width: 768px) {
+  .admin-modal--perfume {
+    padding: 20px 16px !important;
+    width: 96% !important;
+  }
+  #perfume-modal-tabs .adm-modal-tab-btn {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Locked / Read-Only Perfume ID Styling */
+.adm-input-readonly {
+  background-color: #f6f5f2 !important;
+  color: #3d3b37 !important;
+  border-color: #dfdbd3 !important;
+  cursor: not-allowed !important;
+  font-weight: 700 !important;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+.adm-input-readonly:focus {
+  border-color: #dfdbd3 !important;
+  box-shadow: none !important;
+}
+
+.field-badge-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--adm-green-light);
+  color: var(--adm-green);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ========================================================
+   SHEET SECTION (EXCEL / SPREADSHEET TABLE)
+======================================================== */
+.sheet-card {
+  border: 1px solid var(--adm-border);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.sheet-table-wrap {
+  max-height: calc(100vh - 270px);
+  min-height: 400px;
+  overflow: auto;
+  position: relative;
+  background: #ffffff;
+}
+
+.sheet-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 980px;
+  font-size: 0.85rem;
+}
+
+/* Header Cells */
+.sheet-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.sheet-th {
+  font-family: inherit;
+  font-weight: 700;
+  border-right: 1px solid #d4d4d8;
+  border-bottom: 1px solid #d4d4d8;
+  padding: 9px 12px;
+  user-select: none;
+}
+
+.sheet-th--id {
+  width: 78px;
+  min-width: 78px;
+  background: #f8fafc;
+  color: #334155;
+  text-align: center;
+  vertical-align: middle;
+  position: sticky;
+  left: 0;
+  z-index: 25;
+  border-right: 1.5px solid #cbd5e1;
+}
+
+.sheet-th--name {
+  min-width: 220px;
+  max-width: 280px;
+  background: #f8fafc;
+  color: #334155;
+  text-align: left;
+  vertical-align: middle;
+  position: sticky;
+  left: 78px;
+  z-index: 25;
+  border-right: 2px solid #cbd5e1;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.04);
+}
+
+/* Group Headers */
+.sheet-th--group {
+  text-align: center;
+  font-size: 0.82rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 9px 10px;
+}
+
+.sheet-group-attar {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-bottom: 2px solid #2e7d32;
+  border-right: 2px solid #cbd5e1;
+}
+
+.sheet-group-perfume {
+  background: #fef3c7;
+  color: #92400e;
+  border-bottom: 2px solid #d97706;
+  border-right: 2px solid #cbd5e1;
+}
+
+.sheet-group-car {
+  background: #e0f2fe;
+  color: #075985;
+  border-bottom: 2px solid #0284c7;
+  border-right: 1px solid #d4d4d8;
+}
+
+/* Sub-headers */
+.sheet-th--sub {
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-align: right;
+  padding: 7px 12px;
+}
+
+.sheet-sub-attar {
+  background: #f3faf4;
+  color: #2e7d32;
+}
+
+.sheet-sub-attar:last-of-type {
+  border-right: 2px solid #cbd5e1;
+}
+
+.sheet-sub-perfume {
+  background: #fef9ee;
+  color: #b45309;
+}
+
+.sheet-sub-perfume:last-of-type {
+  border-right: 2px solid #cbd5e1;
+}
+
+.sheet-sub-car {
+  background: #f0f9ff;
+  color: #0284c7;
+}
+
+/* Table Body */
+.sheet-table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.sheet-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.sheet-table tbody tr:hover {
+  background: #f1f5f9 !important;
+}
+
+.sheet-table tbody tr:hover .sheet-td-id,
+.sheet-table tbody tr:hover .sheet-td-name {
+  background: #e2e8f0 !important;
+}
+
+.sheet-td-id {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #ffffff;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  border-right: 1.5px solid #cbd5e1;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 9px 8px;
+}
+
+.sheet-table tbody tr:nth-child(even) .sheet-td-id,
+.sheet-table tbody tr:nth-child(even) .sheet-td-name {
+  background: #f8fafc;
+}
+
+.sheet-td-name {
+  position: sticky;
+  left: 78px;
+  z-index: 10;
+  background: #ffffff;
+  text-align: left;
+  border-right: 2px solid #cbd5e1;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 14px;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.04);
+  cursor: pointer;
+}
+
+.sheet-name-text {
+  display: block;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.875rem;
+  transition: color 0.15s ease;
+}
+
+.sheet-td-name:hover .sheet-name-text {
+  color: var(--adm-green);
+  text-decoration: underline;
+}
+
+.sheet-name-type {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.sheet-td-price {
+  text-align: right;
+  padding: 9px 12px;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sheet-price-attar-end,
+.sheet-price-perfume-end {
+  border-right: 2px solid #cbd5e1 !important;
+}
+
+.sheet-price-dim {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Editable Sheet Mode */
+.sheet-td-price.is-editing {
+  padding: 4px 5px !important;
+}
+
+.sheet-input {
+  width: 100%;
+  min-width: 62px;
+  max-width: 88px;
+  padding: 5px 6px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-align: right;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 5px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-input::-webkit-inner-spin-button,
+.sheet-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sheet-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.sheet-input:hover {
+  border-color: #94a3b8;
+}
+
+.sheet-input:focus {
+  border-color: var(--adm-green, #1b5e20);
+  background: #f0fdf4;
+  box-shadow: 0 0 0 2.5px rgba(27, 94, 32, 0.15);
+}
+
+.sheet-input.is-changed {
+  border-color: #d97706 !important;
+  background: #fffbeb !important;
+  color: #92400e !important;
+  font-weight: 700;
+}
+
+.sheet-table.is-editing .sheet-group-header,
+.sheet-table.is-editing .sheet-sub-header {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+/* Print Styling */
+@media print {
+  .adm-sidebar,
+  .adm-header,
+  .adm-sheet-filter-card {
+    display: none !important;
+  }
+  .adm-main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .sheet-table-wrap {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .sheet-table {
+    font-size: 8pt !important;
+    min-width: 100% !important;
+  }
+  .sheet-th, .sheet-td-id, .sheet-td-name, .sheet-td-price {
+    padding: 4px 6px !important;
+  }
+}
+
+
+
 

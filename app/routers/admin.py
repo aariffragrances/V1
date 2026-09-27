@@ -126,7 +126,9 @@ async def create_fragrance_type(
         type_id=type_id, type_name=name,
         description=body.get("description"),
         slug=body.get("slug") or _slug(name),
+        icon_image_url=body.get("icon_image_url"),
         display_order=body.get("display_order", 0),
+        is_active=bool(body.get("is_active", True)),
     ))
     invalidate_catalog_cache()
     return {"ok": True, "type_id": type_id}
@@ -189,14 +191,16 @@ async def admin_perfumes(
         where.append("p.fragrance_type_id = :ftype_id")
         params["ftype_id"] = fragrance_type_id
     if search:
-        where.append("p.perfume_name ILIKE :search")
+        where.append("(p.perfume_name ILIKE :search OR p.perfume_id ILIKE :search OR p.brand ILIKE :search)")
         params["search"] = f"%{search.strip()}%"
     where_sql = " AND ".join(where)
 
     total = (await db.execute(text(f"SELECT COUNT(*) FROM perfumes p WHERE {where_sql}"), params)).scalar_one()
     rows = (await db.execute(text(f"""
         SELECT p.perfume_id, p.perfume_name, p.fragrance_type_id, ft.type_name,
-               p.brand, p.price_6ml, p.price_12ml, p.price_30ml, p.price_50ml,
+               p.brand, p.description, p.price_6ml, p.price_12ml, p.price_24ml,
+               p.price_20ml, p.price_30ml, p.price_50ml, p.price_100ml,
+               p.price_car_6ml, p.price_car_12ml,
                p.is_attar, p.is_perfume, p.is_car_hanger, p.is_featured, p.is_best_seller, p.is_new_arrival,
                p.is_active, p.stock_quantity,
                pi.image_url AS primary_image_url
@@ -217,10 +221,16 @@ async def admin_perfumes(
             "perfumeId": r.perfume_id, "perfumeName": r.perfume_name,
             "fragranceTypeId": r.fragrance_type_id, "fragranceTypeName": r.type_name or "",
             "brand": r.brand or "",
-            "price6ml": float(r.price_6ml) if r.price_6ml else None,
-            "price12ml": float(r.price_12ml) if r.price_12ml else None,
-            "price30ml": float(r.price_30ml) if r.price_30ml else None,
-            "price50ml": float(r.price_50ml) if r.price_50ml else None,
+            "description": r.description or "",
+            "price6ml": float(r.price_6ml) if r.price_6ml is not None else None,
+            "price12ml": float(r.price_12ml) if r.price_12ml is not None else None,
+            "price24ml": float(r.price_24ml) if r.price_24ml is not None else None,
+            "price20ml": float(r.price_20ml) if r.price_20ml is not None else None,
+            "price30ml": float(r.price_30ml) if r.price_30ml is not None else None,
+            "price50ml": float(r.price_50ml) if r.price_50ml is not None else None,
+            "price100ml": float(r.price_100ml) if r.price_100ml is not None else None,
+            "priceCar6ml": float(r.price_car_6ml) if r.price_car_6ml is not None else None,
+            "priceCar12ml": float(r.price_car_12ml) if r.price_car_12ml is not None else None,
             "isAttar": bool(r.is_attar),
             "isPerfume": bool(r.is_perfume),
             "isCarHanger": bool(r.is_car_hanger),
@@ -245,14 +255,28 @@ async def admin_perfumes(
 @router.get("/perfumes/{perfume_id}")
 async def get_admin_perfume(perfume_id: str, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     p = await _get_perfume_or_404(db, perfume_id)
-    return perfume_to_dict(p, primary_image_url(p))
+    d = perfume_to_dict(p, primary_image_url(p))
+    d["stockQuantity"] = p.stock_quantity
+    d["isActive"] = p.is_active
+    return d
 
 
 @router.post("/perfumes")
 async def create_perfume(body: dict, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    pid = body.get("perfume_id")
+    pid = (body.get("perfume_id") or "").strip()
     if not pid:
-        raise HTTPException(status_code=422, detail="perfume_id required")
+        import re
+        from sqlalchemy import text
+        res = await db.execute(text("SELECT perfume_id FROM perfumes"))
+        max_num = 0
+        for (existing_id,) in res.fetchall():
+            m = re.search(r"\d+", existing_id or "")
+            if m:
+                num = int(m.group(0))
+                if num > max_num:
+                    max_num = num
+        next_num = max_num + 1
+        pid = f"PF{next_num:03d}"
     name = body.get("perfume_name", "")
     p = Perfume(
         perfume_id=pid,
@@ -263,8 +287,13 @@ async def create_perfume(body: dict, user: User = Depends(require_admin), db: As
         description=body.get("description"),
         price_6ml=Decimal(str(body["price_6ml"])) if body.get("price_6ml") else None,
         price_12ml=Decimal(str(body["price_12ml"])) if body.get("price_12ml") else None,
+        price_24ml=Decimal(str(body["price_24ml"])) if body.get("price_24ml") else None,
+        price_20ml=Decimal(str(body["price_20ml"])) if body.get("price_20ml") else None,
         price_30ml=Decimal(str(body["price_30ml"])) if body.get("price_30ml") else None,
         price_50ml=Decimal(str(body["price_50ml"])) if body.get("price_50ml") else None,
+        price_100ml=Decimal(str(body["price_100ml"])) if body.get("price_100ml") else None,
+        price_car_6ml=Decimal(str(body["price_car_6ml"])) if body.get("price_car_6ml") else None,
+        price_car_12ml=Decimal(str(body["price_car_12ml"])) if body.get("price_car_12ml") else None,
         is_attar=bool(body.get("is_attar", False)),
         is_perfume=bool(body.get("is_perfume", body.get("perfume_spray", True))),
         is_car_hanger=bool(body.get("is_car_hanger", body.get("is_car_hangover", False))),
@@ -293,11 +322,66 @@ async def update_perfume(perfume_id: str, body: dict, user: User = Depends(requi
             setattr(p, k, body[k])
     if "is_car_hangover" in body and "is_car_hanger" not in body:
         p.is_car_hanger = bool(body["is_car_hangover"])
-    for k in ("price_6ml", "price_12ml", "price_30ml", "price_50ml"):
+    for k in ("price_6ml", "price_12ml", "price_24ml", "price_20ml", "price_30ml", "price_50ml", "price_100ml", "price_car_6ml", "price_car_12ml"):
         if k in body:
-            setattr(p, k, Decimal(str(body[k])) if body[k] is not None else None)
+            setattr(p, k, Decimal(str(body[k])) if (body[k] is not None and str(body[k]).strip() != "") else None)
     invalidate_catalog_cache()
     return {"ok": True}
+
+
+@router.post("/perfumes/sheet-save")
+async def sheet_save_prices(body: dict, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    updates = body.get("updates") or []
+    if not updates:
+        return {"ok": True, "updated": 0}
+
+    field_map = {
+        "price_6ml": ["price_6ml", "price6ml"],
+        "price_12ml": ["price_12ml", "price12ml"],
+        "price_24ml": ["price_24ml", "price24ml"],
+        "price_20ml": ["price_20ml", "price20ml"],
+        "price_30ml": ["price_30ml", "price30ml"],
+        "price_50ml": ["price_50ml", "price50ml"],
+        "price_100ml": ["price_100ml", "price100ml"],
+        "price_car_6ml": ["price_car_6ml", "priceCar6ml"],
+        "price_car_12ml": ["price_car_12ml", "priceCar12ml"],
+    }
+
+    perfume_ids = [u.get("perfume_id") or u.get("perfumeId") for u in updates if (u.get("perfume_id") or u.get("perfumeId"))]
+    if not perfume_ids:
+        return {"ok": True, "updated": 0}
+
+    result = await db.execute(select(Perfume).where(Perfume.perfume_id.in_(perfume_ids)))
+    perfumes_by_id = {p.perfume_id: p for p in result.scalars().all()}
+
+    updated_count = 0
+    for u in updates:
+        pid = u.get("perfume_id") or u.get("perfumeId")
+        p = perfumes_by_id.get(pid)
+        if not p:
+            continue
+        row_changed = False
+        for attr, keys in field_map.items():
+            for key in keys:
+                if key in u:
+                    raw_val = u[key]
+                    if raw_val is None or str(raw_val).strip() == "" or str(raw_val).strip() == "—":
+                        new_val = None
+                    else:
+                        try:
+                            new_val = Decimal(str(raw_val))
+                        except Exception:
+                            continue
+                    if getattr(p, attr) != new_val:
+                        setattr(p, attr, new_val)
+                        row_changed = True
+                    break
+        if row_changed:
+            updated_count += 1
+
+    invalidate_catalog_cache()
+    await db.commit()
+    return {"ok": True, "updated": updated_count}
 
 
 @router.delete("/perfumes/{perfume_id}")
@@ -666,13 +750,18 @@ async def admin_low_stock(
     user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    cache_key = f"low_stock:{threshold}"
+    cached = admin_cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     result = await db.execute(
         select(Perfume)
         .where(Perfume.is_active.is_(True), Perfume.stock_quantity <= threshold)
         .order_by(Perfume.stock_quantity.asc(), Perfume.perfume_name.asc())
     )
     rows = result.scalars().all()
-    return {
+    payload = {
         "threshold": threshold,
         "count": len(rows),
         "items": [
@@ -685,6 +774,8 @@ async def admin_low_stock(
             for p in rows
         ],
     }
+    admin_cache_set(cache_key, payload)
+    return payload
 
 
 # ── Bulk prices ────────────────────────────────────────────────────────────────
