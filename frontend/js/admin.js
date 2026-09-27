@@ -403,8 +403,8 @@ async function loadPerfumes() {
       if (p.isFeatured) badges.push('<span class="badge-chip badge-chip--feat">Feat</span>');
       if (p.isBestSeller) badges.push('<span class="badge-chip badge-chip--hot">Best</span>');
       if (p.isNewArrival) badges.push('<span class="badge-chip badge-chip--new">New</span>');
-      const imgSrc = p.primaryImageUrl || 'assets/bottle-blue.png?v=1';
-      const img = `<img src="${esc(imgSrc)}" alt="" class="thumb" loading="lazy" onerror="this.onerror=null;this.src='assets/bottle-blue.png?v=1'">`;
+      const imgSrc = p.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
+      const img = `<img src="${esc(imgSrc)}" alt="" class="thumb" loading="lazy" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">`;
 
       const p24 = p.price24ml != null ? p.price24ml : (p.price12ml != null ? p.price12ml * 2 : (p.price6ml != null ? p.price6ml * 4 : null));
       const p20 = p.price20ml != null ? p.price20ml : (p.price30ml != null ? Math.round((p.price30ml * 20 / 30) / 10) * 10 : (p.price50ml != null ? Math.round((p.price50ml * 20 / 50) / 10) * 10 : null));
@@ -1896,6 +1896,10 @@ function bindEvents() {
     });
     try {
       await AdminAPI.saveSettings(body);
+      try {
+        localStorage.removeItem('aarif_meta_cache_v2');
+        localStorage.setItem('aarif_settings_sync', Date.now().toString());
+      } catch (_) {}
       fb.textContent = 'Settings saved successfully.';
       fb.className = 'settings-feedback ok';
       toast('Settings saved');

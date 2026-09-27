@@ -50,9 +50,9 @@ function initSearch() {
       <div class="search-result-item" role="option" data-name="${escS(p.perfumeName||p.productName)}"
            style="display:flex;align-items:center;gap:10px">
         <div style="width:34px;height:34px;background:#141414;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
-          <img src="${escS(typeof getProductImageUrl === 'function' ? getProductImageUrl(p) : 'assets/bottle-blue.png?v=1')}"
+          <img src="${escS(typeof getProductImageUrl === 'function' ? getProductImageUrl(p) : 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png')}"
                alt="" style="width:34px;height:34px;object-fit:contain" loading="lazy"
-               onerror="this.onerror=null;this.src='assets/bottle-blue.png?v=1'">
+               onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">
         </div>
         <div>
           <div style="font-size:13.5px;font-weight:600;color:#2d2d2d">${escS(p.displayName||p.perfumeName)}</div>

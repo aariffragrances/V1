@@ -142,7 +142,7 @@ function ensureStandardMobileDrawer() {
   drawer.innerHTML = `
     <div class="drawer-header">
       <div class="drawer-brand">
-        <img src="assets/aarif-logo-full.png?v=5" alt="Aarif Fragrances" class="logo-img logo-img--drawer">
+        <img src="https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/brand/aarif-logo-full.png" alt="Aarif Fragrances" class="logo-img logo-img--drawer">
         <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
       </div>
       <button type="button" id="drawer-close" class="drawer-close" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>

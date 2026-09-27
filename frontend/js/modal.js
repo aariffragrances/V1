@@ -48,7 +48,7 @@ function openProductModal(perfume, initialType, initialSize) {
       <span class="pd-size-price">₹${s.price}</span>
     </button>`).join('');
 
-  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType, def.label) : 'assets/product-types/attar.png?v=3';
+  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType, def.label) : 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527529/aarif-fragrances/product-types/attar.png';
 
   modal.className = 'product-modal product-modal--luxury';
   modal.innerHTML = `
@@ -56,7 +56,7 @@ function openProductModal(perfume, initialType, initialSize) {
     <div class="pd-layout">
       <div class="pd-media">
         <div class="pd-media-frame">
-          ${`<img src="${m((typeof getProductImageUrl === 'function' ? getProductImageUrl(perfume) : (perfume.primaryImageUrl || 'assets/bottle-blue.png?v=1')))}" alt="${m(name)}" onerror="this.onerror=null;this.src='assets/bottle-blue.png?v=1'">`}
+          ${`<img src="${m((typeof getProductImageUrl === 'function' ? getProductImageUrl(perfume) : (perfume.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png')))}" alt="${m(name)}" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">`}
         </div>
       </div>
       <div class="pd-info">
@@ -85,7 +85,7 @@ function openProductModal(perfume, initialType, initialSize) {
             </div>
           </div>
           <div class="pd-type-visual" aria-hidden="true">
-            <img id="pd-type-img" class="pd-type-img pd_type_img" src="${m(typeImg)}" alt="${m(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='assets/product-types/attar.png';">
+            <img id="pd-type-img" class="pd-type-img pd_type_img" src="${m(typeImg)}" alt="${m(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527529/aarif-fragrances/product-types/attar.png';">
           </div>
         </div>
 

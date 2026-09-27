@@ -21,7 +21,7 @@ function renderProductPage(perfume) {
   const key = perfume.perfumeName || perfume.productName || name;
   const perfumeId = perfume.perfumeId || perfume.productId || '';
   const desc = perfume.description || 'Premium fragrance from Aarif Fragrances — crafted for lasting elegance.';
-  const img = typeof getProductImageUrl === 'function' ? getProductImageUrl(perfume) : 'assets/bottle-blue.png?v=1';
+  const img = typeof getProductImageUrl === 'function' ? getProductImageUrl(perfume) : 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
   const wished = typeof AarifStore !== 'undefined' && AarifStore.isInWishlist(key);
 
   const crumb = document.getElementById('pp-crumb-name');
@@ -35,13 +35,13 @@ function renderProductPage(perfume) {
   if (perfume.isFeatured) badges.push('<span class="pd-badge pd-badge--solid">FEATURED</span>');
   if (perfume.isBestSeller) badges.push('<span class="pd-badge pd-badge--solid">BEST SELLER</span>');
 
-  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType) : 'assets/product-types/perfume.png?v=1';
+  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType) : 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527537/aarif-fragrances/product-types/perfume-50-ml.png';
 
   root.innerHTML = `
     <div class="pp-layout product-modal--luxury">
       <div class="pp-media pd-media">
         <div class="pp-media-frame pd-media-frame">
-          <img src="${escPp(img)}" alt="${escPp(name)}" onerror="this.onerror=null;this.src='assets/bottle-blue.png?v=1'">
+          <img src="${escPp(img)}" alt="${escPp(name)}" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">
         </div>
       </div>
       <div class="pp-info pd-info">
@@ -77,7 +77,7 @@ function renderProductPage(perfume) {
             </div>
           </div>
           <div class="pd-type-visual" aria-hidden="true">
-            <img id="pp-type-img" class="pd-type-img pd_type_img" src="${escPp(typeImg)}" alt="${escPp(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='assets/product-types/car-hanger.png';">
+            <img id="pp-type-img" class="pd-type-img pd_type_img" src="${escPp(typeImg)}" alt="${escPp(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527532/aarif-fragrances/product-types/car-hanger.png';">
           </div>
         </div>
 

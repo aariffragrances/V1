@@ -37,7 +37,7 @@ ul { list-style: none; }
 /* Login */
 .login-screen {
     min-height: 100vh;
-    background: var(--adm-bg) url('../assets/front-view.png') center center / cover no-repeat;
+    background: var(--adm-bg);
     display: flex;
     align-items: center;
     justify-content: center;

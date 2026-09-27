@@ -4401,3 +4401,62 @@ body.filter-drawer-open { overflow: hidden; }
     font-size: 1.6rem;
   }
 }
+
+/* ── Storefront Social & Dynamic Settings Styling ── */
+.footer-social-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.footer-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--gold, #d4af37);
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.footer-social-btn:hover {
+  background: var(--gold, #d4af37);
+  color: #121212;
+  border-color: var(--gold, #d4af37);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.contact-social-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.contact-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--gold, #d4af37);
+  font-size: 16px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+.contact-social-btn:hover {
+  background: var(--gold, #d4af37);
+  color: #121212;
+  border-color: var(--gold, #d4af37);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+

@@ -93,7 +93,7 @@ function getCartLineItems() {
         categoryName: 'Fragrance',
         fragranceTypeName: 'Fragrance',
         perfumeId: '',
-        primaryImageUrl: 'assets/bottle-blue.png?v=1',
+        primaryImageUrl: 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png',
       };
     }
     const size = info.size || '';
@@ -332,12 +332,12 @@ function renderBasketPage() {
             const cat = l.product.fragranceTypeName || l.product.categoryName || '';
             const id = l.product.perfumeId || l.product.productId || '';
             const typeLabel = formatProductTypeLabel(l.type);
-            const img = typeof getProductImageUrl === 'function' ? getProductImageUrl(l.product) : (l.product.primaryImageUrl || 'assets/bottle-blue.png?v=1');
+            const img = typeof getProductImageUrl === 'function' ? getProductImageUrl(l.product) : (l.product.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png');
             return `
             <article class="cart-line" data-name="${escBt(name)}">
               <div class="cart-line-image">
                 <img src="${escBt(img)}" alt="${escBt(display)}"
-                     onerror="this.onerror=null;this.src='assets/bottle-blue.png?v=1'">
+                     onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">
               </div>
               <div class="cart-line-details">
                 <div class="cart-line-category">${escBt(cat)}</div>

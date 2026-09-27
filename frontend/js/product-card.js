@@ -94,9 +94,9 @@ const TYPE_HINTS = {
 };
 
 const TYPE_IMAGES = {
-  attar: 'assets/product-types/attar.png?v=3',
-  perfume: 'assets/product-types/perfume%2050%20ml.png?v=3',
-  car_hanger: 'assets/product-types/car-hanger.png?v=3',
+  attar: 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527529/aarif-fragrances/product-types/attar.png',
+  perfume: 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527537/aarif-fragrances/product-types/perfume-50-ml.png',
+  car_hanger: 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527532/aarif-fragrances/product-types/car-hanger.png',
 };
 
 function getTypeImageUrl(type, size) {
@@ -104,30 +104,30 @@ function getTypeImageUrl(type, size) {
   const s = String(size || '').toLowerCase().replace(/\s+/g, '');
 
   if (t === 'attar') {
-    return 'assets/product-types/attar.png?v=3';
+    return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527529/aarif-fragrances/product-types/attar.png';
   }
 
   if (t === 'car_hanger') {
-    return 'assets/product-types/car-hanger.png?v=3';
+    return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527532/aarif-fragrances/product-types/car-hanger.png';
   }
 
   if (t === 'perfume') {
     if (s === '20ml' || s === '20') {
-      return 'assets/product-types/perfume%2020%20ml.png?v=3';
+      return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527534/aarif-fragrances/product-types/perfume-20-ml.png';
     }
     if (s === '30ml' || s === '30') {
-      return 'assets/product-types/perfume%2030%20ml.png?v=3';
+      return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527535/aarif-fragrances/product-types/perfume-30-ml.png';
     }
     if (s === '50ml' || s === '50') {
-      return 'assets/product-types/perfume%2050%20ml.png?v=3';
+      return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527537/aarif-fragrances/product-types/perfume-50-ml.png';
     }
     if (s === '100ml' || s === '100') {
-      return 'assets/product-types/perfume%2050%20ml.png?v=3';
+      return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527537/aarif-fragrances/product-types/perfume-50-ml.png';
     }
-    return 'assets/product-types/perfume%2050%20ml.png?v=3';
+    return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527537/aarif-fragrances/product-types/perfume-50-ml.png';
   }
 
-  return 'assets/product-types/attar.png?v=3';
+  return 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527529/aarif-fragrances/product-types/attar.png';
 }
 
 function getTypeHint(type) {
@@ -179,7 +179,7 @@ function buildProductCardBottomHTML(name, inBasket, basketQty) {
     </div>`;
 }
 
-const DEFAULT_PRODUCT_IMAGE = 'assets/bottle-blue.png?v=1';
+const DEFAULT_PRODUCT_IMAGE = 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
 
 function getProductImageUrl(perfume) {
   if (!perfume) return DEFAULT_PRODUCT_IMAGE;

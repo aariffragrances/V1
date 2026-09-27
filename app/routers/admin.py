@@ -686,7 +686,6 @@ async def get_site_settings(user: User = Depends(require_admin), db: AsyncSessio
 async def save_site_settings(body: dict, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     import json
     from app.core.site_settings import SITE_SETTING_KEYS
-    from app.core.catalog import invalidate_admin_site_cache
     for key, value in body.items():
         if key not in SITE_SETTING_KEYS:
             continue
@@ -697,6 +696,7 @@ async def save_site_settings(body: dict, user: User = Depends(require_admin), db
             setting.setting_value = val_str
         else:
             db.add(SiteSetting(setting_key=key, setting_value=val_str, setting_type="text"))
+    await db.commit()
     invalidate_catalog_cache()
     return {"ok": True}
 

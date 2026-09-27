@@ -347,10 +347,19 @@ async def ensure_admin_account(db: AsyncSession) -> None:
 
 async def seed_fragrance_types(db: AsyncSession) -> None:
     """Upsert fragrance types from the menu card (8 categories)."""
-    from app.core.seed_data import FRAGRANCE_TYPES
+    CLOUDINARY_TYPE_ICONS = {
+        "aquatic-fresh": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527538/aarif-fragrances/types/aquatic-fresh.png",
+        "floral-elegance": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527539/aarif-fragrances/types/floral-elegance.png",
+        "fruity-delights": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527540/aarif-fragrances/types/fruity-delights.png",
+        "heritage-traditional": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527541/aarif-fragrances/types/heritage-traditional.png",
+        "mystic-oud": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527542/aarif-fragrances/types/mystic-oud.png",
+        "rich-woody": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527543/aarif-fragrances/types/rich-woody.png",
+        "spicy-aromatic": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527544/aarif-fragrances/types/spicy-aromatic.png",
+        "sweet-gourmand": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527546/aarif-fragrances/types/sweet-gourmand.png",
+    }
 
     for type_id, type_name, slug, description, order in FRAGRANCE_TYPES:
-        icon_url = f"/assets/types/{slug}.png"
+        icon_url = CLOUDINARY_TYPE_ICONS.get(slug, f"https://res.cloudinary.com/h7kuxzes/image/upload/v1790527538/aarif-fragrances/types/{slug}.png")
         exists = (
             await db.execute(
                 text("SELECT 1 FROM fragrance_types WHERE type_id = :id"),
@@ -508,14 +517,14 @@ async def seed_testimonials(db: AsyncSession) -> None:
 async def seed_banners(db: AsyncSession) -> None:
     """Seed / sync hero banner slides from frontend assets."""
     banners = [
-        ("Banner 01", "/assets/banners/banner-01.png", "products.html", 0),
-        ("Banner 02", "/assets/banners/banner-02.png", "products.html", 1),
-        ("Banner 03", "/assets/banners/banner-03.png", "products.html", 2),
-        ("Banner 04", "/assets/banners/banner-04.png", "products.html", 3),
-        ("Banner 05", "/assets/banners/banner-05.png", "products.html", 4),
-        ("Spicy & Aromatic", "/assets/banners/banner-spicy-aromatic.png", "products.html?type=FT003", 5),
-        ("Aquatic Fresh", "/assets/banners/banner-aquatic-fresh.png", "products.html?type=FT001", 6),
-        ("Fruity Delights", "/assets/banners/banner-fruity-delights.png", "products.html?type=FT002", 7),
+        ("Banner 01", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527547/aarif-fragrances/banners/banner-01.png", "products.html", 0),
+        ("Banner 02", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527548/aarif-fragrances/banners/banner-02.png", "products.html", 1),
+        ("Banner 03", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527550/aarif-fragrances/banners/banner-03.png", "products.html", 2),
+        ("Banner 04", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527551/aarif-fragrances/banners/banner-04.png", "products.html", 3),
+        ("Banner 05", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527552/aarif-fragrances/banners/banner-05.png", "products.html", 4),
+        ("Spicy & Aromatic", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527558/aarif-fragrances/banners/banner-spicy-aromatic.png", "products.html?type=FT003", 5),
+        ("Aquatic Fresh", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527555/aarif-fragrances/banners/banner-aquatic-fresh.png", "products.html?type=FT001", 6),
+        ("Fruity Delights", "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527556/aarif-fragrances/banners/banner-fruity-delights.png", "products.html?type=FT002", 7),
     ]
 
     for title, image_url, link_url, order in banners:
@@ -531,12 +540,12 @@ async def seed_banners(db: AsyncSession) -> None:
                 text(
                     """
                     UPDATE site_banners
-                    SET title = :title, subtitle = '', link_url = :link_url,
+                    SET title = :title, subtitle = '', image_url = :image_url, link_url = :link_url,
                         is_active = TRUE, display_order = :order
                     WHERE id = :id
                     """
                 ),
-                {"id": exists, "title": title, "link_url": link_url, "order": order},
+                {"id": exists, "title": title, "image_url": image_url, "link_url": link_url, "order": order},
             )
         else:
             await db.execute(
@@ -554,37 +563,5 @@ async def seed_banners(db: AsyncSession) -> None:
                 },
             )
 
-    # Migrate legacy banner paths to the renamed files
-    await db.execute(
-        text(
-            """
-            UPDATE site_banners
-            SET image_url = '/assets/banners/banner-aquatic-fresh.png'
-            WHERE image_url IN ('/assets/banners/banner-aquatic.png', '/assets/banners/aquatic.png')
-            """
-        )
-    )
-    await db.execute(
-        text(
-            """
-            UPDATE site_banners
-            SET image_url = '/assets/banners/banner-fruity-delights.png'
-            WHERE image_url IN (
-                '/assets/banners/banner-fruit.png',
-                '/assets/banners/fruit.png',
-                '/assets/banners/fruity-delights.png'
-            )
-            """
-        )
-    )
-    await db.execute(
-        text(
-            """
-            UPDATE site_banners
-            SET image_url = '/assets/banners/banner-spicy-aromatic.png'
-            WHERE image_url LIKE '%spixy%' OR image_url LIKE '%spicy and aromatic%'
-            """
-        )
-    )
     await db.commit()
     logger.info("Hero banners synced (%d slides).", len(banners))
