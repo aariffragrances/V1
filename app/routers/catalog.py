@@ -14,7 +14,7 @@ from app.core.catalog import (
 from app.core.cloudinary_storage import get_optimized_url
 from app.core.site_settings import load_public_site_settings
 from app.database import get_db
-from app.models import FragranceType, Perfume, SiteBanner, Testimonial
+from app.models import FragranceType, Perfume, SiteBanner, SiteSetting, Testimonial
 from app.schemas import (
     BootstrapOut,
     CatalogMetadataOut,
@@ -337,3 +337,36 @@ async def list_banners(db: AsyncSession = Depends(get_db)):
                   image_url=b.image_url, link_url=b.link_url, display_order=b.display_order)
         for b in result.scalars()
     ]
+
+
+@router.get("/coupons/active")
+async def public_coupons(db: AsyncSession = Depends(get_db)):
+    """Active coupon codes for basket validation (public catalog API)."""
+    import json
+    result = await db.execute(select(SiteSetting).where(SiteSetting.setting_key == "coupons"))
+    setting = result.scalar_one_or_none()
+    coupons = []
+    if setting and setting.setting_value:
+        try:
+            coupons = json.loads(setting.setting_value)
+        except json.JSONDecodeError:
+            coupons = []
+    else:
+        coupons = [
+            {"code": "WELCOME10", "type": "percent", "value": 10, "min": 0, "active": True},
+            {"code": "AARIF50", "type": "fixed", "value": 50, "min": 200, "active": True},
+        ]
+    out = {}
+    for c in coupons:
+        if c.get("active", True):
+            code = str(c.get("code", "")).strip().upper()
+            if code:
+                out[code] = {
+                    "code": code,
+                    "type": c.get("type", "percent"),
+                    "value": float(c.get("value", 0)),
+                    "minOrder": float(c.get("min", c.get("minOrder", 0))),
+                    "desc": c.get("desc", ""),
+                }
+    return out
+

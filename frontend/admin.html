@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="css/admin.css?v=20">
+<link rel="stylesheet" href="css/admin.css?v=24">
 <link rel="icon" href="assets/aarif-logo.png" type="image/png">
 </head>
 <body data-page="admin">
@@ -52,6 +52,7 @@
       <button type="button" class="adm-nav-link" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
       <button type="button" class="adm-nav-link" data-section="orders"><i class="fa-solid fa-receipt"></i><span>Orders</span><span class="adm-nav-badge hidden" id="orders-new-badge"></span></button>
       <button type="button" class="adm-nav-link" data-section="contact"><i class="fa-solid fa-inbox"></i><span>Contact Messages</span><span class="adm-nav-badge hidden" id="contact-unread-badge"></span></button>
+      <button type="button" class="adm-nav-link" data-section="coupons"><i class="fa-solid fa-ticket"></i><span>Coupons</span></button>
       <button type="button" class="adm-nav-link" data-section="settings"><i class="fa-solid fa-gear"></i><span>Store Settings</span></button>
     </nav>
     <div class="adm-sidebar-footer">v1.0.0 &bull; Aarif Admin &bull; <span id="sidebar-user-name">Admin</span></div>
@@ -196,7 +197,9 @@
                   <th class="no-sort"><input type="checkbox" id="perfumes-select-all" title="Select all"></th>
                   <th class="no-sort">Perfume</th>
                   <th>Type</th>
-                  <th>Prices</th>
+                  <th>Attar</th>
+                  <th>Perfumes</th>
+                  <th>Car Hanger</th>
                   <th>Stock</th>
                   <th class="no-sort">Badges</th>
                   <th class="no-sort">Status</th>
@@ -204,7 +207,7 @@
                 </tr>
               </thead>
               <tbody id="perfumes-tbody">
-                <tr><td colspan="8" class="table-empty">Loading...</td></tr>
+                <tr><td colspan="10" class="table-empty">Loading...</td></tr>
               </tbody>
             </table>
           </div>
@@ -482,6 +485,42 @@
               <label for="set-home_about_teaser">Home About Teaser</label>
               <textarea id="set-home_about_teaser" name="home_about_teaser" rows="3"></textarea>
             </div>
+            <div class="form-group form-group--wide" style="margin-top: 14px; margin-bottom: 8px;">
+              <h3 style="font-size: 1rem; font-weight: 700; color: var(--adm-green); border-bottom: 2px solid var(--adm-green-light); padding-bottom: 8px;">Homepage Highlight Stats</h3>
+              <p class="field-hint" style="margin-top: 4px;">Values and labels displayed in the stats section on the homepage.</p>
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_1_val">Stat 1 Value</label>
+              <input type="text" id="set-home_stat_1_val" name="home_stat_1_val" placeholder="49+">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_1_lbl">Stat 1 Label</label>
+              <input type="text" id="set-home_stat_1_lbl" name="home_stat_1_lbl" placeholder="Fragrances">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_2_val">Stat 2 Value</label>
+              <input type="text" id="set-home_stat_2_val" name="home_stat_2_val" placeholder="8">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_2_lbl">Stat 2 Label</label>
+              <input type="text" id="set-home_stat_2_lbl" name="home_stat_2_lbl" placeholder="Fragrance Types">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_3_val">Stat 3 Value</label>
+              <input type="text" id="set-home_stat_3_val" name="home_stat_3_val" placeholder="4">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_3_lbl">Stat 3 Label</label>
+              <input type="text" id="set-home_stat_3_lbl" name="home_stat_3_lbl" placeholder="Size Options">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_4_val">Stat 4 Value</label>
+              <input type="text" id="set-home_stat_4_val" name="home_stat_4_val" placeholder="TN">
+            </div>
+            <div class="form-group">
+              <label for="set-home_stat_4_lbl">Stat 4 Label</label>
+              <input type="text" id="set-home_stat_4_lbl" name="home_stat_4_lbl" placeholder="Tamil Nadu, India">
+            </div>
             <div class="form-group form-group--wide">
               <label for="set-about_us_text">About Us Text</label>
               <textarea id="set-about_us_text" name="about_us_text" rows="6"></textarea>
@@ -498,6 +537,34 @@
           <p class="settings-feedback" id="settings-feedback" role="status"></p>
           <button type="submit" class="adm-btn adm-btn--primary"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
         </form>
+      </section>
+
+      <!-- COUPONS -->
+      <section class="adm-section" id="section-coupons">
+        <div class="adm-page-header">
+          <div>
+            <h1>Promo Coupons</h1>
+            <p>Discount codes customers can apply in the cart / WhatsApp checkout</p>
+          </div>
+          <button type="button" class="adm-btn adm-btn--primary" id="add-coupon-btn"><i class="fa-solid fa-plus"></i> Add Coupon</button>
+        </div>
+        <div class="adm-card" style="padding:0">
+          <div class="adm-table-wrap">
+            <table class="adm-table" id="coupons-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Type</th>
+                  <th>Discount Value</th>
+                  <th>Min Order</th>
+                  <th>Status</th>
+                  <th style="width: 110px; text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
   </main>
@@ -943,6 +1010,47 @@
   </div>
 </div>
 
+<!-- ============ COUPON MODAL ============ -->
+<div class="admin-modal-overlay" id="coupon-modal-overlay">
+  <div class="admin-modal admin-modal--sm" role="dialog" aria-modal="true" style="text-align:left; max-width: 440px;">
+    <button type="button" class="admin-modal-close" data-close-modal="coupon-modal-overlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="coupon-modal-title"><i class="fa-solid fa-ticket" style="color: var(--adm-green);"></i> <span>Add Coupon</span></h2>
+    <form id="coupon-form" novalidate>
+      <input type="hidden" id="coupon-edit-index" value="-1">
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label for="coupon-code">Coupon Code *</label>
+        <input type="text" id="coupon-code" required placeholder="e.g. WELCOME10" style="text-transform: uppercase;">
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label for="coupon-type">Discount Type *</label>
+        <select id="coupon-type" class="adm-select" required>
+          <option value="percent">Percentage Off (%)</option>
+          <option value="fixed">Fixed Amount Off (₹)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label for="coupon-value" id="coupon-value-label">Discount Value *</label>
+        <input type="number" id="coupon-value" min="0" step="any" required placeholder="10">
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label for="coupon-min">Minimum Order (₹)</label>
+        <input type="number" id="coupon-min" min="0" step="any" placeholder="0 (no minimum)">
+      </div>
+      <div class="form-group" style="margin-bottom: 18px;">
+        <label class="checkbox-pill" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="coupon-active" checked>
+          <span>Active &amp; Redeemable</span>
+        </label>
+      </div>
+      <p class="modal-feedback" id="coupon-form-feedback" role="status"></p>
+      <div class="modal-actions" style="margin-top: 18px;">
+        <button type="button" class="btn btn-outline" data-close-modal="coupon-modal-overlay">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Coupon</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ============ CONFIRM DIALOG ============ -->
 <div class="admin-modal-overlay" id="confirm-modal-overlay">
   <div class="admin-modal admin-modal--sm" role="dialog" aria-modal="true">
@@ -958,8 +1066,8 @@
 <!-- ============ TOAST ============ -->
 <div id="admin-toast" class="admin-toast" role="status" aria-live="polite"></div>
 
-<script src="js/admin-api.js?v=9"></script>
-<script src="js/admin.js?v=17"></script>
+<script src="js/admin-api.js?v=10"></script>
+<script src="js/admin.js?v=19"></script>
 </body>
 </html>
 

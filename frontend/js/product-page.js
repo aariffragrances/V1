@@ -114,13 +114,13 @@ function renderProductPage(perfume) {
   let currentSize = def.label;
   let currentPrice = def.price;
 
-  function setTypeImage(type) {
+  function setTypeImage(type, size) {
     const imgEl = root.querySelector('#pp-type-img') || root.querySelector('.pd_type_img');
     if (!imgEl || typeof getTypeImageUrl !== 'function') return;
     imgEl.style.visibility = 'visible';
     imgEl.style.display = 'block';
-    imgEl.src = getTypeImageUrl(type);
-    imgEl.alt = typeof getTypeLabel === 'function' ? getTypeLabel(type) : type;
+    imgEl.src = getTypeImageUrl(type, size);
+    imgEl.alt = typeof getTypeLabel === 'function' ? `${getTypeLabel(type)} - ${size || ''}` : type;
   }
 
   function paintSizes(type) {
@@ -129,6 +129,7 @@ function renderProductPage(perfume) {
     if (!wrap) return;
     if (!list.length) {
       wrap.innerHTML = '<span class="pd-empty">No sizes available</span>';
+      setTypeImage(type, '');
       return;
     }
     wrap.innerHTML = list.map((s, i) => `
@@ -144,6 +145,7 @@ function renderProductPage(perfume) {
     if (noteEl) noteEl.textContent = currentSize ? `for ${currentSize}` : '';
     const addBtn = root.querySelector('#pp-add-btn');
     if (addBtn) { addBtn.dataset.size = currentSize; addBtn.dataset.price = currentPrice; }
+    setTypeImage(currentType, currentSize);
     wrap.querySelectorAll('.pd-size-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         wrap.querySelectorAll('.pd-size-btn').forEach(b => b.classList.remove('active'));
@@ -153,6 +155,7 @@ function renderProductPage(perfume) {
         if (priceEl) priceEl.textContent = currentPrice ? `₹${currentPrice}` : '';
         if (noteEl) noteEl.textContent = currentSize ? `for ${currentSize}` : '';
         if (addBtn) { addBtn.dataset.size = currentSize; addBtn.dataset.price = currentPrice; }
+        setTypeImage(currentType, currentSize);
       });
     });
   }

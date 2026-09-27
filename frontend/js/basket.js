@@ -115,9 +115,99 @@ function getCartLineItems() {
   }).filter(Boolean);
 }
 
-function buildWhatsAppUrl(lines, orderRef) {
+/* ── Coupons ───────────────────────────────────────────────── */
+const BASKET_COUPON_KEY = 'aarif_applied_coupon_v1';
+let activeCouponsMap = {};
+let couponFetchPromise = null;
+let couponFormOpen = false;
+let couponError = '';
+
+async function loadActiveCoupons() {
+  if (!couponFetchPromise) {
+    couponFetchPromise = fetch('/api/v1/coupons/active')
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        activeCouponsMap = data && typeof data === 'object' ? data : {};
+        return activeCouponsMap;
+      })
+      .catch(() => {
+        activeCouponsMap = {};
+        couponFetchPromise = null;
+        return activeCouponsMap;
+      });
+  }
+  return couponFetchPromise;
+}
+
+function getStoredCouponCode() {
+  try {
+    return (sessionStorage.getItem(BASKET_COUPON_KEY) || '').trim().toUpperCase();
+  } catch (_) {
+    return '';
+  }
+}
+
+function setStoredCouponCode(code) {
+  try {
+    const norm = (code || '').trim().toUpperCase();
+    if (norm) sessionStorage.setItem(BASKET_COUPON_KEY, norm);
+    else sessionStorage.removeItem(BASKET_COUPON_KEY);
+  } catch (_) {}
+}
+
+function resolveAppliedCoupon() {
+  const code = getStoredCouponCode();
+  if (!code) return null;
+  const coupon = activeCouponsMap[code];
+  if (!coupon) return null;
+  return { code, ...coupon };
+}
+
+function formatCouponDiscountLabel(coupon) {
+  if (!coupon) return '';
+  if (coupon.type === 'fixed') {
+    return `₹${Number(coupon.value || 0).toLocaleString('en-IN')} off`;
+  }
+  return `${Number(coupon.value || 0)}% off`;
+}
+
+function buildCouponSectionHTML(appliedCoupon, err) {
+  if (appliedCoupon) {
+    return `
+      <div class="coupon-section" id="coupon-section">
+        <div class="coupon-applied">
+          <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+          <span><strong>${escBt(appliedCoupon.code)}</strong> &mdash; ${escBt(formatCouponDiscountLabel(appliedCoupon))} applied</span>
+          <button type="button" class="coupon-remove-btn" id="coupon-remove-btn" title="Remove coupon" aria-label="Remove coupon">&times;</button>
+        </div>
+      </div>
+    `;
+  }
+
+  const isExpanded = couponFormOpen || !!err;
+  return `
+    <div class="coupon-section" id="coupon-section">
+      <button type="button" class="coupon-promo-link" id="coupon-promo-toggle"
+              aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="coupon-section-body">
+        Do You have Promo code ?
+      </button>
+      <div class="coupon-section-body${isExpanded ? '' : ' hidden'}" id="coupon-section-body">
+        <div class="coupon-input-row">
+          <input type="text" class="coupon-input" id="coupon-code-input"
+                 placeholder="ENTER COUPON CODE" autocomplete="off"
+                 autocapitalize="characters" spellcheck="false"
+                 value="${escBt(getStoredCouponCode())}">
+          <button type="button" class="coupon-apply-btn" id="coupon-apply-btn">Apply</button>
+        </div>
+        <p class="coupon-error${err ? '' : ' hidden'}" id="coupon-error">${escBt(err || '')}</p>
+      </div>
+    </div>
+  `;
+}
+
+function buildWhatsAppUrl(lines, orderRef, appliedCoupon, discountAmount, finalTotal) {
   const total = lines.reduce((s,l) => s + l.qty, 0);
-  const totalPrice = lines.reduce((s,l) => s + (l.price ? Number(l.price) * l.qty : 0), 0);
+  const subtotal = lines.reduce((s,l) => s + (l.price ? Number(l.price) * l.qty : 0), 0);
   const ref = orderRef || generateOrderRef();
   let msg = `Hello Aarif Fragrances,\n\nOrder Ref: ${ref}\n\nI'd like to order the following ${total} item${total===1?'':'s'}:\n\n`;
   msg += lines.map(l => {
@@ -125,15 +215,24 @@ function buildWhatsAppUrl(lines, orderRef) {
     const typePrefix = t ? `${t} ` : '';
     return `• ${l.product.displayName || l.product.perfumeName} — ${typePrefix}${l.size || '30ml'} × ${l.qty}${l.price ? ' (₹' + l.price + ')' : ''}`;
   }).join('\n');
-  if (totalPrice > 0) {
-    msg += `\n\nEstimated Total: ₹${totalPrice.toLocaleString('en-IN')}`;
+
+  if (subtotal > 0) {
+    if (appliedCoupon && discountAmount > 0) {
+      msg += `\n\nSubtotal: ₹${subtotal.toLocaleString('en-IN')}`;
+      msg += `\nPromo Coupon: ${appliedCoupon.code} (-₹${discountAmount.toLocaleString('en-IN')} off)`;
+      msg += `\nEstimated Total: ₹${finalTotal.toLocaleString('en-IN')}`;
+    } else {
+      msg += `\n\nEstimated Total: ₹${subtotal.toLocaleString('en-IN')}`;
+    }
   }
   msg += '\n\nKindly confirm availability and delivery. Thank you!';
   return {
     url: `https://wa.me/${resolveWaNumber()}?text=${encodeURIComponent(msg)}`,
     message: msg,
     orderRef: ref,
-    totalPrice: totalPrice,
+    subtotal: subtotal,
+    discount: discountAmount || 0,
+    finalTotal: finalTotal != null ? finalTotal : subtotal,
   };
 }
 
@@ -184,11 +283,31 @@ function renderBasketPage() {
 
   const lineCount = lines.length;
   const totalQty  = lines.reduce((s,l) => s + l.qty, 0);
-  const orderPack = buildWhatsAppUrl(lines);
+  const subtotal  = lines.reduce((s,l) => s + (l.price ? Number(l.price) * l.qty : 0), 0);
+
+  // Check applied coupon
+  let appliedCoupon = resolveAppliedCoupon();
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    const minOrder = Number(appliedCoupon.minOrder || 0);
+    if (minOrder > 0 && subtotal < minOrder) {
+      couponError = `Minimum order of ₹${minOrder.toLocaleString('en-IN')} required for this coupon`;
+      appliedCoupon = null;
+      setStoredCouponCode('');
+    } else {
+      if (appliedCoupon.type === 'fixed') {
+        discountAmount = Math.min(subtotal, Number(appliedCoupon.value) || 0);
+      } else {
+        discountAmount = Math.round(subtotal * ((Number(appliedCoupon.value) || 0) / 100));
+      }
+    }
+  }
+
+  const finalTotal = Math.max(0, subtotal - discountAmount);
+  const orderPack = buildWhatsAppUrl(lines, null, appliedCoupon, discountAmount, finalTotal);
   const waUrl     = orderPack.url;
   const waPreview = orderPack.message;
   const orderRef  = orderPack.orderRef;
-  const totalPrice = orderPack.totalPrice;
 
   root.innerHTML = `
     <div class="cart-layout">
@@ -256,10 +375,15 @@ function renderBasketPage() {
             <span>Total units</span>
             <span>${totalQty}</span>
           </div>
-          ${totalPrice > 0 ? `
+          ${appliedCoupon && discountAmount > 0 ? `
+          <div class="order-summary-row order-summary-row--discount">
+            <span>Coupon (${escBt(appliedCoupon.code)})</span>
+            <span>-₹${discountAmount.toLocaleString('en-IN')}</span>
+          </div>` : ''}
+          ${subtotal > 0 ? `
           <div class="order-summary-row order-summary-row--emphasis">
             <span>Estimated Total</span>
-            <span style="font-size:18px;color:var(--gold,#c5a059)">₹${totalPrice.toLocaleString('en-IN')}</span>
+            <span style="font-size:18px;color:var(--gold,#c5a059)">₹${finalTotal.toLocaleString('en-IN')}</span>
           </div>` : `
           <div class="order-summary-row order-summary-row--emphasis">
             <span>Order summary</span>
@@ -267,9 +391,10 @@ function renderBasketPage() {
           </div>`}
         </div>
 
+        ${buildCouponSectionHTML(appliedCoupon, couponError)}
+
         <div class="order-wa-block">
           <h3 class="order-message-preview-heading">Your WhatsApp message</h3>
-          <p class="order-wa-hint">Order Ref: <strong id="order-ref-label">${escBt(orderRef)}</strong> &mdash; confirm availability on WhatsApp.</p>
           <div class="order-message-preview" id="order-preview">${escBt(waPreview)}</div>
         </div>
 
@@ -281,10 +406,63 @@ function renderBasketPage() {
       </aside>
     </div>`;
 
+  // Coupon event handlers
+  document.getElementById('coupon-promo-toggle')?.addEventListener('click', () => {
+    couponFormOpen = !couponFormOpen;
+    const body = document.getElementById('coupon-section-body');
+    body?.classList.toggle('hidden', !couponFormOpen);
+    document.getElementById('coupon-promo-toggle')?.setAttribute('aria-expanded', couponFormOpen ? 'true' : 'false');
+    if (couponFormOpen) document.getElementById('coupon-code-input')?.focus();
+  });
+
+  const handleApplyCoupon = async () => {
+    const inp = document.getElementById('coupon-code-input');
+    const code = (inp?.value || '').trim().toUpperCase();
+    if (!code) {
+      couponError = 'Please enter a coupon code';
+      renderBasketPage();
+      return;
+    }
+    await loadActiveCoupons();
+    const coupon = activeCouponsMap[code];
+    if (!coupon) {
+      couponError = `Coupon "${code}" is invalid or expired`;
+      renderBasketPage();
+      return;
+    }
+    const minOrder = Number(coupon.minOrder || 0);
+    if (minOrder > 0 && subtotal < minOrder) {
+      couponError = `Minimum order of ₹${minOrder.toLocaleString('en-IN')} required for this coupon`;
+      renderBasketPage();
+      return;
+    }
+    setStoredCouponCode(code);
+    couponError = '';
+    couponFormOpen = false;
+    renderBasketPage();
+    showToast(`Coupon "${code}" applied!`, 'success');
+  };
+
+  document.getElementById('coupon-apply-btn')?.addEventListener('click', handleApplyCoupon);
+  document.getElementById('coupon-code-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleApplyCoupon();
+    }
+  });
+
+  document.getElementById('coupon-remove-btn')?.addEventListener('click', () => {
+    setStoredCouponCode('');
+    couponError = '';
+    renderBasketPage();
+    showToast('Coupon removed.', 'remove');
+  });
+
   document.getElementById('wa-order-btn')?.addEventListener('click', () => {
     submitOrderToServer(lines, orderRef, waPreview);
     setTimeout(() => {
       AarifStore.clearCartStore();
+      setStoredCouponCode('');
       if (typeof updateHeaderBadges === 'function') updateHeaderBadges();
       const root = document.getElementById('basket-page-root');
       if (root) {
@@ -307,6 +485,7 @@ function renderBasketPage() {
   document.getElementById('basket-clear-btn')?.addEventListener('click', () => {
     if (confirm('Clear all items from your cart?')) {
       AarifStore.clearCartStore();
+      setStoredCouponCode('');
       renderBasketPage();
       if (typeof updateHeaderBadges === 'function') updateHeaderBadges();
     }
@@ -330,11 +509,12 @@ let _basketListenerAdded = false;
 
 function renderBasketPageEarly() {
   if (typeof AarifStore !== 'undefined') AarifStore.hydrate(true);
-  renderBasketPage();
+  loadActiveCoupons().then(renderBasketPage).catch(() => renderBasketPage());
 }
 
 async function initBasketPage() {
   if (typeof AarifStore !== 'undefined') AarifStore.hydrate(true);
+  await loadActiveCoupons();
   const names = Object.keys(AarifStore.getCartMapObject());
   if (names.length && typeof fetchCartProducts === 'function') {
     try {

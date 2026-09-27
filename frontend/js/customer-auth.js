@@ -132,27 +132,171 @@ function initSignupPage() {
 
 /* Account page */
 function initAccountPage() {
-  if (!CustomerAPI.isLoggedIn()) { window.location.href='login.html?next=account.html'; return; }
-  const form    = document.getElementById('profile-form');
+  if (!CustomerAPI.isLoggedIn()) { window.location.href = 'login.html?next=account.html'; return; }
+
+  let user = CustomerAPI.getUser();
+  const form = document.getElementById('profile-form');
   const successEl = document.getElementById('profile-success');
-  const errorEl   = document.getElementById('profile-error');
-  const user = CustomerAPI.getUser();
-  if (form && user) {
-    form.name.value  = user.name  || '';
-    form.email.value = user.email || '';
-    if (form.phone) form.phone.value = user.phone || '';
+  const errorEl = document.getElementById('profile-error');
+  const viewMode = document.getElementById('profile-view-mode');
+  const editMode = document.getElementById('profile-edit-mode');
+  const toggleBtn = document.getElementById('btn-toggle-profile-edit');
+  const cancelTopBtn = document.getElementById('btn-cancel-profile-edit-top');
+  const cancelBtn = document.getElementById('btn-cancel-profile-edit');
+
+  function parseAddress(addr) {
+    if (!addr) return { street: '', city: '', postcode: '' };
+    const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 3) {
+      return { street: parts.slice(0, -2).join(', '), city: parts[parts.length - 2], postcode: parts[parts.length - 1] };
+    } else if (parts.length === 2) {
+      return { street: parts[0], city: parts[1], postcode: '' };
+    }
+    return { street: addr, city: '', postcode: '' };
   }
+
+  function paintProfile(u) {
+    if (!u) return;
+    user = u;
+    const name = u.name || '';
+    const email = u.email || '';
+    const username = u.username || (email ? email.split('@')[0] : '');
+    const phone = u.phone || '';
+    const addr = parseAddress(u.address || '');
+
+    // Initials
+    const initialsEl = document.getElementById('profile-avatar-initials');
+    if (initialsEl) {
+      const char = (name || username || email || 'U').trim()[0].toUpperCase();
+      initialsEl.textContent = char;
+    }
+
+    // Welcome & Role
+    const welcomeEl = document.getElementById('profile-welcome');
+    if (welcomeEl) welcomeEl.textContent = name || username || 'My Profile';
+
+    const roleEl = document.getElementById('profile-display-role');
+    if (roleEl) {
+      if (u.role === 'admin') {
+        roleEl.textContent = 'Store Administrator';
+      } else {
+        roleEl.textContent = 'Customer';
+      }
+    }
+
+    // Email hero
+    const emailHeroEl = document.getElementById('profile-display-email-hero');
+    if (emailHeroEl) emailHeroEl.textContent = email || '—';
+
+    // Manage Store button (admin only)
+    const manageStore = document.getElementById('profile-manage-store');
+    if (manageStore) {
+      if (u.role === 'admin') {
+        manageStore.removeAttribute('hidden');
+        manageStore.style.display = 'inline-flex';
+      } else {
+        manageStore.setAttribute('hidden', '');
+        manageStore.style.display = 'none';
+      }
+    }
+
+    // Column 1
+    const nameEl = document.getElementById('profile-display-name');
+    if (nameEl) nameEl.textContent = name || 'Not provided';
+    const userEl = document.getElementById('profile-display-username');
+    if (userEl) userEl.textContent = username ? ('@' + username.replace(/^@/, '')) : 'Not provided';
+    const emailEl = document.getElementById('profile-display-email');
+    if (emailEl) emailEl.textContent = email || 'Not provided';
+
+    // Column 2
+    const phoneEl = document.getElementById('profile-display-phone');
+    if (phoneEl) phoneEl.textContent = phone || 'Not provided';
+
+    // Column 3
+    const streetEl = document.getElementById('profile-display-address');
+    if (streetEl) streetEl.textContent = addr.street || 'Not provided';
+    const cityEl = document.getElementById('profile-display-city');
+    if (cityEl) cityEl.textContent = addr.city || 'Not provided';
+    const postEl = document.getElementById('profile-display-postcode');
+    if (postEl) postEl.textContent = addr.postcode || 'Not provided';
+  }
+
+  function fillEditForm() {
+    if (!form || !user) return;
+    const addr = parseAddress(user.address || '');
+    if (form.elements['name']) form.elements['name'].value = user.name || '';
+    if (form.elements['username']) form.elements['username'].value = user.username || (user.email ? user.email.split('@')[0] : '');
+    if (form.elements['email']) form.elements['email'].value = user.email || '';
+    if (form.elements['phone']) form.elements['phone'].value = user.phone || '';
+    if (form.elements['address']) form.elements['address'].value = addr.street || user.address || '';
+    if (form.elements['city']) form.elements['city'].value = addr.city || '';
+    if (form.elements['postcode']) form.elements['postcode'].value = addr.postcode || '';
+  }
+
+  function showEditMode() {
+    fillEditForm();
+    if (viewMode) viewMode.style.display = 'none';
+    if (editMode) editMode.style.display = 'block';
+    if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+    if (successEl) { successEl.hidden = true; successEl.textContent = ''; }
+    form?.elements['name']?.focus();
+  }
+
+  function showViewMode() {
+    if (editMode) editMode.style.display = 'none';
+    if (viewMode) viewMode.style.display = 'block';
+  }
+
+  toggleBtn?.addEventListener('click', () => {
+    if (editMode && editMode.style.display !== 'none') showViewMode();
+    else showEditMode();
+  });
+  cancelTopBtn?.addEventListener('click', showViewMode);
+  cancelBtn?.addEventListener('click', showViewMode);
+
+  // Paint immediate cache
+  paintProfile(user);
+
+  // Fetch freshest profile
+  CustomerAPI.me().then(fresh => {
+    if (fresh) {
+      CustomerAPI.setSession(CustomerAPI.getToken(), fresh);
+      paintProfile(fresh);
+    }
+  }).catch(() => {});
+
+  // Form submit
   form?.addEventListener('submit', async e => {
     e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
+    if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+    if (successEl) { successEl.hidden = true; successEl.textContent = ''; }
+    const btn = document.getElementById('profile-save-btn');
+    if (btn) btn.disabled = true;
+
+    const name = (form.elements['name']?.value || '').trim();
+    const phone = (form.elements['phone']?.value || '').trim();
+    const street = (form.elements['address']?.value || '').trim();
+    const city = (form.elements['city']?.value || '').trim();
+    const postcode = (form.elements['postcode']?.value || '').trim();
+
+    const fullAddress = [street, city, postcode].filter(Boolean).join(', ');
+
     try {
-      const updated = await CustomerAPI.updateProfile({ name: form.name.value.trim(), phone: form.phone?.value.trim() });
+      const payload = { name };
+      if (phone) payload.phone = phone;
+      if (fullAddress) payload.address = fullAddress;
+      const updated = await CustomerAPI.updateProfile(payload);
       CustomerAPI.setSession(CustomerAPI.getToken(), updated);
-      if (successEl) { successEl.textContent='Profile updated.'; successEl.className=''; }
+      paintProfile(updated);
+      showViewMode();
     } catch (err) {
-      if (errorEl) { errorEl.textContent=err.message||'Update failed.'; errorEl.className='auth-error'; }
-    } finally { btn.disabled=false; }
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Update failed.';
+        errorEl.hidden = false;
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 }
 

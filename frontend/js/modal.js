@@ -48,7 +48,7 @@ function openProductModal(perfume, initialType, initialSize) {
       <span class="pd-size-price">₹${s.price}</span>
     </button>`).join('');
 
-  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType) : 'assets/product-types/perfume.png?v=2';
+  const typeImg = typeof getTypeImageUrl === 'function' ? getTypeImageUrl(activeType, def.label) : 'assets/product-types/attar.png?v=3';
 
   modal.className = 'product-modal product-modal--luxury';
   modal.innerHTML = `
@@ -85,7 +85,7 @@ function openProductModal(perfume, initialType, initialSize) {
             </div>
           </div>
           <div class="pd-type-visual" aria-hidden="true">
-            <img id="pd-type-img" class="pd-type-img pd_type_img" src="${m(typeImg)}" alt="${m(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='assets/product-types/car-hanger.png';">
+            <img id="pd-type-img" class="pd-type-img pd_type_img" src="${m(typeImg)}" alt="${m(typeof getTypeLabel === 'function' ? getTypeLabel(activeType) : activeType)}" onerror="this.onerror=null;this.src='assets/product-types/attar.png';">
           </div>
         </div>
 
@@ -110,14 +110,14 @@ function openProductModal(perfume, initialType, initialSize) {
   let currentType = activeType;
   let qty = 1;
 
-  function setTypeImage(type) {
+  function setTypeImage(type, size) {
     const imgEl = modal.querySelector('#pd-type-img') || modal.querySelector('#pd_type_img') || modal.querySelector('.pd_type_img');
     if (!imgEl || typeof getTypeImageUrl !== 'function') return;
     imgEl.style.visibility = 'visible';
     imgEl.style.display = 'block';
-    const nextSrc = getTypeImageUrl(type);
+    const nextSrc = getTypeImageUrl(type, size);
     imgEl.src = nextSrc;
-    imgEl.alt = typeof getTypeLabel === 'function' ? getTypeLabel(type) : type;
+    imgEl.alt = typeof getTypeLabel === 'function' ? `${getTypeLabel(type)} - ${size || ''}` : type;
   }
 
   function paintSizes(type) {
@@ -126,6 +126,7 @@ function openProductModal(perfume, initialType, initialSize) {
     if (!wrap) return;
     if (!list.length) {
       wrap.innerHTML = '<span class="pd-empty">No sizes available</span>';
+      setTypeImage(type, '');
       return;
     }
     wrap.innerHTML = list.map((s, i) => `
@@ -148,6 +149,7 @@ function openProductModal(perfume, initialType, initialSize) {
     const noteEl = modal.querySelector('#pd-price-note');
     if (priceEl) priceEl.textContent = price ? `₹${price}` : '';
     if (noteEl) noteEl.textContent = size ? `for ${size}` : '';
+    setTypeImage(currentType, size);
   }
 
   function bindSizeClicks() {
@@ -167,7 +169,6 @@ function openProductModal(perfume, initialType, initialSize) {
       currentType = btn.dataset.type;
       const hintEl = modal.querySelector('#pd-type-hint');
       if (hintEl && typeof getTypeHint === 'function') hintEl.textContent = getTypeHint(currentType);
-      setTypeImage(currentType);
       paintSizes(currentType);
     });
   });

@@ -391,8 +391,11 @@ function renderFooterTypes() {
 
 // ── Stats teaser ──────────────────────────────────────────────
 function renderTeaserStats() {
-  const total = document.getElementById('teaser-products');
-  const types = document.getElementById('teaser-types');
+  if (window.SITE_SETTINGS && (window.SITE_SETTINGS.home_stat_1_val || window.SITE_SETTINGS.home_stat_2_val)) {
+    return;
+  }
+  const total = document.getElementById('teaser-stat-1-val') || document.getElementById('teaser-products');
+  const types = document.getElementById('teaser-stat-2-val') || document.getElementById('teaser-types');
   if (total && typeof ALL_PERFUMES !== 'undefined') total.textContent = ALL_PERFUMES.length + '+';
   if (types  && typeof FRAGRANCE_TYPES !== 'undefined') types.textContent = FRAGRANCE_TYPES.length;
 }

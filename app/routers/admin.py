@@ -701,6 +701,51 @@ async def save_site_settings(body: dict, user: User = Depends(require_admin), db
     return {"ok": True}
 
 
+# ── Coupons ────────────────────────────────────────────────────────────────────
+
+DEFAULT_COUPONS = [
+    {"code": "WELCOME10", "type": "percent", "value": 10, "min": 0, "active": True},
+    {"code": "AARIF50", "type": "fixed", "value": 50, "min": 200, "active": True},
+]
+
+
+@router.get("/coupons")
+async def list_coupons(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    import json
+    result = await db.execute(select(SiteSetting).where(SiteSetting.setting_key == "coupons"))
+    setting = result.scalar_one_or_none()
+    if not setting or not setting.setting_value:
+        payload = json.dumps(DEFAULT_COUPONS)
+        db.add(SiteSetting(setting_key="coupons", setting_value=payload, setting_type="json"))
+        await db.commit()
+        return DEFAULT_COUPONS
+    try:
+        data = json.loads(setting.setting_value)
+        return data if isinstance(data, list) else []
+    except json.JSONDecodeError:
+        return []
+
+
+@router.put("/coupons")
+async def save_coupons(
+    coupons: list[dict],
+    user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    import json
+    result = await db.execute(select(SiteSetting).where(SiteSetting.setting_key == "coupons"))
+    setting = result.scalar_one_or_none()
+    payload = json.dumps(coupons)
+    if setting:
+        setting.setting_value = payload
+    else:
+        db.add(SiteSetting(setting_key="coupons", setting_value=payload, setting_type="json"))
+    await db.commit()
+    invalidate_catalog_cache()
+    return {"ok": True}
+
+
+
 # ── Contact Submissions ────────────────────────────────────────────────────────
 
 @router.get("/contact-submissions")

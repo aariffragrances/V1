@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="css/main.css?v=110">
+  <link rel="stylesheet" href="css/main.css?v=113">
   <link rel="icon" href="assets/aarif-logo.png" type="image/png">
   <script>
     function openMobileDrawer(){var d=document.getElementById('mobile-drawer'),o=document.getElementById('drawer-overlay'),b=document.getElementById('mobile-menu-toggle');if(d)d.classList.add('open');if(o)o.classList.add('open');document.body.classList.add('drawer-is-open');document.body.style.overflow='hidden';if(b)b.setAttribute('aria-expanded','true');}
@@ -169,28 +169,175 @@
     </nav>
   </aside>
 
-<main class="page-main">
-    <div class="container account-page">
-      <h1 class="page-title">My Account</h1>
-      <p class="page-lead">Update your profile details</p>
+  <main class="page-main">
+    <div class="container account-page profile-page-container">
+      <nav class="cart-breadcrumb profile-breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>My Profile</span>
+      </nav>
 
-      <form id="profile-form" class="account-form" novalidate>
-        <div class="form-group">
-          <label for="profile-name">Full name</label>
-          <input type="text" id="profile-name" name="name" required>
+      <!-- SINGLE UNIFIED HORIZONTAL PROFILE CARD -->
+      <div class="profile-unified-card">
+        <!-- TOP HEADER SECTION OF CARD -->
+        <div class="profile-unified-header">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar-initials" id="profile-avatar-initials">U</div>
+            <span class="profile-status-indicator" title="Active member"></span>
+          </div>
+
+          <div class="profile-unified-intro">
+            <div class="profile-hero-name-row">
+              <h1 id="profile-welcome">My Profile</h1>
+              <span class="profile-badge-role" id="profile-display-role">Customer</span>
+            </div>
+            <p class="profile-hero-email" id="profile-hero-email-sub">
+              <i class="fa-regular fa-envelope"></i>
+              <span id="profile-display-email-hero">user@example.com</span>
+            </p>
+          </div>
+
+          <div class="profile-hero-actions">
+            <a href="/admin" class="profile-manage-store" id="profile-manage-store" hidden style="display:none;">
+              <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Manage Store
+            </a>
+            <button type="button" class="btn btn-primary btn-edit-profile-trigger" id="btn-toggle-profile-edit">
+              <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit Profile
+            </button>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="profile-email">Email</label>
-          <input type="email" id="profile-email" name="email" readonly>
+
+        <hr class="profile-card-divider">
+
+        <!-- VIEW MODE (3-COLUMN HORIZONTAL GRID INSIDE SAME CARD) -->
+        <div id="profile-view-mode" class="profile-view-container">
+          <div class="profile-unified-grid">
+            <!-- Column 1: Personal Information -->
+            <div class="profile-unified-col">
+              <div class="profile-col-header">
+                <span class="panel-icon-wrap"><i class="fa-solid fa-user"></i></span>
+                <h3>Personal Information</h3>
+              </div>
+              <div class="profile-kv-list">
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">FULL NAME</span>
+                  <strong class="profile-kv-val" id="profile-display-name">—</strong>
+                </div>
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">USERNAME</span>
+                  <strong class="profile-kv-val" id="profile-display-username">—</strong>
+                </div>
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">EMAIL ADDRESS</span>
+                  <strong class="profile-kv-val" id="profile-display-email">—</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 2: Contact & Status -->
+            <div class="profile-unified-col">
+              <div class="profile-col-header">
+                <span class="panel-icon-wrap"><i class="fa-solid fa-phone"></i></span>
+                <h3>Contact &amp; Status</h3>
+              </div>
+              <div class="profile-kv-list">
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">PHONE NUMBER</span>
+                  <strong class="profile-kv-val" id="profile-display-phone">Not provided</strong>
+                </div>
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">ACCOUNT STATUS</span>
+                  <strong class="profile-kv-val">
+                    <span class="badge-verified"><i class="fa-solid fa-circle-check"></i> Active Member</span>
+                  </strong>
+                </div>
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">ORDERS &amp; PURCHASES</span>
+                  <a href="basket.html" class="profile-quick-link"><i class="fa-solid fa-cart-shopping"></i> View My Orders</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 3: Delivery Address -->
+            <div class="profile-unified-col">
+              <div class="profile-col-header">
+                <span class="panel-icon-wrap"><i class="fa-solid fa-location-dot"></i></span>
+                <h3>Delivery Address</h3>
+              </div>
+              <div class="profile-kv-list">
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">STREET ADDRESS</span>
+                  <strong class="profile-kv-val" id="profile-display-address">Not provided</strong>
+                </div>
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">TOWN / CITY</span>
+                  <strong class="profile-kv-val" id="profile-display-city">Not provided</strong>
+                </div>
+                <div class="profile-kv-row">
+                  <span class="profile-kv-label">POSTCODE</span>
+                  <strong class="profile-kv-val" id="profile-display-postcode">Not provided</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="profile-phone">Phone</label>
-          <input type="tel" id="profile-phone" name="phone">
+
+        <!-- EDIT MODE (FORM INSIDE SAME CARD) -->
+        <div id="profile-edit-mode" class="profile-edit-container" style="display:none;">
+          <div class="profile-edit-header">
+            <div>
+              <h2><i class="fa-solid fa-user-pen"></i> Update Profile Details</h2>
+              <p class="profile-card-sub">Edit your personal information and default delivery address.</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-profile-edit-top">
+              <i class="fa-solid fa-xmark"></i> Cancel
+            </button>
+          </div>
+
+          <form id="profile-form" class="profile-form" novalidate>
+            <div class="profile-form-grid">
+              <div class="form-field">
+                <label for="profile-name">Full name</label>
+                <input type="text" id="profile-name" name="name" required placeholder="Your full name">
+              </div>
+              <div class="form-field">
+                <label for="profile-username">Username <span class="field-hint-tag">Read-only</span></label>
+                <input type="text" id="profile-username" name="username" readonly disabled>
+              </div>
+              <div class="form-field">
+                <label for="profile-email">Email <span class="field-hint-tag">Account Login</span></label>
+                <input type="email" id="profile-email" name="email" readonly disabled>
+              </div>
+              <div class="form-field">
+                <label for="profile-phone">Phone number</label>
+                <input type="tel" id="profile-phone" name="phone" placeholder="e.g. +91 9688498926">
+              </div>
+              <div class="form-field profile-form-full">
+                <label for="profile-address">Street address</label>
+                <textarea id="profile-address" name="address" rows="2" placeholder="House number, street name"></textarea>
+              </div>
+              <div class="form-field">
+                <label for="profile-city">Town / City</label>
+                <input type="text" id="profile-city" name="city" placeholder="e.g. Chennai">
+              </div>
+              <div class="form-field">
+                <label for="profile-postcode">Postcode</label>
+                <input type="text" id="profile-postcode" name="postcode" placeholder="e.g. 600001">
+              </div>
+            </div>
+            <p id="profile-error" class="profile-msg profile-msg-error" role="alert" hidden></p>
+            <p id="profile-success" class="profile-msg profile-msg-success" role="status" hidden></p>
+            <div class="profile-form-actions">
+              <button type="button" class="btn btn-outline" id="btn-cancel-profile-edit">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancel
+              </button>
+              <button type="submit" class="btn btn-primary" id="profile-save-btn">
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Changes
+              </button>
+            </div>
+          </form>
         </div>
-        <p id="profile-success" class="auth-success hidden" role="status"></p>
-        <p id="profile-error" class="auth-error hidden" role="alert"></p>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-      </form>
+      </div>
     </div>
   </main>
 
@@ -249,7 +396,7 @@
   <script src="js/data-loader.js?v=75"></script>
   <script src="js/search.js?v=2"></script>
   <script src="js/customer-api.js?v=76"></script>
-  <script src="js/customer-auth.js?v=76"></script>
+  <script src="js/customer-auth.js?v=77"></script>
   <script src="js/navigation.js?v=92"></script>
   <script src="js/main.js?v=75"></script>
 </body>

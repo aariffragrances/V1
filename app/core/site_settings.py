@@ -33,6 +33,14 @@ DEFAULT_SITE_SETTINGS: dict[str, str] = {
         "From Mystic Oud and Heritage Traditional attars to Aquatic Fresh and Fruity Delights, "
         "we have the perfect fragrance for every mood and occasion."
     ),
+    "home_stat_1_val": "49+",
+    "home_stat_1_lbl": "Fragrances",
+    "home_stat_2_val": "8",
+    "home_stat_2_lbl": "Fragrance Types",
+    "home_stat_3_val": "4",
+    "home_stat_3_lbl": "Size Options",
+    "home_stat_4_val": "TN",
+    "home_stat_4_lbl": "Tamil Nadu, India",
     "about_us_text": (
         "Aarif Fragrances is a dedicated perfume and attar brand based in Tamil Nadu, India. "
         "Our collection follows eight premium fragrance families: Aquatic Fresh, Fruity Delights, "

@@ -203,6 +203,10 @@ const AdminAPI = {
   updateOrder(id,b){ return this.request(`/api/v1/admin/orders/${id}`,{method:'PUT',body:JSON.stringify(b)}); },
   deleteOrder(id){ return this.request(`/api/v1/admin/orders/${id}`,{method:'DELETE'}); },
 
+  // Coupons
+  coupons() { return this.request('/api/v1/admin/coupons'); },
+  saveCoupons(b) { return this.request('/api/v1/admin/coupons', { method: 'PUT', body: JSON.stringify(b) }); },
+
   // Stock / bulk
   lowStock(threshold=10){ return this.request('/api/v1/admin/low-stock?threshold='+threshold); },
   bulkPrices(b){ return this.request('/api/v1/admin/perfumes/bulk-prices',{method:'POST',body:JSON.stringify(b)}); },

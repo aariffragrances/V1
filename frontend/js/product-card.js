@@ -88,23 +88,46 @@ function getDefaultTypeAndSize(perfume, preferredType, preferredSize) {
 }
 
 const TYPE_HINTS = {
-  attar: 'Traditional alcohol-free concentrated fragrance oil — 6ml, 12ml and 24ml.',
-  perfume: 'Alcohol-based wearable fragrance — 20ml, 30ml, 50ml and 100ml.',
-  car_hanger: 'Car fragrance hanging bottle — 6ml and 12ml.',
+  attar: 'Traditional alcohol-free concentrated fragrance oil .',
+  perfume: 'Alcohol-based wearable fragrance .',
+  car_hanger: 'Car fragrance hanging bottle.',
 };
 
 const TYPE_IMAGES = {
-  attar: 'assets/product-types/attar.png?v=2',
-  perfume: 'assets/product-types/perfume.png?v=2',
-  car_hanger: 'assets/product-types/car%20hanger.png?v=2',
+  attar: 'assets/product-types/attar.png?v=3',
+  perfume: 'assets/product-types/perfume%2050%20ml.png?v=3',
+  car_hanger: 'assets/product-types/car-hanger.png?v=3',
 };
 
-function getTypeImageUrl(type) {
+function getTypeImageUrl(type, size) {
   const t = normalizeProductType(type);
-  if (t === 'car_hanger') {
-    return 'assets/product-types/car%20hanger.png?v=2';
+  const s = String(size || '').toLowerCase().replace(/\s+/g, '');
+
+  if (t === 'attar') {
+    return 'assets/product-types/attar.png?v=3';
   }
-  return TYPE_IMAGES[t] || TYPE_IMAGES.perfume;
+
+  if (t === 'car_hanger') {
+    return 'assets/product-types/car-hanger.png?v=3';
+  }
+
+  if (t === 'perfume') {
+    if (s === '20ml' || s === '20') {
+      return 'assets/product-types/perfume%2020%20ml.png?v=3';
+    }
+    if (s === '30ml' || s === '30') {
+      return 'assets/product-types/perfume%2030%20ml.png?v=3';
+    }
+    if (s === '50ml' || s === '50') {
+      return 'assets/product-types/perfume%2050%20ml.png?v=3';
+    }
+    if (s === '100ml' || s === '100') {
+      return 'assets/product-types/perfume%2050%20ml.png?v=3';
+    }
+    return 'assets/product-types/perfume%2050%20ml.png?v=3';
+  }
+
+  return 'assets/product-types/attar.png?v=3';
 }
 
 function getTypeHint(type) {

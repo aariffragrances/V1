@@ -10,6 +10,7 @@ const SECTION_TITLES = {
   testimonials: 'Testimonials',
   orders: 'Orders',
   contact: 'Contact Messages',
+  coupons: 'Promo Coupons',
   settings: 'Store Settings',
 };
 
@@ -122,6 +123,7 @@ function switchSection(section) {
   else if (section === 'testimonials') loadTestimonials();
   else if (section === 'orders') loadOrders();
   else if (section === 'contact') loadContact();
+  else if (section === 'coupons') loadCoupons();
   else if (section === 'settings') loadSettings();
 }
 
@@ -389,7 +391,7 @@ async function loadPerfumes() {
     const showing = document.getElementById('perfumes-filter-showing');
     if (showing) showing.textContent = `Showing ${state.perfumes.length} of ${total} perfumes`;
     if (!state.perfumes.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No perfumes found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="table-empty">No perfumes found</td></tr>';
       updateBulkBar();
       return;
     }
@@ -403,12 +405,31 @@ async function loadPerfumes() {
       if (p.isNewArrival) badges.push('<span class="badge-chip badge-chip--new">New</span>');
       const imgSrc = p.primaryImageUrl || 'assets/bottle-blue.png?v=1';
       const img = `<img src="${esc(imgSrc)}" alt="" class="thumb" loading="lazy" onerror="this.onerror=null;this.src='assets/bottle-blue.png?v=1'">`;
-      const prices = [
+
+      const p24 = p.price24ml != null ? p.price24ml : (p.price12ml != null ? p.price12ml * 2 : (p.price6ml != null ? p.price6ml * 4 : null));
+      const p20 = p.price20ml != null ? p.price20ml : (p.price30ml != null ? Math.round((p.price30ml * 20 / 30) / 10) * 10 : (p.price50ml != null ? Math.round((p.price50ml * 20 / 50) / 10) * 10 : null));
+      const p100 = p.price100ml != null ? p.price100ml : (p.price50ml != null ? p.price50ml * 2 : (p.price30ml != null ? Math.round(p.price30ml * 3.3 / 10) * 10 : null));
+      const car6 = p.priceCar6ml != null ? p.priceCar6ml : p.price6ml;
+      const car12 = p.priceCar12ml != null ? p.priceCar12ml : p.price12ml;
+
+      const attarPrices = [
         p.price6ml != null ? `<span>6ml <b>${money(p.price6ml)}</b></span>` : '',
         p.price12ml != null ? `<span>12ml <b>${money(p.price12ml)}</b></span>` : '',
+        p24 != null ? `<span>24ml <b>${money(p24)}</b></span>` : '',
+      ].filter(Boolean).join('') || '—';
+
+      const perfumePrices = [
+        p20 != null ? `<span>20ml <b>${money(p20)}</b></span>` : '',
         p.price30ml != null ? `<span>30ml <b>${money(p.price30ml)}</b></span>` : '',
         p.price50ml != null ? `<span>50ml <b>${money(p.price50ml)}</b></span>` : '',
+        p100 != null ? `<span>100ml <b>${money(p100)}</b></span>` : '',
       ].filter(Boolean).join('') || '—';
+
+      const carPrices = [
+        car6 != null ? `<span>6ml <b>${money(car6)}</b></span>` : '',
+        car12 != null ? `<span>12ml <b>${money(car12)}</b></span>` : '',
+      ].filter(Boolean).join('') || '—';
+
       const stock = Number(p.stockQuantity ?? 0);
       const stockBadge = stock <= 0
         ? '<span class="badge badge--pink">Out of Stock</span>'
@@ -428,7 +449,9 @@ async function loadPerfumes() {
           </div>
         </td>
         <td>${esc(p.fragranceTypeName || '—')}</td>
-        <td><div class="price-stack">${prices}</div></td>
+        <td><div class="price-stack">${attarPrices}</div></td>
+        <td><div class="price-stack">${perfumePrices}</div></td>
+        <td><div class="price-stack">${carPrices}</div></td>
         <td>${stockBadge}</td>
         <td><div class="badge-chips">${badges.join('') || '—'}</div></td>
         <td>
@@ -1197,6 +1220,84 @@ function openOrderModal(order) {
   });
 }
 
+/* ── Coupons ────────────────────────────────────────────── */
+let couponsCache = [];
+
+async function loadCoupons() {
+  const tbody = document.querySelector('#coupons-table tbody');
+  if (tbody && !tbody.querySelector('tr')) {
+    tbody.innerHTML = '<tr><td colspan="6" class="table-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading coupons...</td></tr>';
+  }
+  try {
+    const list = await AdminAPI.coupons();
+    couponsCache = Array.isArray(list) ? list : [];
+    paintCoupons(couponsCache);
+  } catch (err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="color:var(--adm-danger);padding:20px;">Failed to load coupons: ${esc(err.message)}</td></tr>`;
+  }
+}
+
+function paintCoupons(items) {
+  couponsCache = items || [];
+  const tbody = document.querySelector('#coupons-table tbody');
+  if (!tbody) return;
+  if (!couponsCache.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--adm-muted);">No coupon codes created yet. Click "Add Coupon" to create a promo discount.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = couponsCache.map((c, i) => `
+    <tr>
+      <td><code style="font-weight:700;font-size:0.95rem;background:#f3f4f6;padding:4px 9px;border-radius:6px;color:#111;letter-spacing:0.04em;">${esc(c.code)}</code></td>
+      <td>${c.type === 'fixed' ? 'Fixed (₹)' : 'Percentage (%)'}</td>
+      <td style="font-weight:600;color:var(--adm-green,#10b981);">${c.type === 'fixed' ? `₹${Number(c.value).toLocaleString('en-IN')}` : `${c.value}%`}</td>
+      <td>${Number(c.min || c.minOrder || 0) > 0 ? `₹${Number(c.min || c.minOrder).toLocaleString('en-IN')}` : '<span style="color:var(--adm-muted)">None</span>'}</td>
+      <td>${c.active !== false ? '<span class="badge badge--green">Active</span>' : '<span class="badge badge--gray">Inactive</span>'}</td>
+      <td style="text-align: right;">
+        <div class="adm-table-actions" style="justify-content: flex-end;">
+          <button type="button" class="edit-coupon-btn" data-coupon-idx="${i}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+          <button type="button" class="del del-coupon-btn" data-coupon-idx="${i}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('.edit-coupon-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.couponIdx, 10);
+      openCouponModal(couponsCache[idx], idx);
+    });
+  });
+  tbody.querySelectorAll('.del-coupon-btn').forEach(b => {
+    b.addEventListener('click', async () => {
+      const idx = parseInt(b.dataset.couponIdx, 10);
+      const code = couponsCache[idx]?.code;
+      const ok = await confirmDialog('Delete Coupon', `Are you sure you want to remove coupon code "${code}"?`);
+      if (!ok) return;
+      try {
+        const next = couponsCache.filter((_, i) => i !== idx);
+        await AdminAPI.saveCoupons(next);
+        couponsCache = next;
+        paintCoupons(couponsCache);
+        toast(`Coupon "${code}" deleted`);
+      } catch (err) {
+        toast('Failed to delete coupon: ' + err.message, true);
+      }
+    });
+  });
+}
+
+function openCouponModal(c = null, idx = -1) {
+  document.getElementById('coupon-modal-title').innerHTML = `<i class="fa-solid fa-ticket" style="color: var(--adm-green);"></i> <span>${c ? 'Edit Coupon' : 'Add Coupon'}</span>`;
+  document.getElementById('coupon-edit-index').value = String(idx);
+  document.getElementById('coupon-code').value = c?.code || '';
+  document.getElementById('coupon-type').value = c?.type || 'percent';
+  document.getElementById('coupon-value').value = c?.value ?? 10;
+  document.getElementById('coupon-min').value = (c?.min ?? c?.minOrder ?? 0) || '';
+  document.getElementById('coupon-active').checked = c?.active !== false;
+  document.getElementById('coupon-form-feedback').textContent = '';
+  openModal('coupon-modal-overlay');
+}
+
 /* ── Bind events ────────────────────────────────────────── */
 function bindEvents() {
   document.getElementById('login-form')?.addEventListener('submit', async (e) => {
@@ -1801,6 +1902,55 @@ function bindEvents() {
     } catch (err) {
       fb.textContent = err.message || 'Save failed';
       fb.className = 'settings-feedback err';
+    }
+  });
+
+  // Coupons
+  document.getElementById('add-coupon-btn')?.addEventListener('click', () => openCouponModal());
+
+  document.getElementById('coupon-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const idx = parseInt(document.getElementById('coupon-edit-index').value, 10);
+    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+    const type = document.getElementById('coupon-type').value;
+    const value = parseFloat(document.getElementById('coupon-value').value) || 0;
+    const minVal = parseFloat(document.getElementById('coupon-min').value) || 0;
+    const active = document.getElementById('coupon-active').checked;
+    const fb = document.getElementById('coupon-form-feedback');
+
+    if (!code) {
+      fb.textContent = 'Coupon code is required';
+      fb.className = 'modal-feedback error';
+      return;
+    }
+    if (value <= 0) {
+      fb.textContent = 'Discount value must be greater than 0';
+      fb.className = 'modal-feedback error';
+      return;
+    }
+
+    const item = { code, type, value, min: minVal, active };
+    const next = [...couponsCache];
+    if (idx >= 0) {
+      next[idx] = item;
+    } else {
+      if (next.some(c => c.code.toUpperCase() === code)) {
+        fb.textContent = `Coupon code "${code}" already exists`;
+        fb.className = 'modal-feedback error';
+        return;
+      }
+      next.push(item);
+    }
+
+    try {
+      await AdminAPI.saveCoupons(next);
+      couponsCache = next;
+      closeModal('coupon-modal-overlay');
+      toast(`Coupon "${code}" saved successfully`);
+      paintCoupons(couponsCache);
+    } catch (err) {
+      fb.textContent = err.message || 'Failed to save coupon';
+      fb.className = 'modal-feedback error';
     }
   });
 }
