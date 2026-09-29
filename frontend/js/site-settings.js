@@ -98,7 +98,81 @@ function applySiteSettings(s) {
     aboutTeaser.innerHTML = paras.map(p => `<p>${escHtml(p).replace(/\n/g, '<br>')}</p>`).join('');
   }
 
-  // 9. Homepage Highlight Stats
+  // 9. Containers (Featured & Best Sellers Titles/Subtitles)
+  if (s.container_featured_title) {
+    document.querySelectorAll('.site-container-featured-title, #featured .top-cat-header-text h2').forEach(el => {
+      el.textContent = s.container_featured_title;
+    });
+  }
+  if (s.container_featured_subtitle) {
+    document.querySelectorAll('.site-container-featured-subtitle, #featured .top-cat-header-text .section-subtitle').forEach(el => {
+      el.textContent = s.container_featured_subtitle;
+    });
+  }
+  if (s.container_bestsellers_title) {
+    document.querySelectorAll('.site-container-bestsellers-title, #best-sellers .top-cat-header-text h2').forEach(el => {
+      el.textContent = s.container_bestsellers_title;
+    });
+  }
+  if (s.container_bestsellers_subtitle) {
+    document.querySelectorAll('.site-container-bestsellers-subtitle, #best-sellers .top-cat-header-text .section-subtitle').forEach(el => {
+      el.textContent = s.container_bestsellers_subtitle;
+    });
+  }
+
+  // 10. How to Order Section (Titles & Subtitles)
+  if (s.order_section_title) {
+    document.querySelectorAll('.site-order-section-title, .how-to-order-section .section-header h2').forEach(el => {
+      el.textContent = s.order_section_title;
+    });
+  }
+  if (s.order_section_subtitle) {
+    document.querySelectorAll('.site-order-section-subtitle, .how-to-order-section .section-header .section-subtitle').forEach(el => {
+      el.textContent = s.order_section_subtitle;
+    });
+  }
+  if (s.order_step_1_title) {
+    document.querySelectorAll('.site-order-step-1-title, .order-steps .order-step:nth-child(1) h3').forEach(el => {
+      el.textContent = s.order_step_1_title;
+    });
+  }
+  if (s.order_step_1_subtitle) {
+    document.querySelectorAll('.site-order-step-1-subtitle, .order-steps .order-step:nth-child(1) p').forEach(el => {
+      el.textContent = s.order_step_1_subtitle;
+    });
+  }
+  if (s.order_step_2_title) {
+    document.querySelectorAll('.site-order-step-2-title, .order-steps .order-step:nth-child(2) h3').forEach(el => {
+      el.textContent = s.order_step_2_title;
+    });
+  }
+  if (s.order_step_2_subtitle) {
+    document.querySelectorAll('.site-order-step-2-subtitle, .order-steps .order-step:nth-child(2) p').forEach(el => {
+      el.textContent = s.order_step_2_subtitle;
+    });
+  }
+  if (s.order_step_3_title) {
+    document.querySelectorAll('.site-order-step-3-title, .order-steps .order-step:nth-child(3) h3').forEach(el => {
+      el.textContent = s.order_step_3_title;
+    });
+  }
+  if (s.order_step_3_subtitle) {
+    document.querySelectorAll('.site-order-step-3-subtitle, .order-steps .order-step:nth-child(3) p').forEach(el => {
+      el.textContent = s.order_step_3_subtitle;
+    });
+  }
+  if (s.order_step_4_title) {
+    document.querySelectorAll('.site-order-step-4-title, .order-steps .order-step:nth-child(4) h3').forEach(el => {
+      el.textContent = s.order_step_4_title;
+    });
+  }
+  if (s.order_step_4_subtitle) {
+    document.querySelectorAll('.site-order-step-4-subtitle, .order-steps .order-step:nth-child(4) p').forEach(el => {
+      el.textContent = s.order_step_4_subtitle;
+    });
+  }
+
+  // 11. Homepage Highlight Stats
   if (s.home_stat_1_val != null) { const el = document.getElementById('teaser-stat-1-val'); if (el) el.textContent = s.home_stat_1_val; }
   if (s.home_stat_1_lbl != null) { const el = document.getElementById('teaser-stat-1-lbl'); if (el) el.textContent = s.home_stat_1_lbl; }
   if (s.home_stat_2_val != null) { const el = document.getElementById('teaser-stat-2-val'); if (el) el.textContent = s.home_stat_2_val; }
@@ -108,7 +182,7 @@ function applySiteSettings(s) {
   if (s.home_stat_4_val != null) { const el = document.getElementById('teaser-stat-4-val'); if (el) el.textContent = s.home_stat_4_val; }
   if (s.home_stat_4_lbl != null) { const el = document.getElementById('teaser-stat-4-lbl'); if (el) el.textContent = s.home_stat_4_lbl; }
 
-  // 10. About Us Text (About Page)
+  // 12. About Us Text (About Page)
   const aboutBody = document.getElementById('about-us-text');
   if (aboutBody && s.about_us_text) {
     const paras = s.about_us_text.split(/\n\s*\n/).filter(Boolean);
@@ -117,7 +191,7 @@ function applySiteSettings(s) {
     }
   }
 
-  // 11. Social Links (Facebook & Instagram)
+  // 13. Social Links (Facebook & Instagram)
   document.querySelectorAll('.site-social-fb').forEach(el => {
     if (s.social_facebook && s.social_facebook.trim()) {
       el.href = s.social_facebook.trim();
@@ -144,7 +218,7 @@ function getWhatsAppNumber() {
 
 async function refreshSiteSettingsFromServer() {
   try {
-    const res = await fetch('/api/v1/catalog/metadata');
+    const res = await fetch('/api/v1/catalog/metadata?t=' + Date.now(), { cache: 'no-cache' });
     if (res.ok) {
       const data = await res.json();
       if (data && data.siteSettings) {

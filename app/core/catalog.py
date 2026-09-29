@@ -61,9 +61,20 @@ def admin_cache_invalidate(*keys: str) -> None:
         _cache.pop(f"admin:{key}", None)
 
 
+def admin_cache_clear(prefix: str | None = None) -> None:
+    if not prefix:
+        keys = [k for k in list(_cache.keys()) if k.startswith("admin:")]
+    else:
+        keys = [k for k in list(_cache.keys()) if k.startswith(f"admin:{prefix}")]
+    for k in keys:
+        _cache.pop(k, None)
+
+
 def invalidate_admin_site_cache(*admin_keys: str) -> None:
     if admin_keys:
         admin_cache_invalidate(*admin_keys)
+    else:
+        admin_cache_clear()
     invalidate_catalog_cache()
 
 

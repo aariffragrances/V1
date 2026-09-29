@@ -41,6 +41,22 @@ DEFAULT_SITE_SETTINGS: dict[str, str] = {
     "home_stat_3_lbl": "Size Options",
     "home_stat_4_val": "TN",
     "home_stat_4_lbl": "Tamil Nadu, India",
+    # Containers (Section titles and subtitles)
+    "container_featured_title": "Featured Perfumes",
+    "container_featured_subtitle": "Our handpicked selection of finest fragrances",
+    "container_bestsellers_title": "Best Sellers",
+    "container_bestsellers_subtitle": "The most loved fragrances by our customers",
+    # How to order section
+    "order_section_title": "How to Order",
+    "order_section_subtitle": "From scent to doorstep — simple, personal, and made for Aarif Fragrances",
+    "order_step_1_title": "1. Choose Your Scent",
+    "order_step_1_subtitle": "Browse attars & perfumes — Attar or Perfume, in the size that suits you",
+    "order_step_2_title": "2. Build Your Cart",
+    "order_step_2_subtitle": "Select 6ml, 12ml, 30ml or 50ml and add your favourite fragrances",
+    "order_step_3_title": "3. WhatsApp Checkout",
+    "order_step_3_subtitle": "Share your cart on WhatsApp — no online payment needed",
+    "order_step_4_title": "4. We Deliver",
+    "order_step_4_subtitle": "We confirm your order and deliver across Tamil Nadu & India",
     "about_us_text": (
         "Aarif Fragrances is a dedicated perfume and attar brand based in Tamil Nadu, India. "
         "Our collection follows eight premium fragrance families: Aquatic Fresh, Fruity Delights, "

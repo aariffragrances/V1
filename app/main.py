@@ -139,7 +139,10 @@ async def catalog_browser_cache(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
     if request.method == "GET" and (path.startswith("/api/v1/catalog/") or path in ("/api/v1/banners", "/api/v1/testimonials")):
-        response.headers["Cache-Control"] = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400"
+        if path in ("/api/v1/catalog/metadata", "/api/v1/catalog/bootstrap"):
+            response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400"
     return response
 
 

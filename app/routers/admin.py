@@ -15,6 +15,8 @@ from app.core.auth import require_admin
 from app.core.catalog import (
     admin_cache_get,
     admin_cache_set,
+    admin_cache_clear,
+    admin_cache_invalidate,
     invalidate_catalog_cache,
     perfume_to_dict,
     primary_image_url,
@@ -130,6 +132,8 @@ async def create_fragrance_type(
         display_order=body.get("display_order", 0),
         is_active=bool(body.get("is_active", True)),
     ))
+    admin_cache_clear("fragrance_types")
+    admin_cache_clear("stats")
     invalidate_catalog_cache()
     return {"ok": True, "type_id": type_id}
 
@@ -145,6 +149,8 @@ async def update_fragrance_type(
     for k in ("type_name", "description", "slug", "icon_image_url", "display_order", "is_active"):
         if k in body:
             setattr(ft, k, body[k])
+    admin_cache_clear("fragrance_types")
+    admin_cache_clear("stats")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -158,6 +164,8 @@ async def delete_fragrance_type(
     if not ft:
         raise HTTPException(status_code=404, detail="Fragrance type not found")
     ft.is_active = False
+    admin_cache_clear("fragrance_types")
+    admin_cache_clear("stats")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -185,6 +193,11 @@ async def admin_perfumes(
     user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    cache_key = f"perfumes:{page}:{per_page}:{fragrance_type_id or ''}:{(search or '').strip().lower()}"
+    cached = admin_cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     where = ["1=1"]
     params: dict = {"offset": (page - 1) * per_page, "limit": per_page}
     if fragrance_type_id:
@@ -243,21 +256,28 @@ async def admin_perfumes(
         }
         for r in rows
     ]
-    return {
+    payload = {
         "items": items,
         "total_count": total,
         "total_pages": max(1, (total + per_page - 1) // per_page),
         "current_page": page,
         "per_page": per_page,
     }
+    admin_cache_set(cache_key, payload)
+    return payload
 
 
 @router.get("/perfumes/{perfume_id}")
 async def get_admin_perfume(perfume_id: str, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    cache_key = f"perfume:{perfume_id}"
+    cached = admin_cache_get(cache_key)
+    if cached is not None:
+        return cached
     p = await _get_perfume_or_404(db, perfume_id)
     d = perfume_to_dict(p, primary_image_url(p))
     d["stockQuantity"] = p.stock_quantity
     d["isActive"] = p.is_active
+    admin_cache_set(cache_key, d)
     return d
 
 
@@ -304,6 +324,9 @@ async def create_perfume(body: dict, user: User = Depends(require_admin), db: As
         stock_quantity=int(body.get("stock_quantity", 0)),
     )
     db.add(p)
+    admin_cache_clear("perfume")
+    admin_cache_clear("stats")
+    admin_cache_clear("low_stock")
     invalidate_catalog_cache()
     return {"ok": True, "perfume_id": pid}
 
@@ -325,6 +348,9 @@ async def update_perfume(perfume_id: str, body: dict, user: User = Depends(requi
     for k in ("price_6ml", "price_12ml", "price_24ml", "price_20ml", "price_30ml", "price_50ml", "price_100ml", "price_car_6ml", "price_car_12ml"):
         if k in body:
             setattr(p, k, Decimal(str(body[k])) if (body[k] is not None and str(body[k]).strip() != "") else None)
+    admin_cache_clear("perfume")
+    admin_cache_clear("stats")
+    admin_cache_clear("low_stock")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -379,6 +405,9 @@ async def sheet_save_prices(body: dict, user: User = Depends(require_admin), db:
         if row_changed:
             updated_count += 1
 
+    admin_cache_clear("perfume")
+    admin_cache_clear("stats")
+    admin_cache_clear("low_stock")
     invalidate_catalog_cache()
     await db.commit()
     return {"ok": True, "updated": updated_count}
@@ -396,6 +425,9 @@ async def delete_perfume(perfume_id: str, user: User = Depends(require_admin), d
                 pass
         await db.delete(img)
     await db.delete(p)
+    admin_cache_clear("perfume")
+    admin_cache_clear("stats")
+    admin_cache_clear("low_stock")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -438,6 +470,7 @@ async def add_perfume_image_url(perfume_id: str, body: dict, user: User = Depend
     if not url:
         raise HTTPException(status_code=422, detail="image_url required")
     img = await _add_perfume_image(db, perfume_id, url, is_primary=bool(body.get("is_primary")))
+    admin_cache_clear("perfume")
     invalidate_catalog_cache()
     return {"id": img.id, "imageUrl": img.image_url, "isPrimary": img.is_primary}
 
@@ -480,6 +513,7 @@ async def upload_perfume_images(
         created.append({"id": img.id, "imageUrl": img.image_url, "isPrimary": img.is_primary})
     if not created:
         raise HTTPException(status_code=422, detail="No valid image files")
+    admin_cache_clear("perfume")
     invalidate_catalog_cache()
     return {"items": created}
 
@@ -512,6 +546,7 @@ async def delete_perfume_image(perfume_id: str, image_id: int, user: User = Depe
         )).scalars().first()
         if remaining:
             remaining.is_primary = True
+    admin_cache_clear("perfume")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -520,12 +555,17 @@ async def delete_perfume_image(perfume_id: str, image_id: int, user: User = Depe
 
 @router.get("/banners")
 async def admin_banners(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    cached = admin_cache_get("banners")
+    if cached is not None:
+        return cached
     result = await db.execute(select(SiteBanner).order_by(SiteBanner.display_order))
-    return [
+    rows = [
         {"id": b.id, "title": b.title, "subtitle": b.subtitle, "imageUrl": b.image_url,
          "linkUrl": b.link_url, "isActive": b.is_active, "displayOrder": b.display_order}
         for b in result.scalars()
     ]
+    admin_cache_set("banners", rows)
+    return rows
 
 
 @router.post("/banners")
@@ -538,6 +578,7 @@ async def create_banner(body: dict, user: User = Depends(require_admin), db: Asy
     )
     db.add(banner)
     await db.flush()
+    admin_cache_invalidate("banners")
     invalidate_catalog_cache()
     return {"ok": True, "id": banner.id}
 
@@ -575,6 +616,7 @@ async def update_banner(banner_id: int, body: dict, user: User = Depends(require
                 row.display_order = i
             # re-apply swap after normalize
             pool[idx].display_order, pool[swap_with].display_order = pool[swap_with].display_order, pool[idx].display_order
+        admin_cache_invalidate("banners")
         invalidate_catalog_cache()
         await db.commit()
         return {"ok": True, "moved": True}
@@ -582,6 +624,7 @@ async def update_banner(banner_id: int, body: dict, user: User = Depends(require
     for k in ("title", "subtitle", "image_url", "link_url", "is_active", "display_order"):
         if k in body:
             setattr(b, k, body[k])
+    admin_cache_invalidate("banners")
     invalidate_catalog_cache()
     await db.commit()
     return {"ok": True}
@@ -595,6 +638,7 @@ async def delete_banner(banner_id: int, user: User = Depends(require_admin), db:
         raise HTTPException(status_code=404, detail="Banner not found")
     await db.delete(b)
     await db.commit()
+    admin_cache_invalidate("banners")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -629,12 +673,17 @@ async def upload_banner_image(file: UploadFile = File(...), user: User = Depends
 
 @router.get("/testimonials")
 async def admin_testimonials(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    cached = admin_cache_get("testimonials")
+    if cached is not None:
+        return cached
     result = await db.execute(select(Testimonial).order_by(Testimonial.display_order, Testimonial.id))
-    return [
+    rows = [
         {"id": t.id, "customerName": t.customer_name, "customerInitial": t.customer_initial,
          "rating": t.rating, "quote": t.quote, "isFeatured": t.is_featured, "displayOrder": t.display_order}
         for t in result.scalars()
     ]
+    admin_cache_set("testimonials", rows)
+    return rows
 
 
 @router.post("/testimonials")
@@ -646,6 +695,7 @@ async def create_testimonial(body: dict, user: User = Depends(require_admin), db
     )
     db.add(t)
     await db.flush()
+    admin_cache_invalidate("testimonials")
     invalidate_catalog_cache()
     return {"ok": True, "id": t.id}
 
@@ -659,6 +709,7 @@ async def update_testimonial(tid: int, body: dict, user: User = Depends(require_
     for k in ("customer_name", "customer_initial", "rating", "quote", "is_featured", "display_order"):
         if k in body:
             setattr(t, k, body[k])
+    admin_cache_invalidate("testimonials")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -670,6 +721,7 @@ async def delete_testimonial(tid: int, user: User = Depends(require_admin), db: 
     if not t:
         raise HTTPException(status_code=404, detail="Testimonial not found")
     await db.delete(t)
+    admin_cache_invalidate("testimonials")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -711,6 +763,9 @@ DEFAULT_COUPONS = [
 
 @router.get("/coupons")
 async def list_coupons(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    cached = admin_cache_get("coupons")
+    if cached is not None:
+        return cached
     import json
     result = await db.execute(select(SiteSetting).where(SiteSetting.setting_key == "coupons"))
     setting = result.scalar_one_or_none()
@@ -718,10 +773,13 @@ async def list_coupons(user: User = Depends(require_admin), db: AsyncSession = D
         payload = json.dumps(DEFAULT_COUPONS)
         db.add(SiteSetting(setting_key="coupons", setting_value=payload, setting_type="json"))
         await db.commit()
+        admin_cache_set("coupons", DEFAULT_COUPONS)
         return DEFAULT_COUPONS
     try:
         data = json.loads(setting.setting_value)
-        return data if isinstance(data, list) else []
+        res = data if isinstance(data, list) else []
+        admin_cache_set("coupons", res)
+        return res
     except json.JSONDecodeError:
         return []
 
@@ -741,6 +799,7 @@ async def save_coupons(
     else:
         db.add(SiteSetting(setting_key="coupons", setting_value=payload, setting_type="json"))
     await db.commit()
+    admin_cache_invalidate("coupons")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -750,10 +809,13 @@ async def save_coupons(
 
 @router.get("/contact-submissions")
 async def admin_contact_submissions(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    cached = admin_cache_get("contacts")
+    if cached is not None:
+        return cached
     result = await db.execute(select(ContactSubmission).order_by(ContactSubmission.submitted_at.desc()))
     rows = result.scalars().all()
     unread = sum(1 for r in rows if not r.is_read)
-    return {
+    payload = {
         "total": len(rows), "unread": unread,
         "items": [
             {"id": r.id, "name": r.name, "email": r.email, "phone": r.phone or "",
@@ -763,6 +825,8 @@ async def admin_contact_submissions(user: User = Depends(require_admin), db: Asy
             for r in rows
         ],
     }
+    admin_cache_set("contacts", payload)
+    return payload
 
 
 @router.put("/contact-submissions/{sid}/read")
@@ -773,6 +837,7 @@ async def mark_contact_read(sid: int, user: User = Depends(require_admin), db: A
         raise HTTPException(status_code=404, detail="Submission not found")
     sub.is_read = True
     await db.commit()
+    admin_cache_invalidate("contacts", "stats")
     return {"ok": True}
 
 
@@ -784,6 +849,7 @@ async def delete_contact_submission(sid: int, user: User = Depends(require_admin
         raise HTTPException(status_code=404, detail="Submission not found")
     await db.delete(sub)
     await db.commit()
+    admin_cache_invalidate("contacts", "stats")
     return {"ok": True}
 
 
@@ -865,6 +931,8 @@ async def admin_bulk_prices(body: dict, user: User = Depends(require_admin), db:
         if changed:
             updated += 1
 
+    admin_cache_clear("perfume")
+    admin_cache_clear("low_stock")
     invalidate_catalog_cache()
     await db.commit()
     return {"ok": True, "updated": updated}
@@ -901,12 +969,19 @@ async def admin_orders(
     user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    cache_key = f"orders:{status or 'all'}"
+    cached = admin_cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     q = select(Order).options(selectinload(Order.items)).order_by(Order.created_at.desc())
     if status:
         q = q.where(Order.status == status)
     result = await db.execute(q)
     rows = result.scalars().all()
-    return {"total": len(rows), "items": [_order_to_dict(o) for o in rows]}
+    payload = {"total": len(rows), "items": [_order_to_dict(o) for o in rows]}
+    admin_cache_set(cache_key, payload)
+    return payload
 
 
 @router.get("/orders/{order_id}")
@@ -937,6 +1012,8 @@ async def admin_update_order(order_id: int, body: dict, user: User = Depends(req
         order.customer_note = body.get("customer_note")
     await db.commit()
     await db.refresh(order)
+    admin_cache_clear("orders")
+    admin_cache_invalidate("stats")
     return _order_to_dict(order)
 
 
@@ -948,4 +1025,6 @@ async def admin_delete_order(order_id: int, user: User = Depends(require_admin),
         raise HTTPException(status_code=404, detail="Order not found")
     await db.delete(order)
     await db.commit()
+    admin_cache_clear("orders")
+    admin_cache_invalidate("stats")
     return {"ok": True}

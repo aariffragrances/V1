@@ -440,102 +440,267 @@
         <div class="adm-page-header">
           <div>
             <h1>Store Settings</h1>
-            <p>Contact details, social links, and storefront copy</p>
+            <p>Configure storefront footer, product containers, how-to-order workflow, and homepage stats</p>
           </div>
+          <button type="submit" form="settings-form" class="adm-btn adm-btn--primary">
+            <i class="fa-solid fa-floppy-disk"></i> Save Settings
+          </button>
         </div>
-        <form id="settings-form" class="settings-form adm-card">
-          <div class="settings-grid">
-            <div class="form-group">
-              <label for="set-store_name">Store Name</label>
-              <input type="text" id="set-store_name" name="store_name">
+
+        <form id="settings-form" class="settings-form-structured">
+          
+          <!-- SECTION 1: FOOTER SETTINGS -->
+          <div class="adm-card settings-card" id="settings-card-footer">
+            <div class="settings-card-header">
+              <div class="settings-card-icon"><i class="fa-solid fa-store"></i></div>
+              <div>
+                <h3>1. Footer Settings &amp; Store Contact</h3>
+                <p>Branding, contact phone/WhatsApp, address, opening hours, and social media links.</p>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="set-store_tagline">Tagline</label>
-              <input type="text" id="set-store_tagline" name="store_tagline">
-            </div>
-            <div class="form-group">
-              <label for="set-store_phone">Phone</label>
-              <input type="text" id="set-store_phone" name="store_phone">
-            </div>
-            <div class="form-group">
-              <label for="set-whatsapp_number">WhatsApp Number</label>
-              <input type="text" id="set-whatsapp_number" name="whatsapp_number" placeholder="919688498926">
-            </div>
-            <div class="form-group">
-              <label for="set-contact_email">Contact Email</label>
-              <input type="email" id="set-contact_email" name="contact_email">
-            </div>
-            <div class="form-group">
-              <label for="set-store_address">Address</label>
-              <input type="text" id="set-store_address" name="store_address">
-            </div>
-            <div class="form-group">
-              <label for="set-store_city">City</label>
-              <input type="text" id="set-store_city" name="store_city">
-            </div>
-            <div class="form-group">
-              <label for="set-opening_hours">Opening Hours</label>
-              <input type="text" id="set-opening_hours" name="opening_hours">
-            </div>
-            <div class="form-group form-group--wide">
-              <label for="set-footer_desc">Footer Description</label>
-              <textarea id="set-footer_desc" name="footer_desc" rows="3"></textarea>
-            </div>
-            <div class="form-group form-group--wide">
-              <label for="set-home_about_teaser">Home About Teaser</label>
-              <textarea id="set-home_about_teaser" name="home_about_teaser" rows="3"></textarea>
-            </div>
-            <div class="form-group form-group--wide" style="margin-top: 14px; margin-bottom: 8px;">
-              <h3 style="font-size: 1rem; font-weight: 700; color: var(--adm-green); border-bottom: 2px solid var(--adm-green-light); padding-bottom: 8px;">Homepage Highlight Stats</h3>
-              <p class="field-hint" style="margin-top: 4px;">Values and labels displayed in the stats section on the homepage.</p>
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_1_val">Stat 1 Value</label>
-              <input type="text" id="set-home_stat_1_val" name="home_stat_1_val" placeholder="49+">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_1_lbl">Stat 1 Label</label>
-              <input type="text" id="set-home_stat_1_lbl" name="home_stat_1_lbl" placeholder="Fragrances">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_2_val">Stat 2 Value</label>
-              <input type="text" id="set-home_stat_2_val" name="home_stat_2_val" placeholder="8">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_2_lbl">Stat 2 Label</label>
-              <input type="text" id="set-home_stat_2_lbl" name="home_stat_2_lbl" placeholder="Fragrance Types">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_3_val">Stat 3 Value</label>
-              <input type="text" id="set-home_stat_3_val" name="home_stat_3_val" placeholder="4">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_3_lbl">Stat 3 Label</label>
-              <input type="text" id="set-home_stat_3_lbl" name="home_stat_3_lbl" placeholder="Size Options">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_4_val">Stat 4 Value</label>
-              <input type="text" id="set-home_stat_4_val" name="home_stat_4_val" placeholder="TN">
-            </div>
-            <div class="form-group">
-              <label for="set-home_stat_4_lbl">Stat 4 Label</label>
-              <input type="text" id="set-home_stat_4_lbl" name="home_stat_4_lbl" placeholder="Tamil Nadu, India">
-            </div>
-            <div class="form-group form-group--wide">
-              <label for="set-about_us_text">About Us Text</label>
-              <textarea id="set-about_us_text" name="about_us_text" rows="6"></textarea>
-            </div>
-            <div class="form-group">
-              <label for="set-social_facebook">Facebook URL</label>
-              <input type="text" id="set-social_facebook" name="social_facebook">
-            </div>
-            <div class="form-group">
-              <label for="set-social_instagram">Instagram URL</label>
-              <input type="text" id="set-social_instagram" name="social_instagram">
+            <div class="settings-grid">
+              <div class="form-group">
+                <label for="set-store_name">Store Name</label>
+                <input type="text" id="set-store_name" name="store_name" placeholder="Aarif Fragrances">
+              </div>
+              <div class="form-group">
+                <label for="set-store_tagline">Tagline</label>
+                <input type="text" id="set-store_tagline" name="store_tagline" placeholder="Premium Attar & Perfumes">
+              </div>
+              <div class="form-group">
+                <label for="set-store_phone">Phone</label>
+                <input type="text" id="set-store_phone" name="store_phone" placeholder="+91 9688498926">
+              </div>
+              <div class="form-group">
+                <label for="set-whatsapp_number">WhatsApp Number</label>
+                <input type="text" id="set-whatsapp_number" name="whatsapp_number" placeholder="919688498926">
+                <p class="field-hint">Country code + number without plus or spaces (e.g. 919688498926)</p>
+              </div>
+              <div class="form-group">
+                <label for="set-contact_email">Contact Email</label>
+                <input type="email" id="set-contact_email" name="contact_email" placeholder="aariffragrances@gmail.com">
+              </div>
+              <div class="form-group">
+                <label for="set-store_address">Address</label>
+                <input type="text" id="set-store_address" name="store_address" placeholder="Tamil Nadu, India">
+              </div>
+              <div class="form-group">
+                <label for="set-store_city">City</label>
+                <input type="text" id="set-store_city" name="store_city" placeholder="Tamil Nadu">
+              </div>
+              <div class="form-group">
+                <label for="set-opening_hours">Opening Hours</label>
+                <input type="text" id="set-opening_hours" name="opening_hours" placeholder="Open Daily — Mon to Sun">
+              </div>
+              <div class="form-group form-group--wide">
+                <label for="set-footer_desc">Footer Description</label>
+                <textarea id="set-footer_desc" name="footer_desc" rows="3" placeholder="Short description displayed in the website footer"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="set-social_facebook"><i class="fa-brands fa-facebook" style="color:#1877f2"></i> Facebook URL</label>
+                <input type="url" id="set-social_facebook" name="social_facebook" placeholder="https://facebook.com/aariffragrances">
+              </div>
+              <div class="form-group">
+                <label for="set-social_instagram"><i class="fa-brands fa-instagram" style="color:#e4405f"></i> Instagram URL</label>
+                <input type="url" id="set-social_instagram" name="social_instagram" placeholder="https://instagram.com/aariffragrances">
+              </div>
             </div>
           </div>
-          <p class="settings-feedback" id="settings-feedback" role="status"></p>
-          <button type="submit" class="adm-btn adm-btn--primary"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+
+          <!-- SECTION 2: CONTAINERS (HOMEPAGE SECTION HEADERS) -->
+          <div class="adm-card settings-card" id="settings-card-containers" style="margin-top: 20px;">
+            <div class="settings-card-header">
+              <div class="settings-card-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+              <div>
+                <h3>2. Containers (Section Headings &amp; Subtitles)</h3>
+                <p>Customize the titles and subtitles displayed above the product strips on the home page.</p>
+              </div>
+            </div>
+            <div class="settings-grid">
+              <div class="form-group">
+                <label for="set-container_featured_title">Title 1 &mdash; Featured Section</label>
+                <input type="text" id="set-container_featured_title" name="container_featured_title" placeholder="Featured Perfumes">
+              </div>
+              <div class="form-group">
+                <label for="set-container_featured_subtitle">Subtitle 1 &mdash; Featured Section</label>
+                <input type="text" id="set-container_featured_subtitle" name="container_featured_subtitle" placeholder="Our handpicked selection of finest fragrances">
+              </div>
+              <div class="form-group">
+                <label for="set-container_bestsellers_title">Title 2 &mdash; Best Sellers Section</label>
+                <input type="text" id="set-container_bestsellers_title" name="container_bestsellers_title" placeholder="Best Sellers">
+              </div>
+              <div class="form-group">
+                <label for="set-container_bestsellers_subtitle">Subtitle 2 &mdash; Best Sellers Section</label>
+                <input type="text" id="set-container_bestsellers_subtitle" name="container_bestsellers_subtitle" placeholder="The most loved fragrances by our customers">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: HOW TO ORDER SECTION -->
+          <div class="adm-card settings-card" id="settings-card-order-steps" style="margin-top: 20px;">
+            <div class="settings-card-header">
+              <div class="settings-card-icon"><i class="fa-solid fa-list-check"></i></div>
+              <div>
+                <h3>3. How to Order Section (4 Steps)</h3>
+                <p>Customize the 4 ordering steps displayed on the homepage with their respective titles and subtitles.</p>
+              </div>
+            </div>
+            
+            <div class="settings-grid" style="margin-bottom: 16px;">
+              <div class="form-group">
+                <label for="set-order_section_title">Section Main Title</label>
+                <input type="text" id="set-order_section_title" name="order_section_title" placeholder="How to Order">
+              </div>
+              <div class="form-group">
+                <label for="set-order_section_subtitle">Section Main Subtitle</label>
+                <input type="text" id="set-order_section_subtitle" name="order_section_subtitle" placeholder="From scent to doorstep — simple, personal, and made for Aarif Fragrances">
+              </div>
+            </div>
+
+            <div class="settings-steps-grid">
+              <!-- Step 1 -->
+              <div class="settings-step-box">
+                <div class="settings-step-badge"><i class="fa-solid fa-spray-can-sparkles"></i> Step 1</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-order_step_1_title">Title 1</label>
+                  <input type="text" id="set-order_step_1_title" name="order_step_1_title" placeholder="1. Choose Your Scent">
+                </div>
+                <div class="form-group">
+                  <label for="set-order_step_1_subtitle">Subtitle 1</label>
+                  <textarea id="set-order_step_1_subtitle" name="order_step_1_subtitle" rows="2" placeholder="Browse attars & perfumes — Attar or Perfume, in the size that suits you"></textarea>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="settings-step-box">
+                <div class="settings-step-badge"><i class="fa-solid fa-cart-shopping"></i> Step 2</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-order_step_2_title">Title 2</label>
+                  <input type="text" id="set-order_step_2_title" name="order_step_2_title" placeholder="2. Build Your Cart">
+                </div>
+                <div class="form-group">
+                  <label for="set-order_step_2_subtitle">Subtitle 2</label>
+                  <textarea id="set-order_step_2_subtitle" name="order_step_2_subtitle" rows="2" placeholder="Select 6ml, 12ml, 30ml or 50ml and add your favourite fragrances"></textarea>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="settings-step-box">
+                <div class="settings-step-badge"><i class="fa-brands fa-whatsapp"></i> Step 3</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-order_step_3_title">Title 3</label>
+                  <input type="text" id="set-order_step_3_title" name="order_step_3_title" placeholder="3. WhatsApp Checkout">
+                </div>
+                <div class="form-group">
+                  <label for="set-order_step_3_subtitle">Subtitle 3</label>
+                  <textarea id="set-order_step_3_subtitle" name="order_step_3_subtitle" rows="2" placeholder="Share your cart on WhatsApp — no online payment needed"></textarea>
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="settings-step-box">
+                <div class="settings-step-badge"><i class="fa-solid fa-truck-fast"></i> Step 4</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-order_step_4_title">Title 4</label>
+                  <input type="text" id="set-order_step_4_title" name="order_step_4_title" placeholder="4. We Deliver">
+                </div>
+                <div class="form-group">
+                  <label for="set-order_step_4_subtitle">Subtitle 4</label>
+                  <textarea id="set-order_step_4_subtitle" name="order_step_4_subtitle" rows="2" placeholder="We confirm your order and deliver across Tamil Nadu & India"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 4: HOMEPAGE HIGHLIGHT STATS -->
+          <div class="adm-card settings-card" id="settings-card-stats" style="margin-top: 20px;">
+            <div class="settings-card-header">
+              <div class="settings-card-icon"><i class="fa-solid fa-chart-simple"></i></div>
+              <div>
+                <h3>4. Homepage Highlight Stats</h3>
+                <p>Values and labels displayed inside the 4 highlighted stat boxes on the home page.</p>
+              </div>
+            </div>
+            
+            <div class="settings-stats-grid">
+              <div class="settings-stat-item">
+                <div class="settings-stat-item-header"><i class="fa-solid fa-spray-can-sparkles"></i> Stat Box 1</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-home_stat_1_val">Stat 1 Value</label>
+                  <input type="text" id="set-home_stat_1_val" name="home_stat_1_val" placeholder="49+">
+                </div>
+                <div class="form-group">
+                  <label for="set-home_stat_1_lbl">Stat 1 Label</label>
+                  <input type="text" id="set-home_stat_1_lbl" name="home_stat_1_lbl" placeholder="Fragrances">
+                </div>
+              </div>
+
+              <div class="settings-stat-item">
+                <div class="settings-stat-item-header"><i class="fa-solid fa-layer-group"></i> Stat Box 2</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-home_stat_2_val">Stat 2 Value</label>
+                  <input type="text" id="set-home_stat_2_val" name="home_stat_2_val" placeholder="8">
+                </div>
+                <div class="form-group">
+                  <label for="set-home_stat_2_lbl">Stat 2 Label</label>
+                  <input type="text" id="set-home_stat_2_lbl" name="home_stat_2_lbl" placeholder="Fragrance Types">
+                </div>
+              </div>
+
+              <div class="settings-stat-item">
+                <div class="settings-stat-item-header"><i class="fa-solid fa-vial"></i> Stat Box 3</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-home_stat_3_val">Stat 3 Value</label>
+                  <input type="text" id="set-home_stat_3_val" name="home_stat_3_val" placeholder="4">
+                </div>
+                <div class="form-group">
+                  <label for="set-home_stat_3_lbl">Stat 3 Label</label>
+                  <input type="text" id="set-home_stat_3_lbl" name="home_stat_3_lbl" placeholder="Size Options">
+                </div>
+              </div>
+
+              <div class="settings-stat-item">
+                <div class="settings-stat-item-header"><i class="fa-solid fa-location-dot"></i> Stat Box 4</div>
+                <div class="form-group" style="margin-top:8px;">
+                  <label for="set-home_stat_4_val">Stat 4 Value</label>
+                  <input type="text" id="set-home_stat_4_val" name="home_stat_4_val" placeholder="TN">
+                </div>
+                <div class="form-group">
+                  <label for="set-home_stat_4_lbl">Stat 4 Label</label>
+                  <input type="text" id="set-home_stat_4_lbl" name="home_stat_4_lbl" placeholder="Tamil Nadu, India">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 5: ABOUT US STORY & COPY -->
+          <div class="adm-card settings-card" id="settings-card-about" style="margin-top: 20px;">
+            <div class="settings-card-header">
+              <div class="settings-card-icon"><i class="fa-solid fa-circle-info"></i></div>
+              <div>
+                <h3>5. About Us &amp; Brand Story</h3>
+                <p>Homepage intro teaser and About page story paragraphs.</p>
+              </div>
+            </div>
+            <div class="settings-grid">
+              <div class="form-group form-group--wide">
+                <label for="set-home_about_teaser">Home About Teaser</label>
+                <textarea id="set-home_about_teaser" name="home_about_teaser" rows="3" placeholder="Paragraphs shown on the homepage About section"></textarea>
+              </div>
+              <div class="form-group form-group--wide">
+                <label for="set-about_us_text">About Us Full Text (About Page)</label>
+                <textarea id="set-about_us_text" name="about_us_text" rows="5" placeholder="Detailed brand story shown on the dedicated about.html page"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions Bar -->
+          <div class="settings-save-bar" style="margin-top:20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+            <p class="settings-feedback" id="settings-feedback" role="status" style="margin:0;"></p>
+            <button type="submit" class="adm-btn adm-btn--primary" style="padding:10px 24px; font-size:0.95rem;">
+              <i class="fa-solid fa-floppy-disk"></i> Save Settings
+            </button>
+          </div>
         </form>
       </section>
 

@@ -17,7 +17,11 @@ const SECTION_TITLES = {
 let state = {
   types: [],
   perfumes: [],
+  allPerfumes: [],
   banners: [],
+  testimonials: [],
+  orders: [],
+  contacts: [],
   confirmResolve: null,
 };
 
@@ -115,16 +119,35 @@ function switchSection(section) {
     resetSheetEditMode();
   }
 
-  if (section === 'dashboard') loadDashboard();
-  else if (section === 'perfumes') loadPerfumes();
-  else if (section === 'sheet') loadSheet();
-  else if (section === 'fragrance-types') loadTypes();
-  else if (section === 'banners') loadBanners();
-  else if (section === 'testimonials') loadTestimonials();
-  else if (section === 'orders') loadOrders();
-  else if (section === 'contact') loadContact();
-  else if (section === 'coupons') loadCoupons();
-  else if (section === 'settings') loadSettings();
+  // Instant SWR render from in-memory state (0ms UI transition)
+  if (section === 'dashboard') {
+    loadDashboard();
+  } else if (section === 'perfumes') {
+    if (state.perfumes && state.perfumes.length > 0) renderPerfumesTable();
+    loadPerfumes();
+  } else if (section === 'sheet') {
+    loadSheet();
+  } else if (section === 'fragrance-types') {
+    if (state.types && state.types.length > 0) renderTypesTable();
+    loadTypes();
+  } else if (section === 'banners') {
+    if (state.banners && state.banners.length > 0) paintBanners(state.banners);
+    loadBanners();
+  } else if (section === 'testimonials') {
+    if (state.testimonials && state.testimonials.length > 0) renderTestimonialsTable();
+    loadTestimonials();
+  } else if (section === 'orders') {
+    if (state.orders && state.orders.length > 0) renderOrdersTable();
+    loadOrders();
+  } else if (section === 'contact') {
+    if (state.contacts && state.contacts.length > 0) renderContactsTable();
+    loadContact();
+  } else if (section === 'coupons') {
+    if (couponsCache && couponsCache.length > 0) paintCoupons(couponsCache);
+    loadCoupons();
+  } else if (section === 'settings') {
+    loadSettings();
+  }
 }
 
 /* ── Dashboard Rendering & Fast Load ───────────────────── */
@@ -243,6 +266,15 @@ async function ensureTypes() {
       if (Array.isArray(parsed) && parsed.length) {
         state.types = parsed;
         fillTypeSelects();
+        // Fetch fresh in background without blocking caller
+        AdminAPI.fragranceTypes().then(fresh => {
+          if (Array.isArray(fresh) && fresh.length) {
+            state.types = fresh;
+            fillTypeSelects();
+            try { sessionStorage.setItem('aarif_admin_types', JSON.stringify(fresh)); } catch (_) {}
+          }
+        }).catch(() => {});
+        return state.types;
       }
     }
   } catch (_) {}
@@ -257,7 +289,7 @@ async function ensureTypes() {
   } catch (err) {
     console.warn('Fragrance types fetch note:', err);
   }
-  return state.types;
+  return state.types || [];
 }
 
 function fillTypeSelects() {
@@ -277,46 +309,60 @@ function fillTypeSelects() {
   }
 }
 
+function renderTypesTable() {
+  const tbody = document.getElementById('types-tbody');
+  if (!tbody || !state.types) return;
+  if (!state.types.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No fragrance types yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.types.map((t) => {
+    const imgHtml = t.icon_image_url
+      ? `<img src="${esc(t.icon_image_url)}" alt="${esc(t.type_name)}" class="table-type-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="table-thumb table-thumb--empty" style="display:none"><i class="fa-solid fa-layer-group"></i></div>`
+      : `<div class="table-thumb table-thumb--empty"><i class="fa-solid fa-layer-group"></i></div>`;
+    const subtitle = t.description || t.slug || '';
+    return `
+    <tr class="${t.is_active ? '' : 'adm-row-inactive'}">
+      <td style="width:72px">
+        <div class="table-cat-thumb">${imgHtml}</div>
+      </td>
+      <td>
+        <div class="table-cat-cell">
+          <strong class="table-cat-name">${esc(t.type_name)}</strong>
+          ${subtitle ? `<div class="table-cat-subtitle">${esc(subtitle)}</div>` : ''}
+        </div>
+      </td>
+      <td><code>${esc(t.slug || '')}</code></td>
+      <td>${esc((t.description || '').slice(0, 50))}</td>
+      <td>${t.item_count ?? 0}</td>
+      <td>${t.display_order ?? 0}</td>
+      <td><span class="badge ${t.is_active ? 'badge--green' : 'badge--gray'}">${t.is_active ? 'Active' : 'Off'}</span></td>
+      <td>
+        <div class="adm-table-actions">
+          <button type="button" data-edit-type="${esc(t.type_id)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+          <button type="button" class="del" data-del-type="${esc(t.type_id)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
 async function loadTypes() {
   const tbody = document.getElementById('types-tbody');
-  try {
-    state.types = await AdminAPI.fragranceTypes();
+  if (state.types && state.types.length) {
+    renderTypesTable();
     fillTypeSelects();
-    if (!state.types.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No fragrance types yet</td></tr>';
-      return;
-    }
-    tbody.innerHTML = state.types.map((t) => {
-      const imgHtml = t.icon_image_url
-        ? `<img src="${esc(t.icon_image_url)}" alt="${esc(t.type_name)}" class="table-type-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="table-thumb table-thumb--empty" style="display:none"><i class="fa-solid fa-layer-group"></i></div>`
-        : `<div class="table-thumb table-thumb--empty"><i class="fa-solid fa-layer-group"></i></div>`;
-      const subtitle = t.description || t.slug || '';
-      return `
-      <tr class="${t.is_active ? '' : 'adm-row-inactive'}">
-        <td style="width:72px">
-          <div class="table-cat-thumb">${imgHtml}</div>
-        </td>
-        <td>
-          <div class="table-cat-cell">
-            <strong class="table-cat-name">${esc(t.type_name)}</strong>
-            ${subtitle ? `<div class="table-cat-subtitle">${esc(subtitle)}</div>` : ''}
-          </div>
-        </td>
-        <td><code>${esc(t.slug || '')}</code></td>
-        <td>${esc((t.description || '').slice(0, 50))}</td>
-        <td>${t.item_count ?? 0}</td>
-        <td>${t.display_order ?? 0}</td>
-        <td><span class="badge ${t.is_active ? 'badge--green' : 'badge--gray'}">${t.is_active ? 'Active' : 'Off'}</span></td>
-        <td>
-          <div class="adm-table-actions">
-            <button type="button" data-edit-type="${esc(t.type_id)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-            <button type="button" class="del" data-del-type="${esc(t.type_id)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
+  }
+  try {
+    const fresh = await AdminAPI.fragranceTypes();
+    state.types = Array.isArray(fresh) ? fresh : [];
+    fillTypeSelects();
+    renderTypesTable();
+    try { sessionStorage.setItem('aarif_admin_types', JSON.stringify(state.types)); } catch (_) {}
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="8" class="table-empty">${esc(err.message)}</td></tr>`;
+    if (tbody && (!state.types || !state.types.length)) {
+      tbody.innerHTML = `<tr><td colspan="8" class="table-empty">${esc(err.message)}</td></tr>`;
+    }
   }
 }
 
@@ -369,11 +415,104 @@ function openTypeModal(type) {
 }
 
 /* ── Perfumes ───────────────────────────────────────────── */
+function renderPerfumesTable() {
+  const tbody = document.getElementById('perfumes-tbody');
+  if (!tbody) return;
+  const items = state.perfumes || [];
+  const total = items.length;
+  const typeCount = state.types?.length || 8;
+  const sub = document.getElementById('perfumes-subtitle');
+  if (sub) sub.textContent = `${total} perfumes across ${typeCount} fragrance types`;
+  const showing = document.getElementById('perfumes-filter-showing');
+  if (showing) showing.textContent = `Showing ${items.length} of ${total} perfumes`;
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="table-empty">No perfumes found</td></tr>';
+    updateBulkBar();
+    return;
+  }
+  tbody.innerHTML = items.map((p) => {
+    const badges = [];
+    if (p.isAttar) badges.push('<span class="badge-chip">Attar</span>');
+    if (p.isPerfume) badges.push('<span class="badge-chip">Perfume</span>');
+    if (p.isCarHanger || p.isCarHangover) badges.push('<span class="badge-chip">Car Hanger</span>');
+    if (p.isFeatured) badges.push('<span class="badge-chip badge-chip--feat">Feat</span>');
+    if (p.isBestSeller) badges.push('<span class="badge-chip badge-chip--hot">Best</span>');
+    if (p.isNewArrival) badges.push('<span class="badge-chip badge-chip--new">New</span>');
+    const imgSrc = p.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
+    const img = `<img src="${esc(imgSrc)}" alt="" class="thumb" loading="lazy" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">`;
+
+    const p24 = p.price24ml != null ? p.price24ml : (p.price12ml != null ? p.price12ml * 2 : (p.price6ml != null ? p.price6ml * 4 : null));
+    const p20 = p.price20ml != null ? p.price20ml : (p.price30ml != null ? Math.round((p.price30ml * 20 / 30) / 10) * 10 : (p.price50ml != null ? Math.round((p.price50ml * 20 / 50) / 10) * 10 : null));
+    const p100 = p.price100ml != null ? p.price100ml : (p.price50ml != null ? p.price50ml * 2 : (p.price30ml != null ? Math.round(p.price30ml * 3.3 / 10) * 10 : null));
+    const car6 = p.priceCar6ml != null ? p.priceCar6ml : p.price6ml;
+    const car12 = p.priceCar12ml != null ? p.priceCar12ml : p.price12ml;
+
+    const attarPrices = [
+      p.price6ml != null ? `<span>6ml <b>${money(p.price6ml)}</b></span>` : '',
+      p.price12ml != null ? `<span>12ml <b>${money(p.price12ml)}</b></span>` : '',
+      p24 != null ? `<span>24ml <b>${money(p24)}</b></span>` : '',
+    ].filter(Boolean).join('') || '—';
+
+    const perfumePrices = [
+      p20 != null ? `<span>20ml <b>${money(p20)}</b></span>` : '',
+      p.price30ml != null ? `<span>30ml <b>${money(p.price30ml)}</b></span>` : '',
+      p.price50ml != null ? `<span>50ml <b>${money(p.price50ml)}</b></span>` : '',
+      p100 != null ? `<span>100ml <b>${money(p100)}</b></span>` : '',
+    ].filter(Boolean).join('') || '—';
+
+    const carPrices = [
+      car6 != null ? `<span>6ml <b>${money(car6)}</b></span>` : '',
+      car12 != null ? `<span>12ml <b>${money(car12)}</b></span>` : '',
+    ].filter(Boolean).join('') || '—';
+
+    const stock = Number(p.stockQuantity ?? 0);
+    const stockBadge = stock <= 0
+      ? '<span class="badge badge--pink">Out of Stock</span>'
+      : stock <= 10
+        ? `<span class="badge badge--amber">${stock}</span>`
+        : `<span>${stock}</span>`;
+    const inactive = p.isActive === false ? ' adm-row-inactive' : '';
+    return `<tr class="${inactive.trim()}" data-id="${esc(p.perfumeId)}">
+      <td><input type="checkbox" class="perfume-cb" value="${esc(p.perfumeId)}"></td>
+      <td>
+        <div class="prod-cell">
+          ${img}
+          <div class="prod-cell-text">
+            <strong>${esc(p.perfumeName)}</strong>
+            <small>${esc(p.perfumeId)}</small>
+          </div>
+        </div>
+      </td>
+      <td>${esc(p.fragranceTypeName || '—')}</td>
+      <td><div class="price-stack">${attarPrices}</div></td>
+      <td><div class="price-stack">${perfumePrices}</div></td>
+      <td><div class="price-stack">${carPrices}</div></td>
+      <td>${stockBadge}</td>
+      <td><div class="badge-chips">${badges.join('') || '—'}</div></td>
+      <td>
+        <label class="toggle" title="Active">
+          <input type="checkbox" class="perfume-active-toggle" data-id="${esc(p.perfumeId)}" ${p.isActive !== false ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <div class="adm-table-actions">
+          <button type="button" data-edit-perfume="${esc(p.perfumeId)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+          <button type="button" class="del" data-del-perfume="${esc(p.perfumeId)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  updateBulkBar();
+}
+
 async function loadPerfumes() {
   const tbody = document.getElementById('perfumes-tbody');
   try {
-    await ensureTypes();
-    fillTypeSelects();
+    ensureTypes().then(fillTypeSelects).catch(() => {});
+    if (state.perfumes && state.perfumes.length > 0) {
+      renderPerfumesTable();
+    }
     const search = document.getElementById('perfume-search')?.value?.trim() || '';
     const typeId = document.getElementById('perfume-type-filter')?.value || '';
     const params = { page: 1, per_page: 500 };
@@ -384,93 +523,11 @@ async function loadPerfumes() {
     if (!search && !typeId) {
       state.allPerfumes = state.perfumes;
     }
-    const total = data.total_count ?? data.total ?? state.perfumes.length;
-    const typeCount = state.types?.length || 8;
-    const sub = document.getElementById('perfumes-subtitle');
-    if (sub) sub.textContent = `${total} perfumes across ${typeCount} fragrance types`;
-    const showing = document.getElementById('perfumes-filter-showing');
-    if (showing) showing.textContent = `Showing ${state.perfumes.length} of ${total} perfumes`;
-    if (!state.perfumes.length) {
-      tbody.innerHTML = '<tr><td colspan="10" class="table-empty">No perfumes found</td></tr>';
-      updateBulkBar();
-      return;
-    }
-    tbody.innerHTML = state.perfumes.map((p) => {
-      const badges = [];
-      if (p.isAttar) badges.push('<span class="badge-chip">Attar</span>');
-      if (p.isPerfume) badges.push('<span class="badge-chip">Perfume</span>');
-      if (p.isCarHanger || p.isCarHangover) badges.push('<span class="badge-chip">Car Hanger</span>');
-      if (p.isFeatured) badges.push('<span class="badge-chip badge-chip--feat">Feat</span>');
-      if (p.isBestSeller) badges.push('<span class="badge-chip badge-chip--hot">Best</span>');
-      if (p.isNewArrival) badges.push('<span class="badge-chip badge-chip--new">New</span>');
-      const imgSrc = p.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
-      const img = `<img src="${esc(imgSrc)}" alt="" class="thumb" loading="lazy" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">`;
-
-      const p24 = p.price24ml != null ? p.price24ml : (p.price12ml != null ? p.price12ml * 2 : (p.price6ml != null ? p.price6ml * 4 : null));
-      const p20 = p.price20ml != null ? p.price20ml : (p.price30ml != null ? Math.round((p.price30ml * 20 / 30) / 10) * 10 : (p.price50ml != null ? Math.round((p.price50ml * 20 / 50) / 10) * 10 : null));
-      const p100 = p.price100ml != null ? p.price100ml : (p.price50ml != null ? p.price50ml * 2 : (p.price30ml != null ? Math.round(p.price30ml * 3.3 / 10) * 10 : null));
-      const car6 = p.priceCar6ml != null ? p.priceCar6ml : p.price6ml;
-      const car12 = p.priceCar12ml != null ? p.priceCar12ml : p.price12ml;
-
-      const attarPrices = [
-        p.price6ml != null ? `<span>6ml <b>${money(p.price6ml)}</b></span>` : '',
-        p.price12ml != null ? `<span>12ml <b>${money(p.price12ml)}</b></span>` : '',
-        p24 != null ? `<span>24ml <b>${money(p24)}</b></span>` : '',
-      ].filter(Boolean).join('') || '—';
-
-      const perfumePrices = [
-        p20 != null ? `<span>20ml <b>${money(p20)}</b></span>` : '',
-        p.price30ml != null ? `<span>30ml <b>${money(p.price30ml)}</b></span>` : '',
-        p.price50ml != null ? `<span>50ml <b>${money(p.price50ml)}</b></span>` : '',
-        p100 != null ? `<span>100ml <b>${money(p100)}</b></span>` : '',
-      ].filter(Boolean).join('') || '—';
-
-      const carPrices = [
-        car6 != null ? `<span>6ml <b>${money(car6)}</b></span>` : '',
-        car12 != null ? `<span>12ml <b>${money(car12)}</b></span>` : '',
-      ].filter(Boolean).join('') || '—';
-
-      const stock = Number(p.stockQuantity ?? 0);
-      const stockBadge = stock <= 0
-        ? '<span class="badge badge--pink">Out of Stock</span>'
-        : stock <= 10
-          ? `<span class="badge badge--amber">${stock}</span>`
-          : `<span>${stock}</span>`;
-      const inactive = p.isActive === false ? ' adm-row-inactive' : '';
-      return `<tr class="${inactive.trim()}" data-id="${esc(p.perfumeId)}">
-        <td><input type="checkbox" class="perfume-cb" value="${esc(p.perfumeId)}"></td>
-        <td>
-          <div class="prod-cell">
-            ${img}
-            <div class="prod-cell-text">
-              <strong>${esc(p.perfumeName)}</strong>
-              <small>${esc(p.perfumeId)}</small>
-            </div>
-          </div>
-        </td>
-        <td>${esc(p.fragranceTypeName || '—')}</td>
-        <td><div class="price-stack">${attarPrices}</div></td>
-        <td><div class="price-stack">${perfumePrices}</div></td>
-        <td><div class="price-stack">${carPrices}</div></td>
-        <td>${stockBadge}</td>
-        <td><div class="badge-chips">${badges.join('') || '—'}</div></td>
-        <td>
-          <label class="toggle" title="Active">
-            <input type="checkbox" class="perfume-active-toggle" data-id="${esc(p.perfumeId)}" ${p.isActive !== false ? 'checked' : ''}>
-            <span class="toggle-slider"></span>
-          </label>
-        </td>
-        <td>
-          <div class="adm-table-actions">
-            <button type="button" data-edit-perfume="${esc(p.perfumeId)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-            <button type="button" class="del" data-del-perfume="${esc(p.perfumeId)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
-    updateBulkBar();
+    renderPerfumesTable();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="8" class="table-empty">${esc(err.message)}</td></tr>`;
+    if (tbody && (!state.perfumes || !state.perfumes.length)) {
+      tbody.innerHTML = `<tr><td colspan="10" class="table-empty">${esc(err.message)}</td></tr>`;
+    }
   }
 }
 
@@ -991,14 +1048,19 @@ function paintBanners(banners) {
 async function loadBanners() {
   const scrollActive = document.getElementById('banner-scroll-active');
   const scrollInactive = document.getElementById('banner-scroll-inactive');
-  try {
+  if (state.banners && state.banners.length) {
+    paintBanners(state.banners);
+  } else {
     if (scrollActive) scrollActive.innerHTML = '<p class="banner-row-empty">Loading…</p>';
     if (scrollInactive) scrollInactive.innerHTML = '';
+  }
+  try {
     const banners = await AdminAPI.banners();
     paintBanners(Array.isArray(banners) ? banners : (banners.items || []));
   } catch (err) {
-    if (scrollActive) scrollActive.innerHTML = `<p class="banner-row-empty">${esc(err.message)}</p>`;
-    if (scrollInactive) scrollInactive.innerHTML = '';
+    if (scrollActive && (!state.banners || !state.banners.length)) {
+      scrollActive.innerHTML = `<p class="banner-row-empty">${esc(err.message)}</p>`;
+    }
   }
 }
 
@@ -1018,9 +1080,18 @@ async function openBannerModal(b) {
   document.getElementById('bn-image-file').value = '';
   setBannerPreview(imgUrl);
 
-  await ensureTypes();
+  ensureTypes().then(types => {
+    const typeSel = document.getElementById('bn-fragrance-type');
+    if (typeSel) {
+      typeSel.innerHTML = '<option value="">Select type…</option>' +
+        (types || []).map((t) =>
+          `<option value="${esc(t.typeId || t.type_id)}">${esc(t.typeName || t.type_name)}</option>`
+        ).join('');
+    }
+  }).catch(() => {});
+
   const typeSel = document.getElementById('bn-fragrance-type');
-  if (typeSel) {
+  if (typeSel && state.types?.length) {
     typeSel.innerHTML = '<option value="">Select type…</option>' +
       (state.types || []).map((t) =>
         `<option value="${esc(t.typeId || t.type_id)}">${esc(t.typeName || t.type_name)}</option>`
@@ -1041,32 +1112,44 @@ async function openBannerModal(b) {
 }
 
 /* ── Testimonials ───────────────────────────────────────── */
+function renderTestimonialsTable() {
+  const tbody = document.getElementById('testimonials-tbody');
+  if (!tbody || !state.testimonials) return;
+  const rows = state.testimonials;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="table-empty">No testimonials yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map((t) => `
+    <tr>
+      <td><strong>${esc(t.customerName || t.customer_name || t.name)}</strong></td>
+      <td>${esc(t.customerInitial || t.customer_initial || t.initials || '')}</td>
+      <td>${'★'.repeat(t.rating || 5)}</td>
+      <td>${esc((t.quote || t.text || '').slice(0, 80))}</td>
+      <td>${(t.isFeatured ?? t.is_featured) !== false ? '<span class="badge badge--green">Yes</span>' : '<span class="badge badge--gray">No</span>'}</td>
+      <td>${t.displayOrder ?? t.display_order ?? 0}</td>
+      <td>
+        <div class="adm-table-actions">
+          <button type="button" data-edit-testimonial="${t.id}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+          <button type="button" class="del" data-del-testimonial="${t.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
 async function loadTestimonials() {
   const tbody = document.getElementById('testimonials-tbody');
+  if (state.testimonials && state.testimonials.length) {
+    renderTestimonialsTable();
+  }
   try {
     const rows = await AdminAPI.testimonials();
-    if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="table-empty">No testimonials yet</td></tr>';
-      return;
-    }
-    tbody.innerHTML = rows.map((t) => `
-      <tr>
-        <td><strong>${esc(t.customerName || t.customer_name || t.name)}</strong></td>
-        <td>${esc(t.customerInitial || t.customer_initial || t.initials || '')}</td>
-        <td>${'★'.repeat(t.rating || 5)}</td>
-        <td>${esc((t.quote || t.text || '').slice(0, 80))}</td>
-        <td>${(t.isFeatured ?? t.is_featured) !== false ? '<span class="badge badge--green">Yes</span>' : '<span class="badge badge--gray">No</span>'}</td>
-        <td>${t.displayOrder ?? t.display_order ?? 0}</td>
-        <td>
-          <div class="adm-table-actions">
-            <button type="button" data-edit-testimonial="${t.id}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-            <button type="button" class="del" data-del-testimonial="${t.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>`).join('');
-    state.testimonials = rows;
+    state.testimonials = Array.isArray(rows) ? rows : [];
+    renderTestimonialsTable();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="7" class="table-empty">${esc(err.message)}</td></tr>`;
+    if (tbody && (!state.testimonials || !state.testimonials.length)) {
+      tbody.innerHTML = `<tr><td colspan="7" class="table-empty">${esc(err.message)}</td></tr>`;
+    }
   }
 }
 
@@ -1084,41 +1167,55 @@ function openTestimonialModal(t) {
 }
 
 /* ── Contact / Settings ─────────────────────────────────── */
+function renderContactsTable() {
+  const tbody = document.getElementById('contact-tbody');
+  if (!tbody || !state.contacts) return;
+  const list = state.contacts;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No messages</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((r) => {
+    const read = !!(r.isRead ?? r.is_read);
+    return `
+    <tr class="${read ? '' : 'row-unread'}">
+      <td>${esc(r.name)}</td>
+      <td>${esc(r.email)}</td>
+      <td>${esc(r.phone || '—')}</td>
+      <td>${esc(r.enquiryType || r.enquiry_type || '—')}</td>
+      <td>${esc((r.message || '').slice(0, 50))}</td>
+      <td>${esc((r.submittedAt || r.submitted_at || '').toString().slice(0, 19))}</td>
+      <td><span class="badge ${read ? 'badge--green' : 'badge--pink'}">${read ? 'Read' : 'New'}</span></td>
+      <td>
+        <div class="adm-table-actions">
+          <button type="button" data-view-contact="${r.id}" title="View"><i class="fa-solid fa-eye"></i></button>
+          <button type="button" class="del" data-del-contact="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
 async function loadContact() {
   const tbody = document.getElementById('contact-tbody');
+  if (state.contacts && state.contacts.length) {
+    renderContactsTable();
+  }
   try {
     const rows = await AdminAPI.contactSubmissions();
     const list = Array.isArray(rows) ? rows : (rows.items || []);
     const unread = rows.unread ?? list.filter((r) => !(r.isRead ?? r.is_read)).length;
-    document.getElementById('contact-total').textContent = rows.total ?? list.length;
-    document.getElementById('contact-unread').textContent = unread;
+    const totalEl = document.getElementById('contact-total');
+    if (totalEl) totalEl.textContent = rows.total ?? list.length;
+    const unreadEl = document.getElementById('contact-unread');
+    if (unreadEl) unreadEl.textContent = unread;
     updateUnreadBadges(unread);
-    if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No messages</td></tr>';
-      return;
-    }
     state.contacts = list;
-    tbody.innerHTML = list.map((r) => {
-      const read = !!(r.isRead ?? r.is_read);
-      return `
-      <tr class="${read ? '' : 'row-unread'}">
-        <td>${esc(r.name)}</td>
-        <td>${esc(r.email)}</td>
-        <td>${esc(r.phone || '—')}</td>
-        <td>${esc(r.enquiryType || r.enquiry_type || '—')}</td>
-        <td>${esc((r.message || '').slice(0, 50))}</td>
-        <td>${esc((r.submittedAt || r.submitted_at || '').toString().slice(0, 19))}</td>
-        <td><span class="badge ${read ? 'badge--green' : 'badge--pink'}">${read ? 'Read' : 'New'}</span></td>
-        <td>
-          <div class="adm-table-actions">
-            <button type="button" data-view-contact="${r.id}" title="View"><i class="fa-solid fa-eye"></i></button>
-            <button type="button" class="del" data-del-contact="${r.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
+    renderContactsTable();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="8" class="table-empty">${esc(err.message)}</td></tr>`;
+    if (tbody && (!state.contacts || !state.contacts.length)) {
+      tbody.innerHTML = `<tr><td colspan="8" class="table-empty">${esc(err.message)}</td></tr>`;
+    }
   }
 }
 
@@ -1149,37 +1246,49 @@ async function loadSettings() {
   }
 }
 
+function renderOrdersTable() {
+  const tbody = document.getElementById('orders-tbody');
+  if (!tbody || !state.orders) return;
+  const items = state.orders;
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No orders yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map((o) => `
+    <tr>
+      <td><strong>${esc(o.orderRef)}</strong></td>
+      <td>${esc((o.createdAt || '').toString().slice(0, 19).replace('T', ' '))}</td>
+      <td>${o.itemCount ?? (o.items || []).length}</td>
+      <td>${o.totalUnits ?? 0}</td>
+      <td><span class="badge ${o.status === 'new' ? 'badge--pink' : o.status === 'delivered' ? 'badge--green' : 'badge--gray'}">${esc(o.status)}</span></td>
+      <td>
+        <div class="adm-table-actions">
+          <button type="button" data-view-order="${o.id}" title="View"><i class="fa-solid fa-eye"></i></button>
+          <button type="button" class="del" data-del-order="${o.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
 async function loadOrders() {
   const tbody = document.getElementById('orders-tbody');
   if (!tbody) return;
+  if (state.orders && state.orders.length) {
+    renderOrdersTable();
+  }
   try {
     const status = document.getElementById('orders-status-filter')?.value || '';
     const params = status ? { status } : {};
     const data = await AdminAPI.orders(params);
     const items = data.items || [];
     const newCount = items.filter((o) => o.status === 'new').length;
-    updateOrdersBadge(status ? (await AdminAPI.stats()).new_orders_count || newCount : newCount);
-    if (!items.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No orders yet</td></tr>';
-      return;
-    }
+    updateOrdersBadge(newCount);
     state.orders = items;
-    tbody.innerHTML = items.map((o) => `
-      <tr>
-        <td><strong>${esc(o.orderRef)}</strong></td>
-        <td>${esc((o.createdAt || '').toString().slice(0, 19).replace('T', ' '))}</td>
-        <td>${o.itemCount ?? (o.items || []).length}</td>
-        <td>${o.totalUnits ?? 0}</td>
-        <td><span class="badge ${o.status === 'new' ? 'badge--pink' : o.status === 'delivered' ? 'badge--green' : 'badge--gray'}">${esc(o.status)}</span></td>
-        <td>
-          <div class="adm-table-actions">
-            <button type="button" data-view-order="${o.id}" title="View"><i class="fa-solid fa-eye"></i></button>
-            <button type="button" class="del" data-del-order="${o.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>`).join('');
+    renderOrdersTable();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="table-empty">${esc(err.message)}</td></tr>`;
+    if (tbody && (!state.orders || !state.orders.length)) {
+      tbody.innerHTML = `<tr><td colspan="6" class="table-empty">${esc(err.message)}</td></tr>`;
+    }
   }
 }
 
@@ -1209,14 +1318,31 @@ function openOrderModal(order) {
     </div>`;
   openModal('order-modal-overlay');
   document.getElementById('order-save-status')?.addEventListener('click', async () => {
-    const id = Number(document.getElementById('order-save-status').dataset.id);
-    const status = document.getElementById('order-status-select').value;
+    const saveBtn = document.getElementById('order-save-status');
+    const origHtml = saveBtn ? saveBtn.innerHTML : 'Save Status';
+    const id = Number(saveBtn?.dataset.id);
+    const status = document.getElementById('order-status-select')?.value;
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
     try {
       await AdminAPI.updateOrder(id, { status });
+      if (state.orders) {
+        const o = state.orders.find(x => x.id === id);
+        if (o) o.status = status;
+      }
       toast('Order updated');
       closeModal('order-modal-overlay');
+      renderOrdersTable();
       loadOrders();
     } catch (err) { toast(err.message, true); }
+    finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origHtml;
+      }
+    }
   });
 }
 
@@ -1225,7 +1351,9 @@ let couponsCache = [];
 
 async function loadCoupons() {
   const tbody = document.querySelector('#coupons-table tbody');
-  if (tbody && !tbody.querySelector('tr')) {
+  if (couponsCache && couponsCache.length) {
+    paintCoupons(couponsCache);
+  } else if (tbody && !tbody.querySelector('tr')) {
     tbody.innerHTML = '<tr><td colspan="6" class="table-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading coupons...</td></tr>';
   }
   try {
@@ -1233,7 +1361,9 @@ async function loadCoupons() {
     couponsCache = Array.isArray(list) ? list : [];
     paintCoupons(couponsCache);
   } catch (err) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="color:var(--adm-danger);padding:20px;">Failed to load coupons: ${esc(err.message)}</td></tr>`;
+    if (tbody && (!couponsCache || !couponsCache.length)) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--adm-danger);padding:20px;">Failed to load coupons: ${esc(err.message)}</td></tr>`;
+    }
   }
 }
 
@@ -1389,24 +1519,54 @@ function bindEvents() {
     searchTimer = setTimeout(loadPerfumes, 280);
   });
   document.getElementById('perfume-type-filter')?.addEventListener('change', loadPerfumes);
-  document.getElementById('add-perfume-btn')?.addEventListener('click', async () => {
-    await ensureTypes(); fillTypeSelects(); openPerfumeModal(null);
+  document.getElementById('add-perfume-btn')?.addEventListener('click', () => {
+    ensureTypes().then(fillTypeSelects).catch(() => {});
+    fillTypeSelects();
+    openPerfumeModal(null);
   });
 
   document.getElementById('perfumes-tbody')?.addEventListener('click', async (e) => {
-    const editId = e.target.closest('[data-edit-perfume]')?.dataset.editPerfume;
+    const editBtn = e.target.closest('[data-edit-perfume]');
+    const editId = editBtn?.dataset.editPerfume;
     const delId = e.target.closest('[data-del-perfume]')?.dataset.delPerfume;
     if (editId) {
-      await ensureTypes(); fillTypeSelects();
-      let p = state.perfumes.find((x) => x.perfumeId === editId);
-      try { p = { ...p, ...(await AdminAPI.getPerfume(editId)) }; } catch (_) {}
-      openPerfumeModal(p);
+      ensureTypes().then(fillTypeSelects).catch(() => {});
+      let p = (state.perfumes || []).find((x) => x.perfumeId === editId)
+           || (state.allPerfumes || []).find((x) => (x.perfumeId || x.perfume_id) === editId);
+      if (p) {
+        // INSTANT 0ms modal open!
+        openPerfumeModal(p);
+      }
+      AdminAPI.getPerfume(editId).then(full => {
+        if (!full) return;
+        const curId = document.getElementById('pf-id')?.value;
+        if (curId === editId && document.getElementById('perfume-modal-overlay')?.classList.contains('open')) {
+          if (full.images && Array.isArray(full.images) && full.images.length > 0) {
+            const preview = document.getElementById('pf-images-preview');
+            if (preview && !preview.querySelector('.pf-image-thumb')) {
+              const mainImg = full.primaryImageUrl || full.primary_image_url || full.images[0]?.image_url;
+              if (mainImg) {
+                preview.innerHTML = `<div class="pf-image-thumb"><img src="${esc(mainImg)}" alt="Perfume"></div>`;
+              }
+            }
+          }
+        }
+      }).catch(() => {});
+      if (!p) {
+        try {
+          const fetched = await AdminAPI.getPerfume(editId);
+          openPerfumeModal(fetched);
+        } catch (err) { toast(err.message, true); }
+      }
     }
     if (delId) {
       const ok = await confirmDialog('Delete perfume?', `Delete ${delId}? This cannot be undone.`);
       if (!ok) return;
       try {
         await AdminAPI.deletePerfume(delId);
+        state.perfumes = (state.perfumes || []).filter(x => x.perfumeId !== delId);
+        if (state.allPerfumes) state.allPerfumes = state.allPerfumes.filter(x => (x.perfumeId || x.perfume_id) !== delId);
+        renderPerfumesTable();
         toast('Perfume deleted');
         loadPerfumes();
       } catch (err) { toast(err.message, true); }
@@ -1461,10 +1621,16 @@ function bindEvents() {
   });
 
   document.getElementById('bulk-prices-apply')?.addEventListener('click', async () => {
+    const applyBtn = document.getElementById('bulk-prices-apply');
+    const origHtml = applyBtn ? applyBtn.innerHTML : 'Apply to Selected';
     const ids = getSelectedPerfumeIds();
     const mode = document.getElementById('bulk-mode').value;
     const fb = document.getElementById('bulk-prices-feedback');
     const body = { perfume_ids: ids, mode };
+    if (applyBtn) {
+      applyBtn.disabled = true;
+      applyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Applying...';
+    }
     try {
       if (mode === 'percent') {
         body.percent = Number(document.getElementById('bulk-percent').value);
@@ -1488,6 +1654,11 @@ function bindEvents() {
     } catch (err) {
       fb.textContent = err.message || 'Update failed';
       fb.className = 'modal-feedback error';
+    } finally {
+      if (applyBtn) {
+        applyBtn.disabled = false;
+        applyBtn.innerHTML = origHtml;
+      }
     }
   });
 
@@ -1515,26 +1686,43 @@ function bindEvents() {
     loadSheet();
   });
 
-  document.getElementById('sheet-tbody')?.addEventListener('click', async (e) => {
+  document.getElementById('sheet-tbody')?.addEventListener('click', (e) => {
     if (isSheetEditing) return;
     const editId = e.target.closest('[data-sheet-edit]')?.dataset.sheetEdit;
     if (editId) {
-      await ensureTypes(); fillTypeSelects();
+      ensureTypes().then(fillTypeSelects).catch(() => {});
       const all = state.allPerfumes || state.perfumes || [];
       let p = all.find((x) => (x.perfumeId || x.perfume_id) === editId);
-      try { p = { ...p, ...(await AdminAPI.getPerfume(editId)) }; } catch (_) {}
       if (p) openPerfumeModal(p);
+      AdminAPI.getPerfume(editId).then(full => {
+        if (!full) return;
+        const curId = document.getElementById('pf-id')?.value;
+        if (curId === editId && document.getElementById('perfume-modal-overlay')?.classList.contains('open')) {
+          if (full.images && Array.isArray(full.images) && full.images.length > 0) {
+            const preview = document.getElementById('pf-images-preview');
+            if (preview && !preview.querySelector('.pf-image-thumb')) {
+              const mainImg = full.primaryImageUrl || full.primary_image_url || full.images[0]?.image_url;
+              if (mainImg) {
+                preview.innerHTML = `<div class="pf-image-thumb"><img src="${esc(mainImg)}" alt="Perfume"></div>`;
+              }
+            }
+          }
+        }
+      }).catch(() => {});
+      if (!p) {
+        AdminAPI.getPerfume(editId).then(openPerfumeModal).catch(err => toast(err.message, true));
+      }
     }
   });
 
-  document.getElementById('low-stock-list')?.addEventListener('click', async (e) => {
+  document.getElementById('low-stock-list')?.addEventListener('click', (e) => {
     const id = e.target.closest('[data-edit-stock]')?.dataset.editStock;
     if (!id) return;
     switchSection('perfumes');
-    await ensureTypes(); fillTypeSelects();
-    let p = state.perfumes.find((x) => x.perfumeId === id);
-    try { p = { ...p, ...(await AdminAPI.getPerfume(id)) }; } catch (_) {}
+    let p = (state.perfumes || []).find((x) => x.perfumeId === id)
+         || (state.allPerfumes || []).find((x) => (x.perfumeId || x.perfume_id) === id);
     if (p) openPerfumeModal(p);
+    else AdminAPI.getPerfume(id).then(openPerfumeModal).catch(() => {});
   });
 
   document.getElementById('orders-status-filter')?.addEventListener('change', loadOrders);
@@ -1597,6 +1785,9 @@ function bindEvents() {
     e.preventDefault();
     const fb = document.getElementById('perfume-form-feedback');
     fb.textContent = '';
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Save Perfume';
+
     const originalId = document.getElementById('pf-original-id').value;
     const perfumeId = document.getElementById('pf-id').value.trim();
     const perfumeName = document.getElementById('pf-name').value.trim();
@@ -1621,6 +1812,9 @@ function bindEvents() {
       return;
     }
 
+    const typeObj = (state.types || []).find(t => (t.typeId || t.type_id) === fragranceTypeId);
+    const fragranceTypeName = typeObj ? (typeObj.typeName || typeObj.type_name) : '';
+
     const body = {
       perfume_id: perfumeId,
       perfume_name: perfumeName,
@@ -1644,19 +1838,71 @@ function bindEvents() {
       is_new_arrival: document.getElementById('pf-is-newarrival').checked,
       is_active: document.getElementById('pf-is-active').checked,
     };
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
     try {
       if (originalId) await AdminAPI.updatePerfume(originalId, body);
       else await AdminAPI.createPerfume(body);
+
       const files = [...(document.getElementById('pf-image-files').files || [])];
       if (files.length) {
         try { await AdminAPI.uploadPerfumeImage(body.perfume_id, files); }
-        catch (upErr) { toast('Saved, but image upload failed: ' + upErr.message, true); }
+        catch (upErr) { toast('Saved, but image upload note: ' + upErr.message, true); }
       }
-      toast('Perfume saved');
+
+      // Optimistic in-memory update for 0ms refresh!
+      const targetId = originalId || perfumeId;
+      const updateItem = (item) => {
+        if (!item) return;
+        item.perfumeId = perfumeId;
+        item.perfumeName = perfumeName;
+        item.fragranceTypeId = fragranceTypeId;
+        item.fragranceTypeName = fragranceTypeName || item.fragranceTypeName;
+        item.description = body.description;
+        item.stockQuantity = body.stock_quantity;
+        item.price6ml = body.price_6ml;
+        item.price12ml = body.price_12ml;
+        item.price24ml = body.price_24ml;
+        item.price20ml = body.price_20ml;
+        item.price30ml = body.price_30ml;
+        item.price50ml = body.price_50ml;
+        item.price100ml = body.price_100ml;
+        item.priceCar6ml = body.price_car_6ml;
+        item.priceCar12ml = body.price_car_12ml;
+        item.isAttar = body.is_attar;
+        item.isPerfume = body.is_perfume;
+        item.isCarHanger = body.is_car_hanger;
+        item.isFeatured = body.is_featured;
+        item.isBestSeller = body.is_best_seller;
+        item.isNewArrival = body.is_new_arrival;
+        item.isActive = body.is_active;
+      };
+
+      const matchP = (state.perfumes || []).find(x => (x.perfumeId || x.perfume_id) === targetId);
+      if (matchP) updateItem(matchP);
+      const matchAll = (state.allPerfumes || []).find(x => (x.perfumeId || x.perfume_id) === targetId);
+      if (matchAll) updateItem(matchAll);
+
+      // Close modal IMMEDIATELY
       closeModal('perfume-modal-overlay');
+      toast('Perfume saved successfully');
+
+      // Immediate 0ms UI update
+      renderPerfumesTable();
+
+      // Silent background revalidation
       loadPerfumes();
     } catch (err) {
       fb.textContent = typeof err.message === 'string' ? err.message : 'Save failed';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
     }
   });
 
@@ -1683,8 +1929,9 @@ function bindEvents() {
       if (!ok) return;
       try {
         await AdminAPI.deleteFragranceType(delId);
-        state.types = [];
+        state.types = (state.types || []).filter(t => (t.type_id || t.typeId) !== delId);
         try { sessionStorage.removeItem('aarif_admin_types'); } catch (_) {}
+        renderTypesTable();
         toast('Type deleted');
         loadTypes();
       } catch (err) { toast(err.message, true); }
@@ -1693,6 +1940,9 @@ function bindEvents() {
   document.getElementById('type-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fb = document.getElementById('type-form-feedback');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Save Fragrance Type';
+
     const original = document.getElementById('ft-original-id').value;
     const body = {
       type_id: document.getElementById('ft-id').value.trim(),
@@ -1715,15 +1965,40 @@ function bindEvents() {
       fb.textContent = 'Please enter a Type Name.';
       return;
     }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
     try {
       if (original) await AdminAPI.updateFragranceType(original, body);
       else await AdminAPI.createFragranceType(body);
-      state.types = [];
+
+      // Optimistic in-memory update
+      if (state.types) {
+        const found = state.types.find(t => (t.type_id || t.typeId) === (original || body.type_id));
+        if (found) {
+          Object.assign(found, body);
+        } else {
+          state.types.push(body);
+        }
+      }
       try { sessionStorage.removeItem('aarif_admin_types'); } catch (_) {}
-      toast('Fragrance type saved');
+
       closeModal('type-modal-overlay');
+      toast('Fragrance type saved');
+      renderTypesTable();
+      fillTypeSelects();
       loadTypes();
-    } catch (err) { fb.textContent = err.message || 'Save failed'; }
+    } catch (err) {
+      fb.textContent = err.message || 'Save failed';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
+    }
   });
 
   // Banners
@@ -1794,6 +2069,9 @@ function bindEvents() {
   document.getElementById('banner-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fb = document.getElementById('banner-form-feedback');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Save Banner';
+
     const id = document.getElementById('bn-id').value;
     const imageUrl = document.getElementById('bn-image-url').value.trim();
     if (!imageUrl) {
@@ -1816,13 +2094,26 @@ function bindEvents() {
       fb.textContent = 'Select a fragrance type.';
       return;
     }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
     try {
       if (id) await AdminAPI.updateBanner(id, body);
       else await AdminAPI.createBanner(body);
-      toast('Banner saved');
       closeModal('banner-modal-overlay');
+      toast('Banner saved');
       loadBanners();
-    } catch (err) { fb.textContent = err.message || 'Save failed'; }
+    } catch (err) {
+      fb.textContent = err.message || 'Save failed';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
+    }
   });
 
   // Testimonials
@@ -1841,6 +2132,9 @@ function bindEvents() {
   document.getElementById('testimonial-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fb = document.getElementById('testimonial-form-feedback');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Save Testimonial';
+
     const id = document.getElementById('ts-id').value;
     const body = {
       customer_name: document.getElementById('ts-name').value.trim(),
@@ -1850,13 +2144,26 @@ function bindEvents() {
       display_order: Number(document.getElementById('ts-order').value) || 0,
       is_featured: document.getElementById('ts-is-featured').checked,
     };
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
     try {
       if (id) await AdminAPI.updateTestimonial(id, body);
       else await AdminAPI.createTestimonial(body);
-      toast('Testimonial saved');
       closeModal('testimonial-modal-overlay');
+      toast('Testimonial saved');
       loadTestimonials();
-    } catch (err) { fb.textContent = err.message || 'Save failed'; }
+    } catch (err) {
+      fb.textContent = err.message || 'Save failed';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
+    }
   });
 
   // Contact
@@ -1889,23 +2196,42 @@ function bindEvents() {
   document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fb = document.getElementById('settings-feedback');
+    const submitBtns = Array.from(document.querySelectorAll('#settings-form button[type="submit"], button[form="settings-form"]'));
+    const origBtnsHtml = submitBtns.map(b => b.innerHTML);
+
     const form = e.target;
     const body = {};
     [...form.elements].forEach((el) => {
       if (el.name) body[el.name] = el.value;
     });
+
+    submitBtns.forEach(b => {
+      b.disabled = true;
+      b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    });
+
     try {
       await AdminAPI.saveSettings(body);
       try {
         localStorage.removeItem('aarif_meta_cache_v2');
         localStorage.setItem('aarif_settings_sync', Date.now().toString());
       } catch (_) {}
-      fb.textContent = 'Settings saved successfully.';
-      fb.className = 'settings-feedback ok';
+      if (fb) {
+        fb.textContent = 'Settings saved successfully.';
+        fb.className = 'settings-feedback ok';
+      }
       toast('Settings saved');
     } catch (err) {
-      fb.textContent = err.message || 'Save failed';
-      fb.className = 'settings-feedback err';
+      if (fb) {
+        fb.textContent = err.message || 'Save failed';
+        fb.className = 'settings-feedback err';
+      }
+      toast(err.message || 'Save failed', true);
+    } finally {
+      submitBtns.forEach((b, idx) => {
+        b.disabled = false;
+        b.innerHTML = origBtnsHtml[idx] || '<i class="fa-solid fa-floppy-disk"></i> Save Settings';
+      });
     }
   });
 
@@ -1914,6 +2240,9 @@ function bindEvents() {
 
   document.getElementById('coupon-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Save Coupon';
+
     const idx = parseInt(document.getElementById('coupon-edit-index').value, 10);
     const code = document.getElementById('coupon-code').value.trim().toUpperCase();
     const type = document.getElementById('coupon-type').value;
@@ -1946,6 +2275,11 @@ function bindEvents() {
       next.push(item);
     }
 
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
     try {
       await AdminAPI.saveCoupons(next);
       couponsCache = next;
@@ -1955,6 +2289,11 @@ function bindEvents() {
     } catch (err) {
       fb.textContent = err.message || 'Failed to save coupon';
       fb.className = 'modal-feedback error';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
     }
   });
 }
