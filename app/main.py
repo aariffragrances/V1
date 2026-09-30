@@ -177,6 +177,31 @@ async def serve_service_worker():
     return JSONResponse(status_code=404, content={"detail": "Service worker not found"})
 
 
+@app.get("/sitemap.xml")
+@app.get("/sitemap")
+async def serve_sitemap():
+    sitemap_file = FRONTEND_DIR / "sitemap.xml"
+    if sitemap_file.is_file():
+        return FileResponse(
+            sitemap_file,
+            media_type="application/xml; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Sitemap not found"})
+
+
+@app.get("/robots.txt")
+async def serve_robots():
+    robots_file = FRONTEND_DIR / "robots.txt"
+    if robots_file.is_file():
+        return FileResponse(
+            robots_file,
+            media_type="text/plain; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Robots.txt not found"})
+
+
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     if request.url.path.startswith("/api/"):
