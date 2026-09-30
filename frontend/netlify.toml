@@ -6,30 +6,101 @@
   SECRETS_SCAN_ENABLED = "false"
   SECRETS_SCAN_OMIT_KEYS = "APP_ENV,ENVIRONMENT,APP_HOST,APP_PORT,CLOUDINARY_CLOUD_NAME,CLOUDINARY_FOLDER,CLOUDINARY_UPLOAD_PRESET,DATABASE_URL,NEON_DATA_API_URL,SECRET_KEY,SESSION_EXPIRE_MINUTES,CORS_ORIGINS"
 
+# ------------------------------------------------------------------------------
+# REDIRECTS & CLEAN URL ROUTING
+# ------------------------------------------------------------------------------
+
+# Optional Backend API Proxy:
+# Forwards /api/* calls to your deployed backend (e.g. Render / Railway / Fly.io / VPS)
+# Prevents browser CORS blocks and eliminates mixed-content HTTPS warnings.
+# Uncomment and replace YOUR_BACKEND_URL when your live backend is deployed:
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://YOUR_BACKEND_URL/api/:splat"
+#   status = 200
+#   force = true
+
+# Clean Extensionless URLs (User & SEO Friendly):
+# Allows visitors to navigate to /products instead of /products.html
+[[redirects]]
+  from = "/products"
+  to = "/products.html"
+  status = 200
+
+[[redirects]]
+  from = "/product"
+  to = "/product.html"
+  status = 200
+
+[[redirects]]
+  from = "/basket"
+  to = "/basket.html"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/account"
+  to = "/account.html"
+  status = 200
+
+[[redirects]]
+  from = "/wishlist"
+  to = "/wishlist.html"
+  status = 200
+
+[[redirects]]
+  from = "/policies"
+  to = "/policies.html"
+  status = 200
+
+[[redirects]]
+  from = "/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/signup"
+  to = "/signup.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+# Custom 404 Fallback
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# ------------------------------------------------------------------------------
+# SECURITY HEADERS
+# ------------------------------------------------------------------------------
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    X-XSS-Protection = "1; mode=block"
 
-# Cache-Control headers for static assets
-[[headers]]
-  for = "/css/*"
-  [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+# ------------------------------------------------------------------------------
+# CACHING DIRECTIVES
+# ------------------------------------------------------------------------------
 
-[[headers]]
-  for = "/js/*"
-  [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Admin dashboard and admin scripts must never be stale
+# Admin dashboard & admin scripts must never be cached
 [[headers]]
   for = "/admin.html"
   [headers.values]
@@ -40,14 +111,67 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# Static fallback data files
+# Service worker must always revalidate
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Web App Manifest & SEO files
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type = "application/manifest+json; charset=UTF-8"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type = "application/xml; charset=UTF-8"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Static JSON fallback data
 [[headers]]
   for = "/data/*"
   [headers.values]
     Cache-Control = "public, max-age=300, stale-while-revalidate=86400"
 
-# Service worker must revalidate
+# CSS & JavaScript
 [[headers]]
-  for = "/sw.js"
+  for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+# Media & Images (1-year immutable caching)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/uploads/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Web Fonts
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "font/woff2"
+
+[[headers]]
+  for = "/*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "font/woff"
