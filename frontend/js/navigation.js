@@ -205,7 +205,9 @@ function openMobileDrawer() {
   const toggle = document.getElementById('mobile-menu-toggle');
   if (drawer) drawer.classList.add('open');
   if (overlay) overlay.classList.add('open');
+  document.documentElement.classList.add('drawer-is-open');
   document.body.classList.add('drawer-is-open');
+  document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
   if (toggle) toggle.setAttribute('aria-expanded', 'true');
 }
@@ -216,7 +218,9 @@ function closeMobileDrawer() {
   const toggle = document.getElementById('mobile-menu-toggle');
   if (drawer) drawer.classList.remove('open');
   if (overlay) overlay.classList.remove('open');
+  document.documentElement.classList.remove('drawer-is-open');
   document.body.classList.remove('drawer-is-open');
+  document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
   if (toggle) toggle.setAttribute('aria-expanded', 'false');
 }
@@ -233,6 +237,38 @@ function toggleDrawerCat(e) {
   catTrigger.classList.toggle('is-open', isOpen);
   catTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 }
+
+// Strict Scroll Isolation for Mobile Drawer
+// Ensures all scroll control remains strictly on the drawer, never leaking to the home page
+document.addEventListener('wheel', (e) => {
+  if (document.body.classList.contains('drawer-is-open')) {
+    const inDrawer = e.target.closest('#mobile-drawer');
+    if (!inDrawer) {
+      e.preventDefault();
+      return;
+    }
+    const atTop = inDrawer.scrollTop <= 0 && e.deltaY < 0;
+    const atBottom = (inDrawer.scrollTop + inDrawer.clientHeight >= inDrawer.scrollHeight - 1) && e.deltaY > 0;
+    if (atTop || atBottom) {
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+  if (document.body.classList.contains('drawer-is-open')) {
+    const inDrawer = e.target.closest('#mobile-drawer');
+    if (!inDrawer) {
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900 && document.body.classList.contains('drawer-is-open')) {
+    closeMobileDrawer();
+  }
+});
 
 window.openMobileDrawer = openMobileDrawer;
 window.closeMobileDrawer = closeMobileDrawer;

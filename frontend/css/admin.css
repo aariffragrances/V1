@@ -585,10 +585,16 @@ ul { list-style: none; }
     gap: 3px;
 }
 .adm-perfumes-controls-row .adm-filter-search {
-    flex: 2 1 240px;
+    flex: 2 1 200px;
 }
 .adm-perfumes-controls-row .adm-filter-type {
-    flex: 1 1 180px;
+    flex: 1 1 140px;
+}
+.adm-perfumes-controls-row .adm-filter-status {
+    flex: 1 1 110px;
+}
+.adm-perfumes-controls-row .adm-filter-sort {
+    flex: 1 1 120px;
 }
 .adm-perfumes-controls-row .adm-input,
 .adm-perfumes-controls-row .adm-select {
@@ -631,7 +637,9 @@ ul { list-style: none; }
         gap: 8px;
     }
     .adm-perfumes-controls-row .adm-filter-search,
-    .adm-perfumes-controls-row .adm-filter-type {
+    .adm-perfumes-controls-row .adm-filter-type,
+    .adm-perfumes-controls-row .adm-filter-status,
+    .adm-perfumes-controls-row .adm-filter-sort {
         width: 100%;
         flex: 1 1 100%;
     }
@@ -2274,19 +2282,20 @@ body.login-loading-active { overflow: hidden; }
   display: block;
 }
 
-/* Perfume Modal Size - Fixed to Perfect Size (matches Pricing & Stock height) */
+/* Perfume Modal Size - Clean pinned header & footer layout */
 .admin-modal--perfume {
   max-width: 880px !important;
   width: 95% !important;
-  height: min(732px, 94vh) !important;
-  min-height: min(732px, 94vh) !important;
-  max-height: 94vh !important;
-  padding: 32px 36px !important;
+  max-height: 92vh !important;
+  height: auto !important;
+  min-height: auto !important;
+  padding: 28px 36px 24px !important;
   border-radius: 16px !important;
   display: flex !important;
   flex-direction: column !important;
   box-sizing: border-box !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22) !important;
 }
 
 #perfume-form {
@@ -2294,11 +2303,16 @@ body.login-loading-active { overflow: hidden; }
   flex-direction: column !important;
   flex: 1 !important;
   min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 #perfume-modal-overlay .adm-tab-panel {
   flex: 1 !important;
-  min-height: 480px !important;
+  min-height: 0 !important;
+  max-height: calc(92vh - 230px) !important;
+  overflow-y: auto !important;
+  padding-right: 6px !important;
+  padding-bottom: 8px !important;
   display: none;
 }
 
@@ -2334,9 +2348,10 @@ body.login-loading-active { overflow: hidden; }
 }
 
 #perfume-modal-tabs {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   padding-bottom: 10px;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 #perfume-modal-tabs .adm-modal-tab-btn {
@@ -2376,26 +2391,57 @@ body.login-loading-active { overflow: hidden; }
   margin: 0;
 }
 
+#perfume-modal-overlay .modal-feedback:empty {
+  display: none !important;
+}
+
 #perfume-modal-overlay .modal-actions {
-  margin-top: auto !important;
-  padding-top: 20px !important;
-  border-top: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  padding-top: 16px !important;
+  margin-top: 14px !important;
+  border-top: 1px solid var(--adm-border) !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#perfume-modal-overlay .modal-actions .btn {
+  min-height: 40px !important;
+  padding: 9px 22px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
 }
 
 @media (max-width: 768px) {
   .admin-modal--perfume {
-    padding: 20px 16px !important;
+    padding: 18px 16px 16px !important;
     width: 96% !important;
-    height: auto !important;
-    min-height: auto !important;
     max-height: 94vh !important;
   }
   #perfume-modal-overlay .adm-tab-panel {
-    min-height: auto !important;
+    max-height: calc(94vh - 200px) !important;
+    padding-right: 2px !important;
   }
   #perfume-modal-tabs .adm-modal-tab-btn {
     padding: 8px 14px;
     font-size: 0.85rem;
+  }
+  #perfume-modal-overlay .modal-actions {
+    padding-top: 12px !important;
+    margin-top: 10px !important;
+    gap: 8px !important;
+  }
+  #perfume-modal-overlay .modal-actions .btn {
+    flex: 1 !important;
+    padding: 9px 12px !important;
   }
   .pf-pricing-header-row {
     flex-direction: column;

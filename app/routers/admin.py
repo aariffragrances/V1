@@ -58,6 +58,16 @@ def _slug(text: str) -> str:
     return re.sub(r"[\s_]+", "-", s) or "item"
 
 
+def _verify_image_data(data: bytes) -> None:
+    try:
+        import io
+        from PIL import Image
+        with Image.open(io.BytesIO(data)) as im:
+            im.verify()
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid or corrupted image format")
+
+
 # ── Stats ─────────────────────────────────────────────────────────────────────
 
 @router.get("/stats", response_model=AdminStatsOut)
@@ -190,22 +200,40 @@ async def admin_perfumes(
     per_page: int = Query(25, ge=1, le=500),
     fragrance_type_id: str | None = None,
     search: str | None = None,
+    status: str | None = None,
+    sort: str | None = None,
     user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    cache_key = f"perfumes:{page}:{per_page}:{fragrance_type_id or ''}:{(search or '').strip().lower()}"
+    clean_search = (search or "").strip().lower()
+    clean_type = (fragrance_type_id or "").strip()
+    clean_status = (status or "").strip().lower()
+    clean_sort = (sort or "").strip().lower()
+    cache_key = f"perfumes:{page}:{per_page}:{clean_type}:{clean_search}:{clean_status}:{clean_sort}"
     cached = admin_cache_get(cache_key)
     if cached is not None:
         return cached
 
     where = ["1=1"]
     params: dict = {"offset": (page - 1) * per_page, "limit": per_page}
-    if fragrance_type_id:
+    if clean_type:
         where.append("p.fragrance_type_id = :ftype_id")
-        params["ftype_id"] = fragrance_type_id
-    if search:
+        params["ftype_id"] = clean_type
+    if clean_search:
         where.append("(p.perfume_name ILIKE :search OR p.perfume_id ILIKE :search OR p.brand ILIKE :search)")
-        params["search"] = f"%{search.strip()}%"
+        params["search"] = f"%{clean_search}%"
+    if clean_status == "active":
+        where.append("p.is_active = true")
+    elif clean_status == "inactive":
+        where.append("p.is_active = false")
+
+    if clean_sort == "a-z":
+        order_sql = "p.perfume_name ASC"
+    elif clean_sort == "z-a":
+        order_sql = "p.perfume_name DESC"
+    else:
+        order_sql = "ft.display_order, p.perfume_name"
+
     where_sql = " AND ".join(where)
 
     total = (await db.execute(text(f"SELECT COUNT(*) FROM perfumes p WHERE {where_sql}"), params)).scalar_one()
@@ -225,7 +253,7 @@ async def admin_perfumes(
             ORDER BY is_primary DESC, display_order ASC, id ASC LIMIT 1
         ) pi ON true
         WHERE {where_sql}
-        ORDER BY ft.display_order, p.perfume_name
+        ORDER BY {order_sql}
         OFFSET :offset LIMIT :limit
     """), params)).fetchall()
 
@@ -495,6 +523,7 @@ async def upload_perfume_images(
         data = await upload.read()
         if len(data) > MAX_IMAGE_BYTES:
             raise HTTPException(status_code=422, detail="File too large (max 5 MB)")
+        _verify_image_data(data)
 
         if settings.cloudinary_configured:
             try:
@@ -653,6 +682,7 @@ async def upload_banner_image(file: UploadFile = File(...), user: User = Depends
     data = await file.read()
     if len(data) > 12 * 1024 * 1024:
         raise HTTPException(status_code=422, detail="File too large (max 12 MB)")
+    _verify_image_data(data)
     if settings.cloudinary_configured:
         try:
             result = upload_upload_file(data, file.filename, subfolder="banners")
@@ -738,19 +768,25 @@ async def get_site_settings(user: User = Depends(require_admin), db: AsyncSessio
 async def save_site_settings(body: dict, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     import json
     from app.core.site_settings import SITE_SETTING_KEYS
-    for key, value in body.items():
-        if key not in SITE_SETTING_KEYS:
-            continue
-        result = await db.execute(select(SiteSetting).where(SiteSetting.setting_key == key))
-        setting = result.scalar_one_or_none()
+    valid_items = {k: v for k, v in body.items() if k in SITE_SETTING_KEYS}
+    if not valid_items:
+        return {"ok": True, "updated": 0}
+
+    # Fetch all relevant existing settings in a single SQL round-trip
+    result = await db.execute(
+        select(SiteSetting).where(SiteSetting.setting_key.in_(list(valid_items.keys())))
+    )
+    existing_map = {row.setting_key: row for row in result.scalars().all()}
+
+    for key, value in valid_items.items():
         val_str = value if isinstance(value, str) else json.dumps(value)
-        if setting:
-            setting.setting_value = val_str
+        if key in existing_map:
+            existing_map[key].setting_value = val_str
         else:
             db.add(SiteSetting(setting_key=key, setting_value=val_str, setting_type="text"))
     await db.commit()
     invalidate_catalog_cache()
-    return {"ok": True}
+    return {"ok": True, "updated": len(valid_items)}
 
 
 # ── Spotlight ──────────────────────────────────────────────────────────────────

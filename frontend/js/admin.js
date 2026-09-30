@@ -430,7 +430,7 @@ function renderPerfumesTable() {
   const tbody = document.getElementById('perfumes-tbody');
   if (!tbody) return;
   const items = state.perfumes || [];
-  const total = items.length;
+  const total = (state.allPerfumes && state.allPerfumes.length) || items.length;
   const typeCount = state.types?.length || 8;
   const sub = document.getElementById('perfumes-subtitle');
   if (sub) sub.textContent = `${total} perfumes across ${typeCount} fragrance types`;
@@ -526,12 +526,16 @@ async function loadPerfumes() {
     }
     const search = document.getElementById('perfume-search')?.value?.trim() || '';
     const typeId = document.getElementById('perfume-type-filter')?.value || '';
+    const status = document.getElementById('perfume-status-filter')?.value || '';
+    const sort = document.getElementById('perfume-sort-filter')?.value || '';
     const params = { page: 1, per_page: 500 };
     if (search) params.search = search;
     if (typeId) params.fragrance_type_id = typeId;
+    if (status) params.status = status;
+    if (sort) params.sort = sort;
     const data = await AdminAPI.perfumes(params);
     state.perfumes = data.items || data || [];
-    if (!search && !typeId) {
+    if (!search && !typeId && !status && !sort) {
       state.allPerfumes = state.perfumes;
     }
     renderPerfumesTable();
@@ -1627,14 +1631,25 @@ function updateUnreadBadges(unread) {
   }
 }
 
+let initialSettingsValues = {};
+
 async function loadSettings() {
   try {
     const s = await AdminAPI.settings();
     const data = s.settings || s;
+    initialSettingsValues = {};
     Object.keys(data).forEach((key) => {
       const el = document.getElementById('set-' + key);
       if (el) el.value = data[key] ?? '';
     });
+    const form = document.getElementById('settings-form');
+    if (form) {
+      [...form.elements].forEach((el) => {
+        if (el.name) {
+          initialSettingsValues[el.name] = el.value ?? '';
+        }
+      });
+    }
   } catch (err) {
     toast(err.message || 'Failed to load settings', true);
   }
@@ -1913,6 +1928,8 @@ function bindEvents() {
     searchTimer = setTimeout(loadPerfumes, 280);
   });
   document.getElementById('perfume-type-filter')?.addEventListener('change', loadPerfumes);
+  document.getElementById('perfume-status-filter')?.addEventListener('change', loadPerfumes);
+  document.getElementById('perfume-sort-filter')?.addEventListener('change', loadPerfumes);
   document.getElementById('add-perfume-btn')?.addEventListener('click', () => {
     ensureTypes().then(fillTypeSelects).catch(() => {});
     fillTypeSelects();
@@ -2595,9 +2612,26 @@ function bindEvents() {
 
     const form = e.target;
     const body = {};
+    let changedCount = 0;
+
     [...form.elements].forEach((el) => {
-      if (el.name) body[el.name] = el.value;
+      if (!el.name) return;
+      const currentVal = el.value ?? '';
+      const initialVal = initialSettingsValues[el.name];
+      if (initialVal === undefined || currentVal !== initialVal) {
+        body[el.name] = currentVal;
+        changedCount++;
+      }
     });
+
+    if (changedCount === 0) {
+      if (fb) {
+        fb.textContent = 'No changes detected to save.';
+        fb.className = 'settings-feedback ok';
+      }
+      toast('No changes detected');
+      return;
+    }
 
     submitBtns.forEach(b => {
       b.disabled = true;
@@ -2606,15 +2640,18 @@ function bindEvents() {
 
     try {
       await AdminAPI.saveSettings(body);
+      Object.keys(body).forEach((key) => {
+        initialSettingsValues[key] = body[key];
+      });
       try {
         localStorage.removeItem('aarif_meta_cache_v2');
         localStorage.setItem('aarif_settings_sync', Date.now().toString());
       } catch (_) {}
       if (fb) {
-        fb.textContent = 'Settings saved successfully.';
+        fb.textContent = `Settings saved successfully (${changedCount} field${changedCount > 1 ? 's' : ''} updated).`;
         fb.className = 'settings-feedback ok';
       }
-      toast('Settings saved');
+      toast(changedCount === 1 ? '1 setting updated' : `${changedCount} settings updated`);
     } catch (err) {
       if (fb) {
         fb.textContent = err.message || 'Save failed';

@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.orders import Order, OrderItem
 
@@ -38,7 +39,7 @@ def _gen_ref() -> str:
     return f"AF-{n}{suffix}"
 
 
-@router.post("")
+@router.post("", dependencies=[Depends(rate_limit(namespace="orders-create", limit=15, window_seconds=300))])
 async def create_order(body: OrderCreateIn, db: AsyncSession = Depends(get_db)):
     if not body.items:
         raise HTTPException(status_code=400, detail="Order requires at least one item")

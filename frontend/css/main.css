@@ -350,10 +350,18 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   color: var(--gold-light);
 }
 
-/* === MOBILE DRAWER === */
-.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 400; opacity: 0; pointer-events: none; transition: opacity var(--transition); }
+/* === SCROLL LOCKS: DRAWER & PRODUCT MODAL === */
+html.drawer-is-open,
+body.drawer-is-open,
+html.modal-is-open,
+body.modal-is-open {
+  overflow: hidden !important;
+  height: 100% !important;
+  overscroll-behavior: none !important;
+}
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 400; opacity: 0; pointer-events: none; transition: opacity var(--transition); overscroll-behavior: none !important; touch-action: none !important; }
 .drawer-overlay.open { opacity: 1; pointer-events: all; }
-.mobile-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: #0f0f0f; z-index: 500; transform: translateX(-100%); transition: transform 0.3s ease; overflow-y: auto; border-right: 1px solid var(--border); }
+.mobile-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: #0f0f0f; z-index: 500; transform: translateX(-100%); transition: transform 0.3s ease; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain !important; overscroll-behavior-y: contain !important; touch-action: pan-y !important; border-right: 1px solid var(--border); }
 .mobile-drawer.open { transform: translateX(0); }
 .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #000; color: var(--gold); border-bottom: 1px solid var(--border); }
 .drawer-close { color: var(--gold); font-size: 20px; padding: 4px; }
@@ -1342,9 +1350,9 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
 /* ============================================================
    MODAL / CONFIRM DIALOG
    ============================================================ */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 600; display: none; align-items: center; justify-content: center; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 600; display: none; align-items: center; justify-content: center; overscroll-behavior: none !important; touch-action: none !important; }
 .modal-overlay.open { display: flex; }
-.product-modal { background: #141414; border: 1px solid var(--border); border-radius: var(--radius); max-width: 560px; width: 94%; max-height: 90vh; overflow-y: auto; position: relative; padding: 28px; color: var(--dark); }
+.product-modal { background: #141414; border: 1px solid var(--border); border-radius: var(--radius); max-width: 560px; width: 94%; max-height: 90vh; overflow-y: auto; position: relative; padding: 28px; color: var(--dark); overscroll-behavior: contain !important; overscroll-behavior-y: contain !important; touch-action: pan-y !important; }
 .confirm-dialog { background: #141414; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; max-width: 400px; width: 94%; position: relative; color: var(--dark); }
 .confirm-dialog h3 { font-size: 18px; margin-bottom: 10px; }
 .confirm-dialog p { color: var(--mid); margin-bottom: 20px; }
@@ -1364,6 +1372,8 @@ input, textarea, select { font: inherit; color: inherit; background: var(--bg-el
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  overscroll-behavior: contain !important;
+  overscroll-behavior-y: contain !important;
 }
 .product-modal--luxury .pd-layout {
   flex: 1;
@@ -2854,6 +2864,8 @@ body.filter-drawer-open { overflow: hidden; }
     justify-content: center !important;
     padding: 0 !important; /* Flush to mobile screen bottom edge */
     transition: opacity 0.3s ease !important;
+    overscroll-behavior: none !important;
+    touch-action: none !important;
   }
   .modal-overlay.open {
     display: flex !important;
@@ -2877,6 +2889,9 @@ body.filter-drawer-open { overflow: hidden; }
     max-height: 90vh !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
     background: #0a0a0a !important;
     border: 1px solid rgba(212, 175, 55, 0.4) !important;
     border-bottom: none !important;
@@ -3806,6 +3821,9 @@ body.filter-drawer-open { overflow: hidden; }
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
     border-right: 1px solid rgba(212, 175, 55, 0.35) !important;
     box-shadow: 10px 0 35px rgba(0, 0, 0, 0.9) !important;
   }
@@ -3825,6 +3843,8 @@ body.filter-drawer-open { overflow: hidden; }
     opacity: 0 !important;
     pointer-events: none !important;
     transition: opacity 0.3s ease !important;
+    overscroll-behavior: none !important;
+    touch-action: none !important;
     display: block !important;
   }
   .drawer-overlay.open,

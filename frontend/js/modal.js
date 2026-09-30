@@ -208,14 +208,114 @@ function openProductModal(perfume, initialType, initialSize) {
   modal.querySelector('#modal-close-btn')?.addEventListener('click', closeProductModal);
 
   overlay.classList.add('open');
+  document.documentElement.classList.add('modal-is-open');
+  document.body.classList.add('modal-is-open');
+  document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
+  modal.scrollTop = 0;
 }
 
 function closeProductModal() {
   const overlay = document.getElementById('product-modal-overlay');
   overlay?.classList.remove('open');
-  document.body.style.overflow = '';
+  document.documentElement.classList.remove('modal-is-open');
+  document.body.classList.remove('modal-is-open');
+  if (!document.body.classList.contains('drawer-is-open')) {
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
 }
+
+// Strict Scroll Isolation for Product Detail Modal
+// Ensures full control is strictly on the modal, never leaking scroll to the background page
+document.addEventListener('wheel', (e) => {
+  if (document.body.classList.contains('modal-is-open')) {
+    const modal = document.getElementById('product-modal');
+    const inModal = e.target.closest('#product-modal');
+    if (!inModal || !modal) {
+      e.preventDefault();
+      return;
+    }
+    // If modal content does not have scrollable overflow, prevent scrolling the page behind it
+    if (modal.scrollHeight <= modal.clientHeight) {
+      e.preventDefault();
+      return;
+    }
+    const atTop = modal.scrollTop <= 0 && e.deltaY < 0;
+    const atBottom = (modal.scrollTop + modal.clientHeight >= modal.scrollHeight - 1) && e.deltaY > 0;
+    if (atTop || atBottom) {
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
+
+let modalTouchStartY = 0;
+
+document.addEventListener('touchstart', (e) => {
+  if (document.body.classList.contains('modal-is-open')) {
+    if (e.touches && e.touches.length > 0) {
+      modalTouchStartY = e.touches[0].clientY;
+    }
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  if (document.body.classList.contains('modal-is-open')) {
+    // Multi-touch pinch/zoom on backdrop/modal prevented
+    if (e.touches && e.touches.length > 1) {
+      e.preventDefault();
+      return;
+    }
+
+    const modal = document.getElementById('product-modal');
+    const inModal = e.target.closest('#product-modal');
+    if (!inModal || !modal) {
+      e.preventDefault();
+      return;
+    }
+
+    if (!e.touches || e.touches.length === 0) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = modalTouchStartY - currentY; // > 0: scrolling down, < 0: scrolling up
+    modalTouchStartY = currentY;
+
+    if (modal.scrollHeight <= modal.clientHeight) {
+      e.preventDefault();
+      return;
+    }
+
+    const atTop = modal.scrollTop <= 1 && deltaY < 0;
+    const atBottom = (modal.scrollTop + modal.clientHeight >= modal.scrollHeight - 1) && deltaY > 0;
+    if (atTop || atBottom) {
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
+
+document.addEventListener('keydown', (e) => {
+  if (document.body.classList.contains('modal-is-open')) {
+    const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '];
+    if (scrollKeys.includes(e.key)) {
+      const modal = document.getElementById('product-modal');
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
+        return;
+      }
+      if (modal && modal.scrollHeight > modal.clientHeight) {
+        e.preventDefault();
+        const scrollAmount = (e.key === 'ArrowUp' || e.key === 'ArrowDown') ? 40 : modal.clientHeight * 0.8;
+        if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+          modal.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+        } else if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+          modal.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        } else if (e.key === 'Home') {
+          modal.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (e.key === 'End') {
+          modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' });
+        }
+      }
+    }
+  }
+});
 
 function m(s) {
   return String(s || '')

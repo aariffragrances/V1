@@ -166,7 +166,7 @@
             </div>
           </div>
 
-          <!-- Middle Row: Search and Type Filters -->
+          <!-- Middle Row: Search, Type, Status, and Sort Filters -->
           <div class="adm-perfumes-controls-row">
             <div class="adm-filter-group adm-filter-search">
               <label for="perfume-search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
@@ -176,6 +176,22 @@
               <label for="perfume-type-filter"><i class="fa-solid fa-layer-group"></i> Type</label>
               <select class="adm-select" id="perfume-type-filter">
                 <option value="">All Types</option>
+              </select>
+            </div>
+            <div class="adm-filter-group adm-filter-status">
+              <label for="perfume-status-filter"><i class="fa-solid fa-toggle-on"></i> Status</label>
+              <select class="adm-select" id="perfume-status-filter">
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="adm-filter-group adm-filter-sort">
+              <label for="perfume-sort-filter"><i class="fa-solid fa-arrow-down-a-z"></i> Sort</label>
+              <select class="adm-select" id="perfume-sort-filter">
+                <option value="a-z">A to Z</option>
+                <option value="z-a">Z to A</option>
+                <option value="default">Default</option>
               </select>
             </div>
           </div>
