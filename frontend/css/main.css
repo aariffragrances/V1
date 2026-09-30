@@ -2886,6 +2886,7 @@ body.filter-drawer-open { overflow: hidden; }
   .product-modal--luxury {
     width: 100vw !important;
     max-width: 100vw !important;
+    height: auto !important;
     max-height: 90vh !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
@@ -2947,19 +2948,23 @@ body.filter-drawer-open { overflow: hidden; }
     display: block !important;
   }
   .pd-info {
-    padding: 16px 14px 22px !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: none !important;
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 8px)) !important;
     overflow: visible !important;
   }
   .pd-block {
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
   }
   .pd-label {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
     font-weight: 700 !important;
-    letter-spacing: 0.09em !important;
+    letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
     color: #d4af37 !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 6px !important;
   }
   .pd-type-row {
     display: flex !important;
@@ -2971,25 +2976,25 @@ body.filter-drawer-open { overflow: hidden; }
   .pd-type-btn {
     flex: 1 1 0 !important;
     min-width: 0 !important;
-    padding: 5px 4px !important;
-    font-size: 11.5px !important;
+    padding: 4px 3px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
-    line-height: 1.2 !important;
+    line-height: 1.15 !important;
     border-radius: 6px !important;
     text-align: center !important;
     white-space: nowrap !important;
   }
   .pd-type-hint {
-    margin: 4px 0 2px !important;
-    font-size: 11px !important;
+    margin: 5px 0 2px !important;
+    font-size: 11.5px !important;
     line-height: 1.35 !important;
     color: rgba(232, 210, 140, 0.75) !important;
   }
   .pd-select-row {
     display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    margin: 4px 0 10px !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin: 4px 0 12px !important;
   }
   .pd-select-main {
     flex: 1 1 auto !important;
@@ -2997,12 +3002,10 @@ body.filter-drawer-open { overflow: hidden; }
   }
   .pd-type-visual {
     display: flex !important;
-    flex: 0 0 82px !important;
-    width: 82px !important;
-    height: 155px !important;
+    flex: 0 0 88px !important;
+    width: 88px !important;
     min-height: 155px !important;
-    max-height: 155px !important;
-    align-self: center !important;
+    align-self: stretch !important;
     border-radius: 12px !important;
     overflow: hidden !important;
     background: #141210 !important;
@@ -3023,31 +3026,31 @@ body.filter-drawer-open { overflow: hidden; }
   .pd-size-row {
     display: flex !important;
     flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 4px !important;
+    align-items: stretch !important;
+    gap: 5px !important;
     width: 100% !important;
   }
   .pd-size-btn {
     flex: 1 1 0 !important;
     min-width: 0 !important;
     max-width: none !important;
-    padding: 5px 2px !important;
-    border-radius: 6px !important;
+    padding: 6px 3px !important;
+    border-radius: 7px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 1px !important;
+    gap: 2px !important;
     box-sizing: border-box !important;
   }
   .pd-size-label {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
     font-weight: 700 !important;
     line-height: 1.15 !important;
     white-space: nowrap !important;
   }
   .pd-size-price {
-    font-size: 10px !important;
+    font-size: 10.5px !important;
     font-weight: 600 !important;
     line-height: 1.15 !important;
     white-space: nowrap !important;
@@ -3056,14 +3059,38 @@ body.filter-drawer-open { overflow: hidden; }
     display: flex !important;
     align-items: baseline !important;
     gap: 8px !important;
-    margin: 6px 0 0 !important;
+    margin: 8px 0 0 !important;
   }
   .pd-price {
-    font-size: 26px !important;
+    font-size: 28px !important;
     line-height: 1 !important;
   }
   .pd-price-note {
-    font-size: 12px !important;
+    font-size: 12.5px !important;
+  }
+  .pd-actions {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+    margin-top: 14px !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
+  }
+  .pd-qty {
+    min-height: 44px !important;
+  }
+  .pd-add-btn {
+    min-height: 44px !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    flex: 1 !important;
+  }
+  .pp-wish-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
   }
 
   /* Hide desktop topbar on mobile like GMS */
