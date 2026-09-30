@@ -17,4 +17,4 @@ Disallow: /account.html
 Disallow: /docs
 Disallow: /redoc
 
-Sitemap: /sitemap.xml
+Sitemap: https://aariffragnances.vercel.app/sitemap.xml
