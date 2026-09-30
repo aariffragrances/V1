@@ -48,7 +48,8 @@
       "isFeatured": true,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512172/aarif-fragrances/perfumes/cool-water.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527564/aarif-fragrances/products/cool-water.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527564/aarif-fragrances/products/cool-water.png"
     },
     {
       "perfumeId": "PF004",
@@ -73,7 +74,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512174/aarif-fragrances/perfumes/hawas-rasasi.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527568/aarif-fragrances/products/hawas-rasasi.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527568/aarif-fragrances/products/hawas-rasasi.png"
     },
     {
       "perfumeId": "PF009",
@@ -98,7 +100,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512175/aarif-fragrances/perfumes/iceberg.jpg"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527569/aarif-fragrances/products/ice-berg.jpg",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527569/aarif-fragrances/products/ice-berg.jpg"
     },
     {
       "perfumeId": "PF005",
@@ -123,7 +126,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512175/aarif-fragrances/perfumes/invictus.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527571/aarif-fragrances/products/invictus.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527571/aarif-fragrances/products/invictus.png"
     },
     {
       "perfumeId": "PF006",
@@ -148,7 +152,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512176/aarif-fragrances/perfumes/royal-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527574/aarif-fragrances/products/royal-blue.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527574/aarif-fragrances/products/royal-blue.png"
     },
     {
       "perfumeId": "PF008",
@@ -173,7 +178,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512177/aarif-fragrances/perfumes/sea-rose.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527575/aarif-fragrances/products/sea-rose.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527575/aarif-fragrances/products/sea-rose.png"
     },
     {
       "perfumeId": "PF013",
@@ -198,7 +204,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512170/aarif-fragrances/perfumes/blueberry.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527560/aarif-fragrances/products/blueberry.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527560/aarif-fragrances/products/blueberry.png"
     },
     {
       "perfumeId": "PF015",
@@ -223,7 +230,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512171/aarif-fragrances/perfumes/burberry-her.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527561/aarif-fragrances/products/burberry-her.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527561/aarif-fragrances/products/burberry-her.png"
     },
     {
       "perfumeId": "PF016",
@@ -248,7 +256,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790512173/aarif-fragrances/perfumes/creed-aventus.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527566/aarif-fragrances/products/creed-aventus.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527566/aarif-fragrances/products/creed-aventus.png"
     },
     {
       "perfumeId": "PF010",
@@ -273,7 +282,8 @@
       "isFeatured": true,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783937/aarif-fragrances/products/green-apple.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783937/aarif-fragrances/products/green-apple.png"
     },
     {
       "perfumeId": "PF014",
@@ -298,7 +308,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783942/aarif-fragrances/products/litchi.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783942/aarif-fragrances/products/litchi.png"
     },
     {
       "perfumeId": "PF011",
@@ -323,7 +334,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783944/aarif-fragrances/products/pineapple.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783944/aarif-fragrances/products/pineapple.png"
     },
     {
       "perfumeId": "PF012",
@@ -348,7 +360,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783947/aarif-fragrances/products/strawberry.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783947/aarif-fragrances/products/strawberry.png"
     },
     {
       "perfumeId": "PF017",
@@ -373,7 +386,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783948/aarif-fragrances/products/vampire-blood.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783948/aarif-fragrances/products/vampire-blood.png"
     },
     {
       "perfumeId": "PF043",
@@ -398,7 +412,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783928/aarif-fragrances/products/1-million.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783928/aarif-fragrances/products/1-million.png"
     },
     {
       "perfumeId": "PF042",
@@ -423,7 +438,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790783929/aarif-fragrances/products/azzaro-black.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790783929/aarif-fragrances/products/azzaro-black.png"
     },
     {
       "perfumeId": "PF041",
