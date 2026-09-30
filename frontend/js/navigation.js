@@ -141,10 +141,10 @@ function ensureStandardMobileDrawer() {
 
   drawer.innerHTML = `
     <div class="drawer-header">
-      <div class="drawer-brand">
+      <a href="index.html" class="drawer-brand" aria-label="Aarif Fragrances home">
         <img src="https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/brand/aarif-logo-full.png" alt="Aarif Fragrances" class="logo-img logo-img--drawer">
         <span class="logo-brand-text"><span class="logo-brand-name">AARIF</span><span class="logo-brand-tag">Fragrances</span></span>
-      </div>
+      </a>
       <button type="button" id="drawer-close" class="drawer-close" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <nav class="drawer-nav">
@@ -301,8 +301,8 @@ function initNavigation() {
       return;
     }
 
-    // Nav link clicked inside drawer -> close drawer
-    if (e.target.closest('.drawer-nav a')) {
+    // Nav link or brand clicked inside drawer -> close drawer
+    if (e.target.closest('.drawer-nav a, .drawer-brand')) {
       closeMobileDrawer();
     }
   }, { passive: false });

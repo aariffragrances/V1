@@ -50,8 +50,14 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // Skip transactional API routes
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/docs') || url.pathname.startsWith('/redoc')) {
+  // Skip transactional API routes, docs, and admin portal
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/docs') ||
+    url.pathname.startsWith('/redoc') ||
+    url.pathname.startsWith('/admin') ||
+    url.pathname.includes('admin')
+  ) {
     return;
   }
 

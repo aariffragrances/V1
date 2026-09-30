@@ -104,12 +104,14 @@ async def lifespan(app: FastAPI):
                 pass
 
 
+is_prod = settings.app_env.lower() == "production"
+
 app = FastAPI(
     title="Aarif Fragrances API",
     description="REST API for Aarif Fragrances perfume e-commerce",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None if is_prod else "/docs",
+    redoc_url=None if is_prod else "/redoc",
     lifespan=lifespan,
 )
 

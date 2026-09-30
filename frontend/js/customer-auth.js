@@ -16,6 +16,15 @@ function _paintHeaderFromCache() {
   _paintHeader(user);
 }
 
+function isStoreAdmin(user) {
+  if (!user || typeof user !== 'object') return false;
+  const role = String(user.role || '').toLowerCase().trim();
+  const email = String(user.email || '').toLowerCase().trim();
+  const username = String(user.username || '').toLowerCase().trim();
+  // Strictly only admin login (admin@aarifragrances.local / admin) with role 'admin'
+  return (role === 'admin') && (email === 'admin@aarifragrances.local' || username === 'admin');
+}
+
 function _paintHeader(user) {
   ensureAccountShell();
   const label  = document.getElementById('header-account-label');
@@ -23,12 +32,24 @@ function _paintHeader(user) {
   const adminLink = document.getElementById('header-admin-link');
   if (!label) return;
   if (user) {
-    label.textContent = (user.name||user.username||'Account').split(' ')[0].slice(0,12);
-    if (adminLink) adminLink.hidden = user.role !== 'admin';
+    label.textContent = (user.name || user.username || 'Account').split(' ')[0].slice(0, 12);
+    const isAdmin = isStoreAdmin(user);
+    if (adminLink) {
+      if (isAdmin) {
+        adminLink.removeAttribute('hidden');
+        adminLink.style.setProperty('display', 'flex', 'important');
+      } else {
+        adminLink.setAttribute('hidden', '');
+        adminLink.style.setProperty('display', 'none', 'important');
+      }
+    }
   } else {
     label.textContent = 'Sign In';
-    dropdown?.setAttribute('hidden','');
-    if (adminLink) adminLink.hidden = true;
+    dropdown?.setAttribute('hidden', '');
+    if (adminLink) {
+      adminLink.setAttribute('hidden', '');
+      adminLink.style.setProperty('display', 'none', 'important');
+    }
   }
 }
 
@@ -48,7 +69,7 @@ function ensureAccountShell() {
     </button>
     <div id="header-account-dropdown" class="header-account-dropdown" hidden>
       <a href="account.html"><i class="fa-solid fa-id-card"></i> My Profile</a>
-      <a href="/admin" id="header-admin-link" hidden><i class="fa-solid fa-gauge-high"></i> Admin Panel</a>
+      <a href="/admin" id="header-admin-link" hidden style="display:none !important;"><i class="fa-solid fa-gauge-high"></i> Admin Panel</a>
       <button type="button" id="header-account-logout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
     </div>`;
   const mobileToggle = document.getElementById('mobile-menu-toggle');
@@ -177,7 +198,7 @@ function initAccountPage() {
 
     const roleEl = document.getElementById('profile-display-role');
     if (roleEl) {
-      if (u.role === 'admin') {
+      if (isStoreAdmin(u)) {
         roleEl.textContent = 'Store Administrator';
       } else {
         roleEl.textContent = 'Customer';
@@ -191,12 +212,12 @@ function initAccountPage() {
     // Manage Store button (admin only)
     const manageStore = document.getElementById('profile-manage-store');
     if (manageStore) {
-      if (u.role === 'admin') {
+      if (isStoreAdmin(u)) {
         manageStore.removeAttribute('hidden');
-        manageStore.style.display = 'inline-flex';
+        manageStore.style.setProperty('display', 'inline-flex', 'important');
       } else {
         manageStore.setAttribute('hidden', '');
-        manageStore.style.display = 'none';
+        manageStore.style.setProperty('display', 'none', 'important');
       }
     }
 

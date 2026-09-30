@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="css/admin.css?v=24">
+<link rel="stylesheet" href="css/admin.css?v=26">
 <link rel="icon" href="https://res.cloudinary.com/h7kuxzes/image/upload/v1790527577/aarif-fragrances/brand/aarif-logo.png" type="image/png">
 </head>
 <body data-page="admin">
@@ -48,6 +48,7 @@
       <button type="button" class="adm-nav-link" data-section="perfumes"><i class="fa-solid fa-spray-can-sparkles"></i><span>Perfumes</span></button>
       <button type="button" class="adm-nav-link" data-section="sheet"><i class="fa-solid fa-table-cells"></i><span>Sheet</span></button>
       <button type="button" class="adm-nav-link" data-section="fragrance-types"><i class="fa-solid fa-layer-group"></i><span>Fragrance Types</span></button>
+      <button type="button" class="adm-nav-link" data-section="spotlight"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Spotlight</span></button>
       <button type="button" class="adm-nav-link" data-section="banners"><i class="fa-solid fa-images"></i><span>Banners</span></button>
       <button type="button" class="adm-nav-link" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
       <button type="button" class="adm-nav-link" data-section="orders"><i class="fa-solid fa-receipt"></i><span>Orders</span><span class="adm-nav-badge hidden" id="orders-new-badge"></span></button>
@@ -322,6 +323,17 @@
         </div>
       </section>
 
+      <!-- SPOTLIGHT -->
+      <section class="adm-section" id="section-spotlight">
+        <div class="adm-page-header">
+          <div>
+            <h1>Spotlight</h1>
+            <p id="spotlight-subtitle">Manage homepage product strips and featured testimonials</p>
+          </div>
+        </div>
+        <div class="spotlight-grid" id="spotlight-grid"></div>
+      </section>
+
       <!-- BANNERS -->
       <section class="adm-section" id="section-banners">
         <div class="adm-page-header">
@@ -481,12 +493,14 @@
                 <input type="email" id="set-contact_email" name="contact_email" placeholder="aariffragrances@gmail.com">
               </div>
               <div class="form-group">
-                <label for="set-store_address">Address</label>
-                <input type="text" id="set-store_address" name="store_address" placeholder="Tamil Nadu, India">
+                <label for="set-store_address">Address (Street / Landmark)</label>
+                <input type="text" id="set-store_address" name="store_address" placeholder="Main Road, Opp. Commando Fitness Center">
+                <p class="field-hint">Displayed in footer and homepage Order Address (Line 1)</p>
               </div>
               <div class="form-group">
-                <label for="set-store_city">City</label>
-                <input type="text" id="set-store_city" name="store_city" placeholder="Tamil Nadu">
+                <label for="set-store_city">City / Area &amp; Pincode</label>
+                <input type="text" id="set-store_city" name="store_city" placeholder="Uthangudi, Madurai, Tamil Nadu – 625107">
+                <p class="field-hint">Displayed in footer and homepage Order Address (Line 2)</p>
               </div>
               <div class="form-group">
                 <label for="set-opening_hours">Opening Hours</label>
@@ -516,22 +530,35 @@
                 <p>Customize the titles and subtitles displayed above the product strips on the home page.</p>
               </div>
             </div>
-            <div class="settings-grid">
-              <div class="form-group">
-                <label for="set-container_featured_title">Title 1 &mdash; Featured Section</label>
-                <input type="text" id="set-container_featured_title" name="container_featured_title" placeholder="Featured Perfumes">
+            <div class="settings-container-rows">
+              <!-- Row 1: Featured Section -->
+              <div class="settings-row-block">
+                <div class="settings-row-label"><i class="fa-solid fa-star"></i> Row 1 &mdash; Featured Perfumes Strip</div>
+                <div class="settings-grid--2col">
+                  <div class="form-group">
+                    <label for="set-container_featured_title">Title 1 &mdash; Featured Section</label>
+                    <input type="text" id="set-container_featured_title" name="container_featured_title" placeholder="Featured Perfumes">
+                  </div>
+                  <div class="form-group">
+                    <label for="set-container_featured_subtitle">Subtitle 1 &mdash; Featured Section</label>
+                    <input type="text" id="set-container_featured_subtitle" name="container_featured_subtitle" placeholder="Our handpicked selection of finest fragrances">
+                  </div>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="set-container_featured_subtitle">Subtitle 1 &mdash; Featured Section</label>
-                <input type="text" id="set-container_featured_subtitle" name="container_featured_subtitle" placeholder="Our handpicked selection of finest fragrances">
-              </div>
-              <div class="form-group">
-                <label for="set-container_bestsellers_title">Title 2 &mdash; Best Sellers Section</label>
-                <input type="text" id="set-container_bestsellers_title" name="container_bestsellers_title" placeholder="Best Sellers">
-              </div>
-              <div class="form-group">
-                <label for="set-container_bestsellers_subtitle">Subtitle 2 &mdash; Best Sellers Section</label>
-                <input type="text" id="set-container_bestsellers_subtitle" name="container_bestsellers_subtitle" placeholder="The most loved fragrances by our customers">
+
+              <!-- Row 2: Best Sellers Section -->
+              <div class="settings-row-block" style="margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--adm-border);">
+                <div class="settings-row-label"><i class="fa-solid fa-fire"></i> Row 2 &mdash; Best Sellers Strip</div>
+                <div class="settings-grid--2col">
+                  <div class="form-group">
+                    <label for="set-container_bestsellers_title">Title 2 &mdash; Best Sellers Section</label>
+                    <input type="text" id="set-container_bestsellers_title" name="container_bestsellers_title" placeholder="Best Sellers">
+                  </div>
+                  <div class="form-group">
+                    <label for="set-container_bestsellers_subtitle">Subtitle 2 &mdash; Best Sellers Section</label>
+                    <input type="text" id="set-container_bestsellers_subtitle" name="container_bestsellers_subtitle" placeholder="The most loved fragrances by our customers">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -610,6 +637,10 @@
                 </div>
               </div>
             </div>
+            <p class="field-hint" style="margin-top: 14px; padding: 10px 14px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px;">
+              <i class="fa-solid fa-location-dot" style="color: var(--gold); margin-right: 6px;"></i>
+              <strong>Store Address:</strong> The physical address displayed below these order steps is linked to <strong>Address</strong> and <strong>City</strong> in <a href="#settings-card-footer" style="color: var(--gold); text-decoration: underline;">Section 1: Footer Settings</a>. Any updates saved there will instantly reflect on the home page.
+            </p>
           </div>
 
           <!-- SECTION 4: HOMEPAGE HIGHLIGHT STATS -->
@@ -1216,6 +1247,20 @@
   </div>
 </div>
 
+<!-- ============ SPOTLIGHT PICKER MODAL ============ -->
+<div class="admin-modal-overlay" id="spotlight-picker-modal-overlay">
+  <div class="admin-modal admin-modal--md" role="dialog" aria-modal="true" style="text-align:left; max-width: 520px;">
+    <button type="button" class="admin-modal-close" data-close-modal="spotlight-picker-modal-overlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="spotlight-picker-modal-title"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--adm-green)"></i> <span>Add to Spotlight</span></h2>
+    <div style="margin: 14px 0 10px;">
+      <input type="search" class="adm-search-input" id="spotlight-picker-search" placeholder="Search perfumes by name or ID..." autocomplete="off" style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--adm-border); background:var(--adm-bg); color:var(--adm-text);">
+    </div>
+    <div id="spotlight-picker-list" class="spotlight-picker-list" style="max-height: 380px; overflow-y: auto;">
+      <p class="spotlight-cell-empty" style="padding:16px">Loading perfumes...</p>
+    </div>
+  </div>
+</div>
+
 <!-- ============ CONFIRM DIALOG ============ -->
 <div class="admin-modal-overlay" id="confirm-modal-overlay">
   <div class="admin-modal admin-modal--sm" role="dialog" aria-modal="true">
@@ -1231,8 +1276,8 @@
 <!-- ============ TOAST ============ -->
 <div id="admin-toast" class="admin-toast" role="status" aria-live="polite"></div>
 
-<script src="js/admin-api.js?v=10"></script>
-<script src="js/admin.js?v=19"></script>
+<script src="js/admin-api.js?v=12"></script>
+<script src="js/admin.js?v=20"></script>
 </body>
 </html>
 

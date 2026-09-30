@@ -69,6 +69,7 @@ function applySiteSettings(s) {
       el.textContent = fullAddress;
     });
   }
+  updateOrderStoreAddress(s);
 
   // 6. Opening Hours
   if (s.opening_hours && s.opening_hours.trim()) {
@@ -208,6 +209,66 @@ function applySiteSettings(s) {
       el.style.display = 'none';
     }
   });
+}
+
+function updateOrderStoreAddress(s) {
+  const container = document.getElementById('order-store-address');
+  if (!container || !s) return;
+
+  const storeName = (s.store_name || 'Aarif Fragrances').trim();
+  const rawAddress = (s.store_address != null ? String(s.store_address) : '').trim();
+  const rawCity = (s.store_city != null ? String(s.store_city) : '').trim();
+
+  let line1 = '';
+  let line2 = '';
+
+  if (rawAddress && rawCity) {
+    line1 = rawAddress;
+    line2 = rawCity;
+  } else if (rawAddress) {
+    if (rawAddress.includes('\n')) {
+      const parts = rawAddress.split('\n').map(p => p.trim()).filter(Boolean);
+      line1 = parts[0] || '';
+      line2 = parts.slice(1).join(', ');
+    } else {
+      const match = rawAddress.match(/(.*?)(,\s*(?:Uthangudi|Madurai|Tamil Nadu).*)/i);
+      if (match) {
+        line1 = match[1].trim();
+        line2 = match[2].replace(/^,\s*/, '').trim();
+      } else {
+        const parts = rawAddress.split(',').map(p => p.trim()).filter(Boolean);
+        if (parts.length > 2) {
+          const mid = Math.ceil(parts.length / 2);
+          line1 = parts.slice(0, mid).join(', ');
+          line2 = parts.slice(mid).join(', ');
+        } else {
+          line1 = rawAddress;
+          line2 = '';
+        }
+      }
+    }
+  } else if (rawCity) {
+    line1 = rawCity;
+    line2 = '';
+  } else {
+    line1 = 'Main Road, Opp. Commando Fitness Center';
+    line2 = 'Uthangudi, Madurai, Tamil Nadu – 625107';
+  }
+
+  const nameEl = container.querySelector('.order-store-name');
+  if (nameEl) nameEl.textContent = storeName;
+
+  const l1El = container.querySelector('.order-store-line1');
+  if (l1El) {
+    l1El.textContent = line1;
+    l1El.style.display = line1 ? '' : 'none';
+  }
+
+  const l2El = container.querySelector('.order-store-line2');
+  if (l2El) {
+    l2El.textContent = line2;
+    l2El.style.display = line2 ? '' : 'none';
+  }
 }
 
 function getWhatsAppNumber() {

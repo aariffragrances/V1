@@ -6,6 +6,7 @@ const SECTION_TITLES = {
   perfumes: 'Perfumes',
   sheet: 'Pricing Sheet',
   'fragrance-types': 'Fragrance Types',
+  spotlight: 'Spotlight',
   banners: 'Banners',
   testimonials: 'Testimonials',
   orders: 'Orders',
@@ -18,6 +19,7 @@ let state = {
   types: [],
   perfumes: [],
   allPerfumes: [],
+  spotlight: null,
   banners: [],
   testimonials: [],
   orders: [],
@@ -106,6 +108,12 @@ async function requireAdmin() {
 /* ── Navigation ─────────────────────────────────────────── */
 function switchSection(section) {
   if (section === 'products') section = 'perfumes';
+  if (!section || !(section in SECTION_TITLES)) section = 'dashboard';
+
+  if (location.hash !== '#' + section) {
+    history.replaceState(null, '', '#' + section);
+  }
+
   document.querySelectorAll('.adm-nav-link').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.section === section);
   });
@@ -130,6 +138,9 @@ function switchSection(section) {
   } else if (section === 'fragrance-types') {
     if (state.types && state.types.length > 0) renderTypesTable();
     loadTypes();
+  } else if (section === 'spotlight') {
+    if (state.spotlight) paintSpotlightGrid(state.spotlight);
+    loadSpotlight();
   } else if (section === 'banners') {
     if (state.banners && state.banners.length > 0) paintBanners(state.banners);
     loadBanners();
@@ -915,6 +926,389 @@ function exportSheetToCsv() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   toast('Pricing sheet exported to CSV');
+}
+
+/* ── Spotlight ──────────────────────────────────────────── */
+const SPOTLIGHT_PRODUCT_SECTIONS = [
+  { key: 'featured', flag: 'is_featured', title: 'Featured Perfumes', subtitle: 'Homepage featured strip', icon: 'fa-star' },
+  { key: 'bestSellers', flag: 'is_best_seller', title: 'Best Sellers', subtitle: 'Most loved fragrances', icon: 'fa-ranking-star' },
+  { key: 'newArrivals', flag: 'is_new_arrival', title: 'New Arrivals', subtitle: 'Recently added fragrances', icon: 'fa-wand-magic-sparkles' },
+];
+
+let activeSpotlightPickerSection = null;
+let activeSpotlightPickerFlag = null;
+
+function renderSpotlightProductList(items) {
+  if (!items || !items.length) {
+    return '<p class="spotlight-cell-empty">No perfumes in this section yet</p>';
+  }
+  return `
+    <div class="adm-table-wrap spotlight-table-wrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th class="no-sort spotlight-col-thumb">Image</th>
+            <th class="no-sort">Perfume</th>
+            <th class="no-sort" style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((p) => {
+            const pid = p.perfumeId || p.productId || p.perfume_id;
+            const pname = p.perfumeName || p.productName || p.name;
+            const cat = p.categoryName || p.fragranceTypeName || '';
+            const img = p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp';
+            return `
+              <tr>
+                <td class="spotlight-col-thumb">
+                  <img class="thumb" src="${esc(img)}" alt="" style="width:36px;height:36px;border-radius:6px;object-fit:cover;background:#eee;">
+                </td>
+                <td>
+                  <strong>${esc(pname)}</strong><br>
+                  <small style="color:var(--adm-muted)">${esc(cat || pid)}</small>
+                </td>
+                <td>
+                  <div class="adm-table-actions" style="justify-content:flex-end">
+                    <button type="button" data-spotlight-edit="${esc(pid)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+                    <button type="button" class="del" data-spotlight-remove="${esc(pid)}" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderSpotlightTestimonialList(items) {
+  if (!items || !items.length) {
+    return '<p class="spotlight-cell-empty">No featured testimonials yet</p>';
+  }
+  return `
+    <div class="adm-table-wrap spotlight-table-wrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th class="no-sort spotlight-col-thumb">Avatar</th>
+            <th class="no-sort">Customer</th>
+            <th class="no-sort" style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((t) => {
+            const initial = t.customerInitial || t.customer_initial || (t.customerName || t.customer_name || '?')[0];
+            const name = t.customerName || t.customer_name || 'Customer';
+            const rating = t.rating ?? 5;
+            const quote = t.quote || t.review_text || t.text || '';
+            const shortQuote = quote.length > 70 ? quote.slice(0, 70) + '…' : quote;
+            return `
+              <tr>
+                <td class="spotlight-col-thumb">
+                  <span class="badge badge--green spotlight-avatar">${esc(initial)}</span>
+                </td>
+                <td>
+                  <strong>${esc(name)}</strong> <span style="color:#f59e0b">${'★'.repeat(rating)}</span><br>
+                  <small style="color:var(--adm-muted)">${esc(shortQuote || '—')}</small>
+                </td>
+                <td>
+                  <div class="adm-table-actions" style="justify-content:flex-end">
+                    <button type="button" data-spotlight-testimonial-edit="${t.id}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+                    <button type="button" class="del" data-spotlight-testimonial-unfeature="${t.id}" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function paintSpotlightGrid(data) {
+  const grid = document.getElementById('spotlight-grid');
+  const subtitle = document.getElementById('spotlight-subtitle');
+  if (!grid || !data) return;
+
+  const counts = data.counts || {};
+  const totalProducts = SPOTLIGHT_PRODUCT_SECTIONS.reduce((n, s) => n + (counts[s.key] || 0), 0);
+  if (subtitle) {
+    subtitle.textContent = `${totalProducts.toLocaleString()} spotlight products · ${(counts.testimonials ?? 0).toLocaleString()} featured testimonials`;
+  }
+
+  const productCells = SPOTLIGHT_PRODUCT_SECTIONS.map((section) => `
+    <div class="adm-card spotlight-cell" data-spotlight-section="${section.key}">
+      <div class="spotlight-cell-header">
+        <div>
+          <h3><i class="fa-solid ${section.icon}" style="margin-right:6px;color:var(--adm-green)"></i>${section.title}</h3>
+          <p>${section.subtitle}</p>
+        </div>
+        <span class="spotlight-cell-count">${counts[section.key] ?? 0}</span>
+      </div>
+      <div class="spotlight-cell-list">
+        ${renderSpotlightProductList(data.sections?.[section.key])}
+      </div>
+      <div style="padding:12px 18px;border-top:1px solid var(--adm-border)">
+        <button type="button" class="adm-btn adm-btn--outline adm-btn--sm" data-spotlight-add="${section.key}" data-spotlight-flag="${section.flag}">
+          <i class="fa-solid fa-plus"></i> Add Perfume
+        </button>
+      </div>
+    </div>`).join('');
+
+  const testimonialCell = `
+    <div class="adm-card spotlight-cell" data-spotlight-section="testimonials">
+      <div class="spotlight-cell-header">
+        <div>
+          <h3><i class="fa-solid fa-quote-left" style="margin-right:6px;color:var(--adm-green)"></i>Customer Testimonials</h3>
+          <p>Featured on the homepage</p>
+        </div>
+        <span class="spotlight-cell-count">${counts.testimonials ?? 0}</span>
+      </div>
+      <div class="spotlight-cell-list">
+        ${renderSpotlightTestimonialList(data.testimonials)}
+      </div>
+      <div style="padding:12px 18px;border-top:1px solid var(--adm-border)">
+        <button type="button" class="adm-btn adm-btn--outline adm-btn--sm" id="spotlight-add-testimonial">
+          <i class="fa-solid fa-plus"></i> Add Testimonial
+        </button>
+      </div>
+    </div>`;
+
+  grid.innerHTML = productCells + testimonialCell;
+
+  grid.querySelectorAll('[data-spotlight-add]').forEach((btn) => {
+    btn.onclick = () => openSpotlightProductPicker(btn.dataset.spotlightAdd, btn.dataset.spotlightFlag);
+  });
+
+  grid.querySelectorAll('[data-spotlight-edit]').forEach((btn) => {
+    btn.onclick = () => {
+      const pid = btn.dataset.spotlightEdit;
+      const all = state.allPerfumes || state.perfumes || [];
+      const found = all.find(p => (p.perfumeId || p.perfume_id) === pid);
+      if (found) {
+        openPerfumeModal(found);
+      } else {
+        AdminAPI.getPerfume(pid).then(openPerfumeModal).catch(err => toast(err.message, true));
+      }
+    };
+  });
+
+  grid.querySelectorAll('[data-spotlight-remove]').forEach((btn) => {
+    btn.onclick = async () => {
+      const pid = btn.dataset.spotlightRemove;
+      const cell = btn.closest('[data-spotlight-section]');
+      const sectionKey = cell?.dataset.spotlightSection;
+      const section = SPOTLIGHT_PRODUCT_SECTIONS.find(s => s.key === sectionKey);
+      if (!section) return;
+
+      try {
+        await AdminAPI.updatePerfume(pid, { [section.flag]: false });
+        toast('Removed from ' + section.title);
+        if (state.allPerfumes) {
+          const item = state.allPerfumes.find(x => (x.perfumeId || x.perfume_id) === pid);
+          if (item) {
+            if (section.flag === 'is_featured') item.isFeatured = false;
+            if (section.flag === 'is_best_seller') item.isBestSeller = false;
+            if (section.flag === 'is_new_arrival') item.isNewArrival = false;
+          }
+        }
+        await loadSpotlight();
+        loadDashboard();
+      } catch (err) {
+        toast(err.message || 'Failed to remove', true);
+      }
+    };
+  });
+
+  grid.querySelectorAll('[data-spotlight-testimonial-edit]').forEach((btn) => {
+    btn.onclick = async () => {
+      const tid = Number(btn.dataset.spotlightTestimonialEdit);
+      let t = (state.testimonials || []).find(x => x.id === tid);
+      if (!t) {
+        try {
+          const allT = await AdminAPI.testimonials();
+          state.testimonials = allT;
+          t = allT.find(x => x.id === tid);
+        } catch (_) {}
+      }
+      if (t) openTestimonialModal(t);
+    };
+  });
+
+  grid.querySelectorAll('[data-spotlight-testimonial-unfeature]').forEach((btn) => {
+    btn.onclick = async () => {
+      const tid = btn.dataset.spotlightTestimonialUnfeature;
+      try {
+        await AdminAPI.updateTestimonial(tid, { is_featured: false });
+        toast('Removed from spotlight');
+        await loadSpotlight();
+        loadTestimonials();
+      } catch (err) {
+        toast(err.message || 'Failed to update', true);
+      }
+    };
+  });
+
+  const addTestimonialBtn = document.getElementById('spotlight-add-testimonial');
+  if (addTestimonialBtn) {
+    addTestimonialBtn.onclick = () => {
+      openTestimonialModal(null);
+    };
+  }
+}
+
+async function loadSpotlight() {
+  const grid = document.getElementById('spotlight-grid');
+  if (!grid) return;
+  if (!grid.querySelector('.spotlight-cell')) {
+    grid.innerHTML = '<div class="adm-card" style="grid-column: 1 / -1; padding:32px; text-align:center; color:var(--adm-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin:12px 0 0">Loading spotlight sections…</p></div>';
+  }
+
+  try {
+    const data = await AdminAPI.spotlight();
+    state.spotlight = data;
+    paintSpotlightGrid(data);
+  } catch (e) {
+    if (state.allPerfumes && state.allPerfumes.length > 0) {
+      const feat = state.allPerfumes.filter(p => p.isFeatured || p.is_featured);
+      const best = state.allPerfumes.filter(p => p.isBestSeller || p.is_best_seller);
+      const nw = state.allPerfumes.filter(p => p.isNewArrival || p.is_new_arrival);
+      const featTest = (state.testimonials || []).filter(t => (t.isFeatured ?? t.is_featured) !== false);
+      const fmt = (p) => ({
+        perfumeId: p.perfumeId || p.perfume_id,
+        perfumeName: p.perfumeName || p.name,
+        categoryName: p.categoryName || p.fragranceTypeName || p.fragranceTypeId || '',
+        primaryImageUrl: p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp',
+        price: p.price30ml || p.price_30ml || p.price50ml || p.price_50ml || 0,
+        stock: p.stockQuantity ?? 50
+      });
+      const fallbackData = {
+        counts: {
+          featured: feat.length,
+          bestSellers: best.length,
+          newArrivals: nw.length,
+          testimonials: featTest.length
+        },
+        sections: {
+          featured: feat.map(fmt),
+          bestSellers: best.map(fmt),
+          newArrivals: nw.map(fmt)
+        },
+        testimonials: featTest.map(t => ({
+          id: t.id,
+          customerName: t.customerName || t.customer_name || t.name,
+          customerInitial: (t.customerInitial || t.customer_initial || t.customerName || t.customer_name || '?')[0],
+          rating: t.rating ?? 5,
+          quote: t.quote || t.text || '',
+          isFeatured: true
+        }))
+      };
+      state.spotlight = fallbackData;
+      paintSpotlightGrid(fallbackData);
+      return;
+    }
+    grid.innerHTML = `
+      <div class="adm-card" style="grid-column: 1 / -1; padding:24px">
+        <p style="margin:0 0 8px;color:var(--adm-danger)"><strong>Could not load Spotlight</strong></p>
+        <p style="margin:0;color:var(--adm-muted)">${esc(e.message || 'Request failed')}</p>
+      </div>`;
+  }
+}
+
+async function openSpotlightProductPicker(sectionKey, flagField) {
+  activeSpotlightPickerSection = sectionKey;
+  activeSpotlightPickerFlag = flagField;
+
+  const sectionMeta = SPOTLIGHT_PRODUCT_SECTIONS.find(s => s.key === sectionKey);
+  const titleEl = document.getElementById('spotlight-picker-modal-title');
+  if (titleEl) {
+    titleEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--adm-green)"></i> <span>Add to ${esc(sectionMeta?.title || 'Spotlight')}</span>`;
+  }
+
+  const searchInput = document.getElementById('spotlight-picker-search');
+  if (searchInput) searchInput.value = '';
+
+  const listEl = document.getElementById('spotlight-picker-list');
+  if (listEl) {
+    listEl.innerHTML = '<p class="spotlight-cell-empty" style="padding:16px"><i class="fa-solid fa-spinner fa-spin"></i> Loading perfumes...</p>';
+  }
+
+  openModal('spotlight-picker-modal-overlay');
+
+  if (!state.allPerfumes || !state.allPerfumes.length) {
+    try {
+      const res = await AdminAPI.perfumes({ per_page: 500 });
+      state.allPerfumes = res.items || (Array.isArray(res) ? res : []);
+    } catch (_) {}
+  }
+
+  renderSpotlightPickerItems('');
+
+  if (searchInput) {
+    searchInput.focus();
+    searchInput.oninput = () => {
+      renderSpotlightPickerItems(searchInput.value.trim().toLowerCase());
+    };
+  }
+}
+
+function renderSpotlightPickerItems(searchQuery) {
+  const listEl = document.getElementById('spotlight-picker-list');
+  if (!listEl) return;
+
+  const all = state.allPerfumes || state.perfumes || [];
+  const currentSectionItems = (state.spotlight?.sections?.[activeSpotlightPickerSection] || []);
+  const inSectionIds = new Set(currentSectionItems.map(p => p.perfumeId || p.productId || p.perfume_id));
+
+  let available = all.filter(p => {
+    const pid = p.perfumeId || p.perfume_id;
+    return !inSectionIds.has(pid);
+  });
+
+  if (searchQuery) {
+    available = available.filter(p => {
+      const name = (p.perfumeName || p.name || '').toLowerCase();
+      const pid = (p.perfumeId || p.perfume_id || '').toLowerCase();
+      return name.includes(searchQuery) || pid.includes(searchQuery);
+    });
+  }
+
+  if (!available.length) {
+    listEl.innerHTML = `<p class="spotlight-cell-empty" style="padding:16px">${searchQuery ? 'No matching perfumes found' : 'All perfumes are already in this section'}</p>`;
+    return;
+  }
+
+  listEl.innerHTML = available.map(p => {
+    const pid = p.perfumeId || p.perfume_id;
+    const pname = p.perfumeName || p.name;
+    const img = p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp';
+    return `
+      <button type="button" class="spotlight-picker-item" data-pick-perfume="${esc(pid)}">
+        <img src="${esc(img)}" alt="">
+        <span><strong>${esc(pname)}</strong> <small style="color:var(--adm-muted);margin-left:6px;">(${esc(pid)})</small></span>
+      </button>`;
+  }).join('');
+
+  listEl.querySelectorAll('[data-pick-perfume]').forEach(btn => {
+    btn.onclick = async () => {
+      const pid = btn.dataset.pickPerfume;
+      try {
+        await AdminAPI.updatePerfume(pid, { [activeSpotlightPickerFlag]: true });
+        closeModal('spotlight-picker-modal-overlay');
+        toast('Added to spotlight');
+        if (state.allPerfumes) {
+          const item = state.allPerfumes.find(x => (x.perfumeId || x.perfume_id) === pid);
+          if (item) {
+            if (activeSpotlightPickerFlag === 'is_featured') item.isFeatured = true;
+            if (activeSpotlightPickerFlag === 'is_best_seller') item.isBestSeller = true;
+            if (activeSpotlightPickerFlag === 'is_new_arrival') item.isNewArrival = true;
+          }
+        }
+        await loadSpotlight();
+        loadDashboard();
+      } catch (err) {
+        toast(err.message || 'Failed to add', true);
+      }
+    };
+  });
 }
 
 /* ── Banners ────────────────────────────────────────────── */
@@ -2308,12 +2702,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   bindEvents();
 
+  const getInitialSection = () => {
+    const h = (location.hash || '').replace(/^#/, '').trim();
+    if (h === 'products') return 'perfumes';
+    if (h && h in SECTION_TITLES) return h;
+    return 'dashboard';
+  };
+  const initSec = getInitialSection();
+
   const token = AdminAPI.getToken();
   const cachedUser = AdminAPI.getUser();
   if (token && cachedUser && cachedUser.role === 'admin') {
     // 0ms immediate render!
     showApp(cachedUser);
-    switchSection('dashboard');
+    switchSection(initSec);
     Promise.allSettled([
       requireAdmin(),
       ensureTypes().then(fillTypeSelects),
@@ -2321,8 +2723,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     const ok = await requireAdmin();
     if (ok) {
-      switchSection('dashboard');
+      switchSection(initSec);
       ensureTypes().then(fillTypeSelects).catch(() => {});
     }
   }
+
+  window.addEventListener('hashchange', () => {
+    const sec = (location.hash || '').replace(/^#/, '').trim();
+    if (sec && (sec in SECTION_TITLES || sec === 'products')) {
+      switchSection(sec);
+    }
+  });
 });

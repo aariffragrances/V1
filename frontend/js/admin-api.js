@@ -109,6 +109,47 @@ const AdminAPI = {
 
     if (path.startsWith('/api/v1/admin/banners')) return banners;
     if (path.startsWith('/api/v1/admin/testimonials')) return testimonials;
+    if (path.startsWith('/api/v1/admin/spotlight')) {
+      const feat = perfumes.filter(p => p.isFeatured || p.is_featured);
+      const best = perfumes.filter(p => p.isBestSeller || p.is_best_seller);
+      const nw = perfumes.filter(p => p.isNewArrival || p.is_new_arrival);
+      const featTest = testimonials.filter(t => t.isFeatured || t.is_featured);
+      const fmt = (p) => ({
+        perfumeId: p.perfumeId || p.perfume_id,
+        productId: p.perfumeId || p.perfume_id,
+        perfumeName: p.perfumeName || p.name,
+        productName: p.perfumeName || p.name,
+        categoryName: p.categoryName || p.fragranceTypeId || '',
+        primaryImageUrl: p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp',
+        price: p.price_30ml || p.price || 0,
+        stock: p.stockQuantity ?? 50,
+        isFeatured: !!(p.isFeatured || p.is_featured),
+        isBestSeller: !!(p.isBestSeller || p.is_best_seller),
+        isNewArrival: !!(p.isNewArrival || p.is_new_arrival),
+        isActive: p.isActive !== false
+      });
+      return {
+        counts: {
+          featured: feat.length,
+          bestSellers: best.length,
+          newArrivals: nw.length,
+          testimonials: featTest.length
+        },
+        sections: {
+          featured: feat.map(fmt),
+          bestSellers: best.map(fmt),
+          newArrivals: nw.map(fmt)
+        },
+        testimonials: featTest.map(t => ({
+          id: t.id,
+          customerName: t.customerName || t.customer_name,
+          customerInitial: (t.customerName || t.customer_name || '?')[0],
+          rating: t.rating || 5,
+          quote: t.reviewText || t.quote || '',
+          isFeatured: true
+        }))
+      };
+    }
     return null;
   },
 
@@ -173,6 +214,9 @@ const AdminAPI = {
   deletePerfume(id)   { return this.request(`/api/v1/admin/perfumes/${encodeURIComponent(id)}`,{method:'DELETE'}); },
   uploadPerfumeImage(id,files){ const fd=new FormData();files.forEach(f=>fd.append('files',f));return this.request(`/api/v1/admin/perfumes/${encodeURIComponent(id)}/images/upload`,{method:'POST',body:fd}); },
   deletePerfumeImage(perfumeId,imageId){ return this.request(`/api/v1/admin/perfumes/${encodeURIComponent(perfumeId)}/images/${imageId}`,{method:'DELETE'}); },
+
+  // Spotlight
+  spotlight()    { return this.request('/api/v1/admin/spotlight'); },
 
   // Banners
   banners()      { return this.request('/api/v1/admin/banners'); },

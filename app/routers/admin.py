@@ -753,6 +753,72 @@ async def save_site_settings(body: dict, user: User = Depends(require_admin), db
     return {"ok": True}
 
 
+# ── Spotlight ──────────────────────────────────────────────────────────────────
+
+@router.get("/spotlight")
+async def get_admin_spotlight(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Perfume)
+        .options(selectinload(Perfume.images), selectinload(Perfume.fragrance_type))
+        .where(Perfume.is_active == True)
+        .order_by(Perfume.perfume_name)
+    )
+    all_perfumes = result.scalars().all()
+
+    sections = {
+        "featured": [],
+        "bestSellers": [],
+        "newArrivals": [],
+    }
+
+    for p in all_perfumes:
+        img_url = p.images[0].image_url if p.images else ""
+        item = {
+            "productId": p.perfume_id,
+            "productName": p.perfume_name,
+            "brand": p.brand or "Aarif Fragrances",
+            "categoryName": p.fragrance_type.type_name if p.fragrance_type else "",
+            "primaryImageUrl": img_url,
+            "price_6ml": float(p.price_6ml) if p.price_6ml else None,
+            "isFeatured": bool(p.is_featured),
+            "isBestSeller": bool(p.is_best_seller),
+            "isNewArrival": bool(p.is_new_arrival),
+        }
+        if p.is_featured:
+            sections["featured"].append(item)
+        if p.is_best_seller:
+            sections["bestSellers"].append(item)
+        if p.is_new_arrival:
+            sections["newArrivals"].append(item)
+
+    test_res = await db.execute(
+        select(Testimonial)
+        .order_by(Testimonial.display_order.asc(), Testimonial.id.asc())
+        .limit(100)
+    )
+    testimonials = [
+        {
+            "id": t.id,
+            "customerName": t.customer_name,
+            "customerInitial": t.customer_initial or (t.customer_name[0] if t.customer_name else "?"),
+            "rating": t.rating,
+            "quote": t.quote,
+            "displayOrder": t.display_order,
+            "isFeatured": t.is_featured,
+        }
+        for t in test_res.scalars().all()
+    ]
+
+    counts = {
+        "featured": len(sections["featured"]),
+        "bestSellers": len(sections["bestSellers"]),
+        "newArrivals": len(sections["newArrivals"]),
+        "testimonials": len(testimonials),
+    }
+
+    return {"counts": counts, "sections": sections, "testimonials": testimonials}
+
+
 # ── Coupons ────────────────────────────────────────────────────────────────────
 
 DEFAULT_COUPONS = [

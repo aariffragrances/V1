@@ -1,0 +1,20 @@
+# robots.txt for Aarif Fragrances
+User-agent: *
+Allow: /
+Allow: /products.html
+Allow: /about.html
+Allow: /contact.html
+Allow: /policies.html
+Allow: /assets/
+Allow: /css/
+Allow: /js/
+
+# Disallow administrative and private areas
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /account.html
+Disallow: /docs
+Disallow: /redoc
+
+Sitemap: /sitemap.xml
