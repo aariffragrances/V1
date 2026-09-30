@@ -80,6 +80,19 @@ const AdminAPI = {
       };
     }
 
+    if (path.startsWith('/api/v1/admin/perfumes/next-id')) {
+      let maxNum = 0;
+      perfumes.forEach(p => {
+        const m = String(p.perfumeId || p.perfume_id || '').match(/\d+/);
+        if (m) {
+          const n = parseInt(m[0], 10);
+          if (n > maxNum) maxNum = n;
+        }
+      });
+      const nextNum = Math.max(maxNum, 52) + 1;
+      return { next_id: `PF${String(nextNum).padStart(3, '0')}` };
+    }
+
     const singlePerfumeMatch = path.match(/^\/api\/v1\/admin\/perfumes\/([^/?#]+)/);
     if (singlePerfumeMatch) {
       const pid = decodeURIComponent(singlePerfumeMatch[1]);
@@ -209,6 +222,7 @@ const AdminAPI = {
   // Perfumes
   perfumes(p={}) { const q=new URLSearchParams(p).toString(); return this.request('/api/v1/admin/perfumes'+(q?'?'+q:'')); },
   getPerfume(id) { return this.request(`/api/v1/admin/perfumes/${encodeURIComponent(id)}`); },
+  nextPerfumeId() { return this.request('/api/v1/admin/perfumes/next-id'); },
   createPerfume(b)    { return this.request('/api/v1/admin/perfumes',{method:'POST',body:JSON.stringify(b)}); },
   updatePerfume(id,b) { return this.request(`/api/v1/admin/perfumes/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(b)}); },
   deletePerfume(id)   { return this.request(`/api/v1/admin/perfumes/${encodeURIComponent(id)}`,{method:'DELETE'}); },

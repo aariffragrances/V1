@@ -304,8 +304,9 @@ async function ensureTypes() {
 }
 
 function fillTypeSelects() {
+  const types = state.types || [];
   const opts = '<option value="">All Types</option>' +
-    state.types.map((t) => `<option value="${esc(t.type_id)}">${esc(t.type_name)}</option>`).join('');
+    types.map((t) => `<option value="${esc(t.type_id || t.typeId || '')}">${esc(t.type_name || t.typeName || '')}</option>`).join('');
   const filter = document.getElementById('perfume-type-filter');
   if (filter) {
     const cur = filter.value;
@@ -314,8 +315,8 @@ function fillTypeSelects() {
   }
   const pf = document.getElementById('pf-type');
   if (pf) {
-    pf.innerHTML = state.types.map((t) =>
-      `<option value="${esc(t.type_id)}">${esc(t.type_name)}</option>`
+    pf.innerHTML = types.map((t) =>
+      `<option value="${esc(t.type_id || t.typeId || '')}">${esc(t.type_name || t.typeName || '')}</option>`
     ).join('');
   }
 }
@@ -585,7 +586,7 @@ function getNextPerfumeId() {
       if (n > maxNum) maxNum = n;
     }
   });
-  const nextNum = maxNum + 1;
+  const nextNum = Math.max(maxNum, 52) + 1;
   return `PF${String(nextNum).padStart(3, '0')}`;
 }
 
@@ -600,8 +601,16 @@ function openPerfumeModal(p) {
   const idInput = document.getElementById('pf-id');
   idInput.value = perfumeId;
   idInput.readOnly = true; // Always locked - admin cannot edit
+  if (!p) {
+    AdminAPI.nextPerfumeId().then(res => {
+      if (res && res.next_id && !document.getElementById('pf-original-id').value) {
+        idInput.value = res.next_id;
+      }
+    }).catch(() => {});
+  }
   document.getElementById('pf-name').value = p?.perfumeName || '';
-  document.getElementById('pf-type').value = p?.fragranceTypeId || (state.types[0]?.type_id || '');
+  const firstTypeId = state.types?.[0]?.type_id || state.types?.[0]?.typeId || '';
+  document.getElementById('pf-type').value = p?.fragranceTypeId || firstTypeId;
   document.getElementById('pf-stock').value = p?.stockQuantity ?? 100;
   document.getElementById('pf-description').value = p?.description || '';
   document.getElementById('pf-price-6').value = p?.price6ml ?? '';
@@ -2256,25 +2265,34 @@ function bindEvents() {
     }
 
     try {
-      if (originalId) await AdminAPI.updatePerfume(originalId, body);
-      else await AdminAPI.createPerfume(body);
+      let created = null;
+      if (originalId) {
+        await AdminAPI.updatePerfume(originalId, body);
+      } else {
+        created = await AdminAPI.createPerfume(body);
+      }
+      const actualPerfumeId = created?.perfume_id || perfumeId;
 
       const files = [...(document.getElementById('pf-image-files').files || [])];
       if (files.length) {
-        try { await AdminAPI.uploadPerfumeImage(body.perfume_id, files); }
+        try { await AdminAPI.uploadPerfumeImage(actualPerfumeId, files); }
         catch (upErr) { toast('Saved, but image upload note: ' + upErr.message, true); }
       }
 
       // Optimistic in-memory update for 0ms refresh!
-      const targetId = originalId || perfumeId;
+      const targetId = originalId || actualPerfumeId;
       const updateItem = (item) => {
         if (!item) return;
-        item.perfumeId = perfumeId;
+        item.perfumeId = actualPerfumeId;
+        item.perfume_id = actualPerfumeId;
         item.perfumeName = perfumeName;
+        item.perfume_name = perfumeName;
         item.fragranceTypeId = fragranceTypeId;
+        item.fragrance_type_id = fragranceTypeId;
         item.fragranceTypeName = fragranceTypeName || item.fragranceTypeName;
         item.description = body.description;
         item.stockQuantity = body.stock_quantity;
+        item.stock_quantity = body.stock_quantity;
         item.price6ml = body.price_6ml;
         item.price12ml = body.price_12ml;
         item.price24ml = body.price_24ml;
@@ -2294,7 +2312,41 @@ function bindEvents() {
       };
 
       const matchP = (state.perfumes || []).find(x => (x.perfumeId || x.perfume_id) === targetId);
-      if (matchP) updateItem(matchP);
+      if (matchP) {
+        updateItem(matchP);
+      } else if (!originalId) {
+        const newItem = {
+          perfumeId: actualPerfumeId,
+          perfume_id: actualPerfumeId,
+          perfumeName: perfumeName,
+          perfume_name: perfumeName,
+          fragranceTypeId: fragranceTypeId,
+          fragrance_type_id: fragranceTypeId,
+          fragranceTypeName: fragranceTypeName,
+          description: body.description,
+          stockQuantity: body.stock_quantity,
+          stock_quantity: body.stock_quantity,
+          price6ml: body.price_6ml,
+          price12ml: body.price_12ml,
+          price24ml: body.price_24ml,
+          price20ml: body.price_20ml,
+          price30ml: body.price_30ml,
+          price50ml: body.price_50ml,
+          price100ml: body.price_100ml,
+          priceCar6ml: body.price_car_6ml,
+          priceCar12ml: body.price_car_12ml,
+          isAttar: body.is_attar,
+          isPerfume: body.is_perfume,
+          isCarHanger: body.is_car_hanger,
+          isFeatured: body.is_featured,
+          isBestSeller: body.is_best_seller,
+          isNewArrival: body.is_new_arrival,
+          isActive: body.is_active,
+          primaryImageUrl: '/images/products/placeholder.webp'
+        };
+        if (state.perfumes) state.perfumes.unshift(newItem);
+        if (state.allPerfumes) state.allPerfumes.unshift(newItem);
+      }
       const matchAll = (state.allPerfumes || []).find(x => (x.perfumeId || x.perfume_id) === targetId);
       if (matchAll) updateItem(matchAll);
 

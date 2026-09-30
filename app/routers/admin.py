@@ -295,6 +295,46 @@ async def admin_perfumes(
     return payload
 
 
+def _safe_decimal(val):
+    if val is None:
+        return None
+    s = str(val).strip()
+    if not s or s.lower() == "null":
+        return None
+    try:
+        return Decimal(s)
+    except Exception:
+        return None
+
+
+def _safe_int(val, default=0):
+    if val is None:
+        return default
+    s = str(val).strip()
+    if not s:
+        return default
+    try:
+        return int(float(s))
+    except Exception:
+        return default
+
+
+@router.get("/perfumes/next-id")
+async def get_next_perfume_id(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    import re
+    from sqlalchemy import text
+    res = await db.execute(text("SELECT perfume_id FROM perfumes"))
+    max_num = 0
+    for (existing_id,) in res.fetchall():
+        m = re.search(r"\d+", existing_id or "")
+        if m:
+            num = int(m.group(0))
+            if num > max_num:
+                max_num = num
+    next_num = max_num + 1
+    return {"next_id": f"PF{next_num:03d}"}
+
+
 @router.get("/perfumes/{perfume_id}")
 async def get_admin_perfume(perfume_id: str, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     cache_key = f"perfume:{perfume_id}"
@@ -311,37 +351,62 @@ async def get_admin_perfume(perfume_id: str, user: User = Depends(require_admin)
 
 @router.post("/perfumes")
 async def create_perfume(body: dict, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    import re
+    from sqlalchemy import text
+
+    res = await db.execute(text("SELECT perfume_id FROM perfumes"))
+    existing_ids = {row[0] for row in res.fetchall() if row[0]}
+
     pid = (body.get("perfume_id") or "").strip()
-    if not pid:
-        import re
-        from sqlalchemy import text
-        res = await db.execute(text("SELECT perfume_id FROM perfumes"))
+    if not pid or pid in existing_ids:
         max_num = 0
-        for (existing_id,) in res.fetchall():
-            m = re.search(r"\d+", existing_id or "")
+        for eid in existing_ids:
+            m = re.search(r"\d+", eid)
             if m:
                 num = int(m.group(0))
                 if num > max_num:
                     max_num = num
-        next_num = max_num + 1
-        pid = f"PF{next_num:03d}"
-    name = body.get("perfume_name", "")
+        pid = f"PF{max_num + 1:03d}"
+
+    name = (body.get("perfume_name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="Perfume name is required")
+
+    ftype_id = body.get("fragrance_type_id")
+    if not ftype_id:
+        raise HTTPException(status_code=422, detail="Fragrance type is required")
+
+    ft_check = await db.execute(select(FragranceType.type_id).where(FragranceType.type_id == ftype_id))
+    if not ft_check.scalar_one_or_none():
+        first_ft = (await db.execute(select(FragranceType.type_id).order_by(FragranceType.display_order))).scalars().first()
+        ftype_id = first_ft or "FT001"
+
+    base_slug = _slug(f"{pid}-{name}")
+    slug = base_slug
+    counter = 1
+    while True:
+        s_check = await db.execute(select(Perfume.perfume_id).where(Perfume.slug == slug))
+        if not s_check.scalar_one_or_none():
+            break
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
     p = Perfume(
         perfume_id=pid,
-        fragrance_type_id=body["fragrance_type_id"],
+        fragrance_type_id=ftype_id,
         perfume_name=name,
-        brand=body.get("brand"),
-        slug=_slug(f"{pid}-{name}"),
-        description=body.get("description"),
-        price_6ml=Decimal(str(body["price_6ml"])) if body.get("price_6ml") else None,
-        price_12ml=Decimal(str(body["price_12ml"])) if body.get("price_12ml") else None,
-        price_24ml=Decimal(str(body["price_24ml"])) if body.get("price_24ml") else None,
-        price_20ml=Decimal(str(body["price_20ml"])) if body.get("price_20ml") else None,
-        price_30ml=Decimal(str(body["price_30ml"])) if body.get("price_30ml") else None,
-        price_50ml=Decimal(str(body["price_50ml"])) if body.get("price_50ml") else None,
-        price_100ml=Decimal(str(body["price_100ml"])) if body.get("price_100ml") else None,
-        price_car_6ml=Decimal(str(body["price_car_6ml"])) if body.get("price_car_6ml") else None,
-        price_car_12ml=Decimal(str(body["price_car_12ml"])) if body.get("price_car_12ml") else None,
+        brand=(body.get("brand") or "").strip() or None,
+        slug=slug,
+        description=(body.get("description") or "").strip() or None,
+        price_6ml=_safe_decimal(body.get("price_6ml")),
+        price_12ml=_safe_decimal(body.get("price_12ml")),
+        price_24ml=_safe_decimal(body.get("price_24ml")),
+        price_20ml=_safe_decimal(body.get("price_20ml")),
+        price_30ml=_safe_decimal(body.get("price_30ml")),
+        price_50ml=_safe_decimal(body.get("price_50ml")),
+        price_100ml=_safe_decimal(body.get("price_100ml")),
+        price_car_6ml=_safe_decimal(body.get("price_car_6ml")),
+        price_car_12ml=_safe_decimal(body.get("price_car_12ml")),
         is_attar=bool(body.get("is_attar", False)),
         is_perfume=bool(body.get("is_perfume", body.get("perfume_spray", True))),
         is_car_hanger=bool(body.get("is_car_hanger", body.get("is_car_hangover", False))),
@@ -349,9 +414,16 @@ async def create_perfume(body: dict, user: User = Depends(require_admin), db: As
         is_best_seller=bool(body.get("is_best_seller", False)),
         is_new_arrival=bool(body.get("is_new_arrival", False)),
         is_active=bool(body.get("is_active", True)),
-        stock_quantity=int(body.get("stock_quantity", 0)),
+        stock_quantity=_safe_int(body.get("stock_quantity"), 0),
     )
-    db.add(p)
+
+    try:
+        db.add(p)
+        await db.commit()
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to create perfume: {str(exc)}") from exc
+
     admin_cache_clear("perfume")
     admin_cache_clear("stats")
     admin_cache_clear("low_stock")
@@ -368,14 +440,22 @@ async def update_perfume(perfume_id: str, body: dict, user: User = Depends(requi
     if "perfume_spray" in body and "is_perfume" not in body:
         body["is_perfume"] = body["perfume_spray"]
     for k in ("perfume_name", "brand", "description", "fragrance_type_id", "is_attar",
-              "is_perfume", "is_car_hanger", "is_featured", "is_best_seller", "is_new_arrival", "is_active", "stock_quantity"):
+              "is_perfume", "is_car_hanger", "is_featured", "is_best_seller", "is_new_arrival", "is_active"):
         if k in body:
             setattr(p, k, body[k])
+    if "stock_quantity" in body:
+        p.stock_quantity = _safe_int(body["stock_quantity"], 0)
     if "is_car_hangover" in body and "is_car_hanger" not in body:
         p.is_car_hanger = bool(body["is_car_hangover"])
     for k in ("price_6ml", "price_12ml", "price_24ml", "price_20ml", "price_30ml", "price_50ml", "price_100ml", "price_car_6ml", "price_car_12ml"):
         if k in body:
-            setattr(p, k, Decimal(str(body[k])) if (body[k] is not None and str(body[k]).strip() != "") else None)
+            setattr(p, k, _safe_decimal(body[k]))
+    try:
+        await db.commit()
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to update perfume: {str(exc)}") from exc
+
     admin_cache_clear("perfume")
     admin_cache_clear("stats")
     admin_cache_clear("low_stock")
