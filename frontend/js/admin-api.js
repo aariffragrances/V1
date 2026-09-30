@@ -163,6 +163,25 @@ const AdminAPI = {
         }))
       };
     }
+
+    if (path.startsWith('/api/v1/admin/settings')) {
+      return (bs && bs.siteSettings) || {};
+    }
+
+    if (path.startsWith('/api/v1/admin/coupons')) {
+      return [
+        { code: 'WELCOME10', type: 'percent', value: 10, min: 0, active: true }
+      ];
+    }
+
+    if (path.startsWith('/api/v1/admin/orders')) {
+      return { items: [], total: 0 };
+    }
+
+    if (path.startsWith('/api/v1/admin/contact-submissions')) {
+      return [];
+    }
+
     return null;
   },
 

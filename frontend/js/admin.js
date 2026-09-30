@@ -198,15 +198,20 @@ function renderLowStockList(data) {
     list.innerHTML = '<p class="table-empty" style="padding:16px">All stock levels look healthy.</p>';
     return;
   }
-  list.innerHTML = items.map((p) => `
-    <button type="button" class="low-stock-item" data-edit-stock="${esc(p.perfumeId)}">
+  list.innerHTML = items.map((p) => {
+    const pid = p.perfumeId || p.perfume_id;
+    const pname = p.perfumeName || p.perfume_name;
+    const qty = Number(p.stockQuantity ?? p.stock_quantity ?? 0);
+    return `
+    <button type="button" class="low-stock-item" data-edit-stock="${esc(pid)}">
       <div class="table-thumb table-thumb--empty"><i class="fa-solid fa-box"></i></div>
       <div style="flex:1;text-align:left">
-        <strong>${esc(p.perfumeName)}</strong>
-        <div style="font-size:.75rem;color:var(--adm-muted)">${esc(p.perfumeId)}</div>
+        <strong>${esc(pname)}</strong>
+        <div style="font-size:.75rem;color:var(--adm-muted)">${esc(pid)}</div>
       </div>
-      <span class="badge ${p.stockQuantity <= 0 ? 'badge--pink' : 'badge--amber'}">${p.stockQuantity}</span>
-    </button>`).join('');
+      <span class="badge ${qty <= 0 ? 'badge--pink' : 'badge--amber'}">${qty}</span>
+    </button>`;
+  }).join('');
 }
 
 async function loadDashboard() {
@@ -329,30 +334,39 @@ function renderTypesTable() {
     return;
   }
   tbody.innerHTML = state.types.map((t) => {
-    const imgHtml = t.icon_image_url
-      ? `<img src="${esc(t.icon_image_url)}" alt="${esc(t.type_name)}" class="table-type-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="table-thumb table-thumb--empty" style="display:none"><i class="fa-solid fa-layer-group"></i></div>`
+    const tid = t.type_id || t.typeId || '';
+    const tname = t.type_name || t.typeName || '';
+    const icon = t.icon_image_url || t.iconImageUrl || '';
+    const desc = t.description || '';
+    const slug = t.slug || '';
+    const count = t.item_count ?? t.itemCount ?? t.product_count ?? 0;
+    const order = t.display_order ?? t.displayOrder ?? 0;
+    const isAct = (t.is_active ?? t.isActive) !== false;
+
+    const imgHtml = icon
+      ? `<img src="${esc(icon)}" alt="${esc(tname)}" class="table-type-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="table-thumb table-thumb--empty" style="display:none"><i class="fa-solid fa-layer-group"></i></div>`
       : `<div class="table-thumb table-thumb--empty"><i class="fa-solid fa-layer-group"></i></div>`;
-    const subtitle = t.description || t.slug || '';
+    const subtitle = desc || slug;
     return `
-    <tr class="${t.is_active ? '' : 'adm-row-inactive'}">
+    <tr class="${isAct ? '' : 'adm-row-inactive'}">
       <td style="width:72px">
         <div class="table-cat-thumb">${imgHtml}</div>
       </td>
       <td>
         <div class="table-cat-cell">
-          <strong class="table-cat-name">${esc(t.type_name)}</strong>
+          <strong class="table-cat-name">${esc(tname)}</strong>
           ${subtitle ? `<div class="table-cat-subtitle">${esc(subtitle)}</div>` : ''}
         </div>
       </td>
-      <td><code>${esc(t.slug || '')}</code></td>
-      <td>${esc((t.description || '').slice(0, 50))}</td>
-      <td>${t.item_count ?? 0}</td>
-      <td>${t.display_order ?? 0}</td>
-      <td><span class="badge ${t.is_active ? 'badge--green' : 'badge--gray'}">${t.is_active ? 'Active' : 'Off'}</span></td>
+      <td><code>${esc(slug)}</code></td>
+      <td>${esc(desc.slice(0, 50))}</td>
+      <td>${count}</td>
+      <td>${order}</td>
+      <td><span class="badge ${isAct ? 'badge--green' : 'badge--gray'}">${isAct ? 'Active' : 'Off'}</span></td>
       <td>
         <div class="adm-table-actions">
-          <button type="button" data-edit-type="${esc(t.type_id)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-          <button type="button" class="del" data-del-type="${esc(t.type_id)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          <button type="button" data-edit-type="${esc(tid)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+          <button type="button" class="del" data-del-type="${esc(tid)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
         </div>
       </td>
     </tr>`;
@@ -409,15 +423,16 @@ function updateTypeImagePreview(url) {
 
 function openTypeModal(type) {
   document.getElementById('type-modal-title').textContent = type ? 'Edit Fragrance Type' : 'Add Fragrance Type';
-  document.getElementById('ft-original-id').value = type?.type_id || '';
-  document.getElementById('ft-id').value = type?.type_id || '';
+  const tid = type ? (type.type_id || type.typeId || '') : '';
+  document.getElementById('ft-original-id').value = tid;
+  document.getElementById('ft-id').value = tid;
   document.getElementById('ft-id').readOnly = !!type;
-  document.getElementById('ft-name').value = type?.type_name || '';
+  document.getElementById('ft-name').value = type ? (type.type_name || type.typeName || '') : '';
   document.getElementById('ft-slug').value = type?.slug || '';
   document.getElementById('ft-description').value = type?.description || '';
-  document.getElementById('ft-order').value = type?.display_order ?? 0;
-  document.getElementById('ft-is-active').checked = type ? !!type.is_active : true;
-  const imgUrl = type?.icon_image_url || '';
+  document.getElementById('ft-order').value = type ? (type.display_order ?? type.displayOrder ?? 0) : 0;
+  document.getElementById('ft-is-active').checked = type ? !!((type.is_active ?? type.isActive) !== false) : true;
+  const imgUrl = type ? (type.icon_image_url || type.iconImageUrl || '') : '';
   const urlInput = document.getElementById('ft-image-url');
   if (urlInput) urlInput.value = imgUrl;
   updateTypeImagePreview(imgUrl);
@@ -443,59 +458,67 @@ function renderPerfumesTable() {
     return;
   }
   tbody.innerHTML = items.map((p) => {
+    const isAttar = p.isAttar ?? p.is_attar;
+    const isPerfume = p.isPerfume ?? p.is_perfume;
+    const isCarHanger = p.isCarHanger ?? p.is_car_hanger ?? p.isCarHangover;
+    const isFeatured = p.isFeatured ?? p.is_featured;
+    const isBestSeller = p.isBestSeller ?? p.is_best_seller;
+    const isNewArrival = p.isNewArrival ?? p.is_new_arrival;
+    const isActive = p.isActive !== false && p.is_active !== false;
+
     const badges = [];
-    if (p.isAttar) badges.push('<span class="badge-chip">Attar</span>');
-    if (p.isPerfume) badges.push('<span class="badge-chip">Perfume</span>');
-    if (p.isCarHanger || p.isCarHangover) badges.push('<span class="badge-chip">Car Hanger</span>');
-    if (p.isFeatured) badges.push('<span class="badge-chip badge-chip--feat">Feat</span>');
-    if (p.isBestSeller) badges.push('<span class="badge-chip badge-chip--hot">Best</span>');
-    if (p.isNewArrival) badges.push('<span class="badge-chip badge-chip--new">New</span>');
-    const imgSrc = p.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
+    if (isAttar) badges.push('<span class="badge-chip">Attar</span>');
+    if (isPerfume) badges.push('<span class="badge-chip">Perfume</span>');
+    if (isCarHanger) badges.push('<span class="badge-chip">Car Hanger</span>');
+    if (isFeatured) badges.push('<span class="badge-chip badge-chip--feat">Feat</span>');
+    if (isBestSeller) badges.push('<span class="badge-chip badge-chip--hot">Best</span>');
+    if (isNewArrival) badges.push('<span class="badge-chip badge-chip--new">New</span>');
+
+    const pid = p.perfumeId || p.perfume_id || '';
+    const pname = p.perfumeName || p.perfume_name || '';
+    const tname = p.fragranceTypeName || p.type_name || '—';
+    const imgSrc = p.primaryImageUrl || p.primary_image_url || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
     const img = `<img src="${esc(imgSrc)}" alt="" class="thumb" loading="lazy" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">`;
 
-    const p24 = p.price24ml != null ? p.price24ml : (p.price12ml != null ? p.price12ml * 2 : (p.price6ml != null ? p.price6ml * 4 : null));
-    const p20 = p.price20ml != null ? p.price20ml : (p.price30ml != null ? Math.round((p.price30ml * 20 / 30) / 10) * 10 : (p.price50ml != null ? Math.round((p.price50ml * 20 / 50) / 10) * 10 : null));
-    const p100 = p.price100ml != null ? p.price100ml : (p.price50ml != null ? p.price50ml * 2 : (p.price30ml != null ? Math.round(p.price30ml * 3.3 / 10) * 10 : null));
-    const car6 = p.priceCar6ml != null ? p.priceCar6ml : p.price6ml;
-    const car12 = p.priceCar12ml != null ? p.priceCar12ml : p.price12ml;
+    const prices = calculateSheetPrices(p);
 
     const attarPrices = [
-      p.price6ml != null ? `<span>6ml <b>${money(p.price6ml)}</b></span>` : '',
-      p.price12ml != null ? `<span>12ml <b>${money(p.price12ml)}</b></span>` : '',
-      p24 != null ? `<span>24ml <b>${money(p24)}</b></span>` : '',
+      prices.attar6 != null ? `<span>6ml <b>${money(prices.attar6)}</b></span>` : '',
+      prices.attar12 != null ? `<span>12ml <b>${money(prices.attar12)}</b></span>` : '',
+      prices.attar24 != null ? `<span>24ml <b>${money(prices.attar24)}</b></span>` : '',
     ].filter(Boolean).join('') || '—';
 
     const perfumePrices = [
-      p20 != null ? `<span>20ml <b>${money(p20)}</b></span>` : '',
-      p.price30ml != null ? `<span>30ml <b>${money(p.price30ml)}</b></span>` : '',
-      p.price50ml != null ? `<span>50ml <b>${money(p.price50ml)}</b></span>` : '',
-      p100 != null ? `<span>100ml <b>${money(p100)}</b></span>` : '',
+      prices.perfume20 != null ? `<span>20ml <b>${money(prices.perfume20)}</b></span>` : '',
+      prices.perfume30 != null ? `<span>30ml <b>${money(prices.perfume30)}</b></span>` : '',
+      prices.perfume50 != null ? `<span>50ml <b>${money(prices.perfume50)}</b></span>` : '',
+      prices.perfume100 != null ? `<span>100ml <b>${money(prices.perfume100)}</b></span>` : '',
     ].filter(Boolean).join('') || '—';
 
     const carPrices = [
-      car6 != null ? `<span>6ml <b>${money(car6)}</b></span>` : '',
-      car12 != null ? `<span>12ml <b>${money(car12)}</b></span>` : '',
+      prices.car6 != null ? `<span>6ml <b>${money(prices.car6)}</b></span>` : '',
+      prices.car12 != null ? `<span>12ml <b>${money(prices.car12)}</b></span>` : '',
     ].filter(Boolean).join('') || '—';
 
-    const stock = Number(p.stockQuantity ?? 0);
+    const stock = Number(p.stockQuantity ?? p.stock_quantity ?? 0);
     const stockBadge = stock <= 0
       ? '<span class="badge badge--pink">Out of Stock</span>'
       : stock <= 10
         ? `<span class="badge badge--amber">${stock}</span>`
         : `<span>${stock}</span>`;
-    const inactive = p.isActive === false ? ' adm-row-inactive' : '';
-    return `<tr class="${inactive.trim()}" data-id="${esc(p.perfumeId)}">
-      <td><input type="checkbox" class="perfume-cb" value="${esc(p.perfumeId)}"></td>
+    const inactive = !isActive ? ' adm-row-inactive' : '';
+    return `<tr class="${inactive.trim()}" data-id="${esc(pid)}">
+      <td><input type="checkbox" class="perfume-cb" value="${esc(pid)}"></td>
       <td>
         <div class="prod-cell">
           ${img}
           <div class="prod-cell-text">
-            <strong>${esc(p.perfumeName)}</strong>
-            <small>${esc(p.perfumeId)}</small>
+            <strong>${esc(pname)}</strong>
+            <small>${esc(pid)}</small>
           </div>
         </div>
       </td>
-      <td>${esc(p.fragranceTypeName || '—')}</td>
+      <td>${esc(tname)}</td>
       <td><div class="price-stack">${attarPrices}</div></td>
       <td><div class="price-stack">${perfumePrices}</div></td>
       <td><div class="price-stack">${carPrices}</div></td>
@@ -503,14 +526,14 @@ function renderPerfumesTable() {
       <td><div class="badge-chips">${badges.join('') || '—'}</div></td>
       <td>
         <label class="toggle" title="Active">
-          <input type="checkbox" class="perfume-active-toggle" data-id="${esc(p.perfumeId)}" ${p.isActive !== false ? 'checked' : ''}>
+          <input type="checkbox" class="perfume-active-toggle" data-id="${esc(pid)}" ${isActive ? 'checked' : ''}>
           <span class="toggle-slider"></span>
         </label>
       </td>
       <td>
         <div class="adm-table-actions">
-          <button type="button" data-edit-perfume="${esc(p.perfumeId)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-          <button type="button" class="del" data-del-perfume="${esc(p.perfumeId)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          <button type="button" data-edit-perfume="${esc(pid)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
+          <button type="button" class="del" data-del-perfume="${esc(pid)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
         </div>
       </td>
     </tr>`;
@@ -608,33 +631,34 @@ function openPerfumeModal(p) {
       }
     }).catch(() => {});
   }
-  document.getElementById('pf-name').value = p?.perfumeName || '';
+  document.getElementById('pf-name').value = p?.perfumeName || p?.perfume_name || '';
   const firstTypeId = state.types?.[0]?.type_id || state.types?.[0]?.typeId || '';
-  document.getElementById('pf-type').value = p?.fragranceTypeId || firstTypeId;
-  document.getElementById('pf-stock').value = p?.stockQuantity ?? 100;
+  document.getElementById('pf-type').value = p?.fragranceTypeId || p?.fragrance_type_id || firstTypeId;
+  document.getElementById('pf-stock').value = p?.stockQuantity ?? p?.stock_quantity ?? 100;
   document.getElementById('pf-description').value = p?.description || '';
-  document.getElementById('pf-price-6').value = p?.price6ml ?? '';
-  document.getElementById('pf-price-12').value = p?.price12ml ?? '';
-  document.getElementById('pf-price-24').value = p?.price24ml ?? '';
-  document.getElementById('pf-price-20').value = p?.price20ml ?? '';
-  document.getElementById('pf-price-30').value = p?.price30ml ?? '';
-  document.getElementById('pf-price-50').value = p?.price50ml ?? '';
-  document.getElementById('pf-price-100').value = p?.price100ml ?? '';
-  document.getElementById('pf-price-car-6').value = p?.priceCar6ml ?? '';
-  document.getElementById('pf-price-car-12').value = p?.priceCar12ml ?? '';
-  document.getElementById('pf-is-attar').checked = !!p?.isAttar;
-  document.getElementById('pf-is-perfume').checked = p ? !!p.isPerfume : true;
-  document.getElementById('pf-is-car-hanger').checked = !!(p?.isCarHanger ?? p?.isCarHangover);
-  document.getElementById('pf-is-featured').checked = !!p?.isFeatured;
-  document.getElementById('pf-is-bestseller').checked = !!p?.isBestSeller;
-  document.getElementById('pf-is-newarrival').checked = !!p?.isNewArrival;
-  document.getElementById('pf-is-active').checked = p ? !!p.isActive : true;
+  document.getElementById('pf-price-6').value = p?.price6ml ?? p?.price_6ml ?? '';
+  document.getElementById('pf-price-12').value = p?.price12ml ?? p?.price_12ml ?? '';
+  document.getElementById('pf-price-24').value = p?.price24ml ?? p?.price_24ml ?? '';
+  document.getElementById('pf-price-20').value = p?.price20ml ?? p?.price_20ml ?? '';
+  document.getElementById('pf-price-30').value = p?.price30ml ?? p?.price_30ml ?? '';
+  document.getElementById('pf-price-50').value = p?.price50ml ?? p?.price_50ml ?? '';
+  document.getElementById('pf-price-100').value = p?.price100ml ?? p?.price_100ml ?? '';
+  document.getElementById('pf-price-car-6').value = p?.priceCar6ml ?? p?.price_car_6ml ?? '';
+  document.getElementById('pf-price-car-12').value = p?.priceCar12ml ?? p?.price_car_12ml ?? '';
+  document.getElementById('pf-is-attar').checked = !!(p?.isAttar ?? p?.is_attar);
+  document.getElementById('pf-is-perfume').checked = p ? !!(p.isPerfume ?? p.is_perfume) : true;
+  document.getElementById('pf-is-car-hanger').checked = !!(p?.isCarHanger ?? p?.is_car_hanger ?? p?.isCarHangover ?? p?.is_car_hangover);
+  document.getElementById('pf-is-featured').checked = !!(p?.isFeatured ?? p?.is_featured);
+  document.getElementById('pf-is-bestseller').checked = !!(p?.isBestSeller ?? p?.is_best_seller);
+  document.getElementById('pf-is-newarrival').checked = !!(p?.isNewArrival ?? p?.is_new_arrival);
+  document.getElementById('pf-is-active').checked = p ? !!(p.isActive ?? p.is_active) : true;
   document.getElementById('pf-image-files').value = '';
   document.getElementById('perfume-form-feedback').textContent = '';
+  const imgUrl = p?.primaryImageUrl || p?.primary_image_url || '';
   const preview = document.getElementById('pf-images-preview');
   if (preview) {
-    preview.innerHTML = p?.primaryImageUrl
-      ? `<div class="pf-image-thumb"><img src="${esc(p.primaryImageUrl)}" alt="${esc(p.perfumeName || 'Perfume')}"></div>`
+    preview.innerHTML = imgUrl
+      ? `<div class="pf-image-thumb"><img src="${esc(imgUrl)}" alt="${esc(p.perfumeName || p.perfume_name || 'Perfume')}"></div>`
       : `<div class="pf-image-empty-state"><i class="fa-regular fa-image"></i><span>No image uploaded yet</span></div>`;
   }
   openModal('perfume-modal-overlay');
@@ -663,15 +687,15 @@ function resetSheetEditMode() {
 }
 
 function calculateSheetPrices(p) {
-  const p6 = p.price6ml != null ? Number(p.price6ml) : null;
-  const p12 = p.price12ml != null ? Number(p.price12ml) : null;
-  const p24 = p.price24ml != null ? Number(p.price24ml) : null;
-  const p20 = p.price20ml != null ? Number(p.price20ml) : null;
-  const p30 = p.price30ml != null ? Number(p.price30ml) : null;
-  const p50 = p.price50ml != null ? Number(p.price50ml) : null;
-  const p100 = p.price100ml != null ? Number(p.price100ml) : null;
-  const pCar6 = p.priceCar6ml != null ? Number(p.priceCar6ml) : null;
-  const pCar12 = p.priceCar12ml != null ? Number(p.priceCar12ml) : null;
+  const p6 = (p.price6ml ?? p.price_6ml) != null ? Number(p.price6ml ?? p.price_6ml) : null;
+  const p12 = (p.price12ml ?? p.price_12ml) != null ? Number(p.price12ml ?? p.price_12ml) : null;
+  const p24 = (p.price24ml ?? p.price_24ml) != null ? Number(p.price24ml ?? p.price_24ml) : null;
+  const p20 = (p.price20ml ?? p.price_20ml) != null ? Number(p.price20ml ?? p.price_20ml) : null;
+  const p30 = (p.price30ml ?? p.price_30ml) != null ? Number(p.price30ml ?? p.price_30ml) : null;
+  const p50 = (p.price50ml ?? p.price_50ml) != null ? Number(p.price50ml ?? p.price_50ml) : null;
+  const p100 = (p.price100ml ?? p.price_100ml) != null ? Number(p.price100ml ?? p.price_100ml) : null;
+  const pCar6 = (p.priceCar6ml ?? p.price_car_6ml) != null ? Number(p.priceCar6ml ?? p.price_car_6ml) : null;
+  const pCar12 = (p.priceCar12ml ?? p.price_car_12ml) != null ? Number(p.priceCar12ml ?? p.price_car_12ml) : null;
 
   // ATTAR: 6ml, 12ml, 24ml (24ml = explicit override or 12ml * 2)
   const attar6 = p6;
@@ -1672,20 +1696,26 @@ function renderOrdersTable() {
     tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No orders yet</td></tr>';
     return;
   }
-  tbody.innerHTML = items.map((o) => `
+  tbody.innerHTML = items.map((o) => {
+    const ref = o.orderRef || o.order_ref || (`#${o.id}`);
+    const created = (o.createdAt || o.created_at || '').toString().slice(0, 19).replace('T', ' ');
+    const count = o.itemCount ?? o.item_count ?? (o.items || []).length;
+    const units = o.totalUnits ?? o.total_units ?? 0;
+    return `
     <tr>
-      <td><strong>${esc(o.orderRef)}</strong></td>
-      <td>${esc((o.createdAt || '').toString().slice(0, 19).replace('T', ' '))}</td>
-      <td>${o.itemCount ?? (o.items || []).length}</td>
-      <td>${o.totalUnits ?? 0}</td>
-      <td><span class="badge ${o.status === 'new' ? 'badge--pink' : o.status === 'delivered' ? 'badge--green' : 'badge--gray'}">${esc(o.status)}</span></td>
+      <td><strong>${esc(ref)}</strong></td>
+      <td>${esc(created || '—')}</td>
+      <td>${count}</td>
+      <td>${units}</td>
+      <td><span class="badge ${o.status === 'new' ? 'badge--pink' : o.status === 'delivered' ? 'badge--green' : 'badge--gray'}">${esc(o.status || 'new')}</span></td>
       <td>
         <div class="adm-table-actions">
           <button type="button" data-view-order="${o.id}" title="View"><i class="fa-solid fa-eye"></i></button>
           <button type="button" class="del" data-del-order="${o.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function loadOrders() {
@@ -1711,10 +1741,12 @@ async function loadOrders() {
 }
 
 function openOrderModal(order) {
-  document.getElementById('order-modal-title').textContent = `Order ${order.orderRef}`;
+  const ref = order.orderRef || order.order_ref || (`#${order.id}`);
+  document.getElementById('order-modal-title').textContent = `Order ${ref}`;
   const items = (order.items || []).map((i) =>
-    `<tr><td>${esc(i.perfumeName)}</td><td>${esc(i.size || '—')}</td><td>${i.qty}</td><td>${i.price != null ? money(i.price) : '—'}</td></tr>`
+    `<tr><td>${esc(i.perfumeName || i.perfume_name || i.name || 'Perfume')}</td><td>${esc(i.size || '—')}</td><td>${i.qty ?? 1}</td><td>${i.price != null ? money(i.price) : '—'}</td></tr>`
   ).join('');
+  const msg = order.whatsappMessage || order.whatsapp_message || '';
   document.getElementById('order-modal-body').innerHTML = `
     <div class="form-group">
       <label>Status</label>
@@ -1729,7 +1761,7 @@ function openOrderModal(order) {
         <tbody>${items || '<tr><td colspan="4">No items</td></tr>'}</tbody>
       </table>
     </div>
-    ${order.whatsappMessage ? `<pre class="contact-message">${esc(order.whatsappMessage)}</pre>` : ''}
+    ${msg ? `<pre class="contact-message">${esc(msg)}</pre>` : ''}
     <div class="modal-actions">
       <button type="button" class="btn btn-outline" data-close-modal="order-modal-overlay">Close</button>
       <button type="button" class="btn btn-primary" id="order-save-status" data-id="${order.id}">Save Status</button>
@@ -1914,8 +1946,11 @@ function bindEvents() {
     document.getElementById('low-stock-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-    btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-close-modal]');
+    if (btn && btn.dataset.closeModal) {
+      closeModal(btn.dataset.closeModal);
+    }
   });
   document.querySelectorAll('.admin-modal-overlay').forEach((ov) => {
     ov.addEventListener('click', (e) => { if (e.target === ov) ov.classList.remove('open'); });
@@ -1951,7 +1986,7 @@ function bindEvents() {
     const delId = e.target.closest('[data-del-perfume]')?.dataset.delPerfume;
     if (editId) {
       ensureTypes().then(fillTypeSelects).catch(() => {});
-      let p = (state.perfumes || []).find((x) => x.perfumeId === editId)
+      let p = (state.perfumes || []).find((x) => (x.perfumeId || x.perfume_id) === editId)
            || (state.allPerfumes || []).find((x) => (x.perfumeId || x.perfume_id) === editId);
       if (p) {
         // INSTANT 0ms modal open!
@@ -1984,7 +2019,7 @@ function bindEvents() {
       if (!ok) return;
       try {
         await AdminAPI.deletePerfume(delId);
-        state.perfumes = (state.perfumes || []).filter(x => x.perfumeId !== delId);
+        state.perfumes = (state.perfumes || []).filter(x => (x.perfumeId || x.perfume_id) !== delId);
         if (state.allPerfumes) state.allPerfumes = state.allPerfumes.filter(x => (x.perfumeId || x.perfume_id) !== delId);
         renderPerfumesTable();
         toast('Perfume deleted');
@@ -2006,8 +2041,11 @@ function bindEvents() {
       await AdminAPI.updatePerfume(id, { is_active: isActive });
       const row = toggle.closest('tr');
       if (row) row.classList.toggle('adm-row-inactive', !isActive);
-      const p = state.perfumes.find((x) => x.perfumeId === id);
-      if (p) p.isActive = isActive;
+      const p = (state.perfumes || []).find((x) => (x.perfumeId || x.perfume_id) === id);
+      if (p) {
+        p.isActive = isActive;
+        p.is_active = isActive;
+      }
       toast(isActive ? 'Perfume activated' : 'Perfume deactivated');
     } catch (err) {
       toggle.checked = !isActive;
@@ -2139,7 +2177,7 @@ function bindEvents() {
     const id = e.target.closest('[data-edit-stock]')?.dataset.editStock;
     if (!id) return;
     switchSection('perfumes');
-    let p = (state.perfumes || []).find((x) => x.perfumeId === id)
+    let p = (state.perfumes || []).find((x) => (x.perfumeId || x.perfume_id) === id)
          || (state.allPerfumes || []).find((x) => (x.perfumeId || x.perfume_id) === id);
     if (p) openPerfumeModal(p);
     else AdminAPI.getPerfume(id).then(openPerfumeModal).catch(() => {});
@@ -2386,7 +2424,7 @@ function bindEvents() {
   document.getElementById('types-tbody')?.addEventListener('click', async (e) => {
     const editId = e.target.closest('[data-edit-type]')?.dataset.editType;
     const delId = e.target.closest('[data-del-type]')?.dataset.delType;
-    if (editId) openTypeModal(state.types.find((t) => t.type_id === editId));
+    if (editId) openTypeModal((state.types || []).find((t) => (t.type_id || t.typeId) === editId));
     if (delId) {
       const ok = await confirmDialog('Delete type?', `Delete fragrance type ${delId}?`);
       if (!ok) return;
@@ -2640,9 +2678,12 @@ function bindEvents() {
         <p><strong>Name:</strong> ${esc(row.name)}</p>
         <p><strong>Email:</strong> ${esc(row.email)}</p>
         <p><strong>Phone:</strong> ${esc(row.phone || '—')}</p>
-        <p><strong>Enquiry:</strong> ${esc(row.enquiry_type || '—')}</p>
+        <p><strong>Enquiry:</strong> ${esc(row.enquiryType || row.enquiry_type || '—')}</p>
         <p><strong>Message:</strong></p>
-        <p class="contact-message">${esc(row.message)}</p>`;
+        <p class="contact-message">${esc(row.message)}</p>
+        <div class="modal-actions" style="margin-top:16px;">
+          <button type="button" class="btn btn-outline" data-close-modal="contact-modal-overlay">Close</button>
+        </div>`;
       openModal('contact-modal-overlay');
       if (!(row.isRead ?? row.is_read)) {
         try { await AdminAPI.markContactRead(viewId); loadContact(); } catch (_) {}
