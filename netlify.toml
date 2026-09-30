@@ -46,6 +46,12 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
+# Static fallback data files
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300, stale-while-revalidate=86400"
+
 # Service worker must revalidate
 [[headers]]
   for = "/sw.js"

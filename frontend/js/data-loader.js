@@ -6,6 +6,9 @@
 
 const STORAGE_KEY_META    = 'aarif_meta_cache_v2';
 const STORAGE_KEY_CATALOG = 'aarif_cat_cache_v2';
+const STORAGE_KEY_ETAG    = 'aarif_etag_cache_v2';
+const STORAGE_KEY_TIME    = 'aarif_time_cache_v2';
+const REVALIDATE_WINDOW_MS = 60 * 1000; // 60s freshness interval before checking backend
 
 const ALL_PERFUMES = [];
 const PERFUME_BY_NAME = new Map();
@@ -133,11 +136,22 @@ hydrateFromStorage();
 /* ── Public: get promotion banners (used by home-sections.js) ── */
 function getPromotionBanners() { return PROMOTION_BANNERS; }
 
-/* ── Fetch helpers (API with seamless Netlify static fallback) ── */
-async function fetchBootstrap() {
+/* ── Fetch helpers (API with seamless Netlify static fallback + ETag) ── */
+async function fetchBootstrap(useEtag = false) {
+  const cachedEtag = useEtag ? (localStorage.getItem(STORAGE_KEY_ETAG) || '') : '';
   try {
-    const res = await fetch('/api/v1/catalog/bootstrap');
-    if (res.ok) return await res.json();
+    const headers = cachedEtag ? { 'If-None-Match': cachedEtag } : {};
+    const res = await fetch('/api/v1/catalog/bootstrap', { headers });
+    if (res.status === 304) {
+      localStorage.setItem(STORAGE_KEY_TIME, String(Date.now()));
+      return { notModified: true };
+    }
+    if (res.ok) {
+      const etag = res.headers.get('ETag');
+      if (etag) localStorage.setItem(STORAGE_KEY_ETAG, etag);
+      localStorage.setItem(STORAGE_KEY_TIME, String(Date.now()));
+      return await res.json();
+    }
   } catch (_) {}
   try {
     const fallback = await fetch('/data/bootstrap.json');
@@ -192,7 +206,7 @@ function whenCatalogReady() {
   if (_dataReady) return Promise.resolve();
   if (!_dataPromise) {
     // Fast single-request bootstrap gets both metadata and catalog concurrently
-    _dataPromise = fetchBootstrap()
+    _dataPromise = fetchBootstrap(false)
       .then(data => {
         applyMetadata(data);
         applyCatalog(data.perfumes || []);
@@ -208,19 +222,27 @@ function whenCatalogReady() {
   return _dataPromise;
 }
 
-/* ── Background Stale-While-Revalidate (SWR) ─────────────────── */
-function revalidateInBackground() {
+/* ── Background Stale-While-Revalidate (SWR) with ETag ────────── */
+function revalidateInBackground(force = false) {
   if (_isRevalidating) return;
+  const lastTime = Number(localStorage.getItem(STORAGE_KEY_TIME)) || 0;
+  if (!force && (Date.now() - lastTime < REVALIDATE_WINDOW_MS)) {
+    return; // Fresh within the 60-second window
+  }
   _isRevalidating = true;
 
   // Small delay so initial DOM paint happens without any CPU competition
   setTimeout(() => {
-    fetchBootstrap()
+    fetchBootstrap(true)
       .then(data => {
+        if (!data || data.notModified) {
+          return; // Server verified 304 Not Modified — cached catalog is perfectly up to date!
+        }
+
         let metaChanged = false;
         let catChanged = false;
 
-        if (data && Array.isArray(data.fragranceTypes) && data.fragranceTypes.length > 0) {
+        if (Array.isArray(data.fragranceTypes) && data.fragranceTypes.length > 0) {
           const freshMetaStr = JSON.stringify({
             fragranceTypes:   data.fragranceTypes,
             promotionBanners: data.promotionBanners || [],
@@ -232,7 +254,7 @@ function revalidateInBackground() {
           }
         }
 
-        if (data && Array.isArray(data.perfumes) && data.perfumes.length > 0) {
+        if (Array.isArray(data.perfumes) && data.perfumes.length > 0) {
           const freshCatStr = JSON.stringify(data.perfumes);
           if (localStorage.getItem(STORAGE_KEY_CATALOG) !== freshCatStr) {
             applyCatalog(data.perfumes, true);
@@ -260,6 +282,13 @@ function revalidateInBackground() {
 if (_dataReady && _metaReady) {
   revalidateInBackground();
 }
+
+// Cross-tab synchronization: keep open tabs perfectly in sync
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY_CATALOG || e.key === STORAGE_KEY_META) {
+    hydrateFromStorage();
+  }
+});
 
 /* ── Product flag getters ─────────────────────────────────────── */
 function getFeaturedProducts(n)   { return ALL_PERFUMES.filter(p => p.isFeatured).slice(0, n || 50); }

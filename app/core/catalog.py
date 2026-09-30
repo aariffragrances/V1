@@ -11,6 +11,7 @@ _CACHE_MAX_ENTRIES = 500
 _cache: dict[str, tuple[float, Any]] = {}
 
 _INVALIDATION_FILE = Path(__file__).parent / ".cache_invalidated"
+_catalog_version: int = int(time.time() * 1000)
 
 
 def _invalidation_time() -> float:
@@ -18,6 +19,20 @@ def _invalidation_time() -> float:
         return _INVALIDATION_FILE.stat().st_mtime
     except OSError:
         return 0.0
+
+
+def get_catalog_version() -> int:
+    global _catalog_version
+    inv = int(_invalidation_time() * 1000)
+    return max(_catalog_version, inv)
+
+
+def get_catalog_etag() -> str:
+    return f'W/"aarif-cat-{get_catalog_version()}"'
+
+
+def get_metadata_etag() -> str:
+    return f'W/"aarif-meta-{get_catalog_version()}"'
 
 
 def _cache_get(key: str) -> Any | None:
@@ -41,6 +56,8 @@ def _cache_set(key: str, value: Any) -> None:
 
 
 def invalidate_catalog_cache() -> None:
+    global _catalog_version
+    _catalog_version = int(time.time() * 1000)
     _cache.clear()
     try:
         _INVALIDATION_FILE.touch()

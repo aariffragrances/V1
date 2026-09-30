@@ -2947,31 +2947,123 @@ body.filter-drawer-open { overflow: hidden; }
     display: block !important;
   }
   .pd-info {
-    padding: 18px 16px 24px !important;
+    padding: 16px 14px 22px !important;
     overflow: visible !important;
   }
-  .pd-select-row {
-    display: block !important;
-    margin: 4px 0 14px !important;
+  .pd-block {
+    margin-bottom: 8px !important;
   }
-  .pd-select-main {
+  .pd-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.09em !important;
+    text-transform: uppercase !important;
+    color: #d4af37 !important;
+    margin-bottom: 5px !important;
+  }
+  .pd-type-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 5px !important;
     width: 100% !important;
   }
+  .pd-type-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 5px 4px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+  .pd-type-hint {
+    margin: 4px 0 2px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    color: rgba(232, 210, 140, 0.75) !important;
+  }
+  .pd-select-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 4px 0 10px !important;
+  }
+  .pd-select-main {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
   .pd-type-visual {
-    display: none !important; /* Hide side visual box on mobile so SELECT SIZE gets 100% full width */
+    display: flex !important;
+    flex: 0 0 82px !important;
+    width: 82px !important;
+    height: 155px !important;
+    min-height: 155px !important;
+    max-height: 155px !important;
+    align-self: center !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: #141210 !important;
+    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    position: relative !important;
+  }
+  .pd-type-visual img,
+  #pd-type-img,
+  #pp-type-img,
+  .pd_type_img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center 50% !important;
   }
   .pd-size-row {
     display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
     width: 100% !important;
   }
   .pd-size-btn {
-    flex: 1 !important;
-    min-width: 80px !important;
-    padding: 8px 10px !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 5px 2px !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
+    gap: 1px !important;
+    box-sizing: border-box !important;
+  }
+  .pd-size-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+  .pd-size-price {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+  .pd-price-row {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    margin: 6px 0 0 !important;
+  }
+  .pd-price {
+    font-size: 26px !important;
+    line-height: 1 !important;
+  }
+  .pd-price-note {
+    font-size: 12px !important;
   }
 
   /* Hide desktop topbar on mobile like GMS */

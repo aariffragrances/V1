@@ -3,11 +3,13 @@
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from app.core.catalog import (
     _cache_get,
     _cache_set,
+    get_catalog_etag,
+    get_metadata_etag,
     perfume_to_dict,
     primary_image_url,
 )
@@ -162,8 +164,15 @@ _CATALOG_CACHE_CONTROL = "public, max-age=180, stale-while-revalidate=86400"
 
 
 @router.get("/catalog/metadata", response_model=CatalogMetadataOut)
-async def catalog_metadata(response: Response, db: AsyncSession = Depends(get_db)):
+async def catalog_metadata(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+    etag = get_metadata_etag()
     response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
+    response.headers["ETag"] = etag
+
+    if_none_match = request.headers.get("if-none-match")
+    if if_none_match and if_none_match.strip() == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": _CATALOG_CACHE_CONTROL})
+
     fragrance_types = await _load_fragrance_types(db)
     site_settings = await load_public_site_settings(db)
     banners = await _load_active_banners(db)
@@ -175,14 +184,28 @@ async def catalog_metadata(response: Response, db: AsyncSession = Depends(get_db
 
 
 @router.get("/catalog/perfumes-bulk", response_model=CatalogProductsBulkOut)
-async def catalog_perfumes_bulk(response: Response, db: AsyncSession = Depends(get_db)):
+async def catalog_perfumes_bulk(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+    etag = get_catalog_etag()
     response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
+    response.headers["ETag"] = etag
+
+    if_none_match = request.headers.get("if-none-match")
+    if if_none_match and if_none_match.strip() == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": _CATALOG_CACHE_CONTROL})
+
     return CatalogProductsBulkOut(perfumes=await _load_active_perfumes(db))
 
 
 @router.get("/catalog/bootstrap", response_model=BootstrapOut)
-async def catalog_bootstrap(response: Response, db: AsyncSession = Depends(get_db)):
+async def catalog_bootstrap(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
+    etag = get_catalog_etag()
     response.headers["Cache-Control"] = _CATALOG_CACHE_CONTROL
+    response.headers["ETag"] = etag
+
+    if_none_match = request.headers.get("if-none-match")
+    if if_none_match and if_none_match.strip() == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": _CATALOG_CACHE_CONTROL})
+
     fragrance_types = await _load_fragrance_types(db)
     perfumes = await _load_active_perfumes(db)
     site_settings = await load_public_site_settings(db)

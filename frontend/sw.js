@@ -1,26 +1,50 @@
 /**
- * Aarif Fragrances — Service Worker
- * High-performance Cache-First image delivery with instant 0ms disk cache for Cloudinary and local assets.
+ * Aarif Fragrances — Advanced Service Worker
+ * High-performance Cache-First image delivery with instant 0ms disk cache,
+ * intelligent font caching, offline navigation resilience, and automatic LRU cache management.
  */
 
-const STATIC_CACHE = 'aarif-static-v110';
-const IMAGE_CACHE  = 'aarif-images-v2';
+const STATIC_CACHE = 'aarif-static-v111';
+const IMAGE_CACHE  = 'aarif-images-v3';
+const MAX_IMAGE_ENTRIES = 150;
 
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/products.html',
+  '/product.html',
   '/basket.html',
   '/wishlist.html',
+  '/about.html',
+  '/contact.html',
+  '/policies.html',
   '/css/main.css',
   '/js/data-loader.js',
   '/js/product-card.js',
+  '/js/product-page.js',
   '/js/home-sections.js',
   '/js/shopping-store.js',
   '/js/modal.js',
   '/js/navigation.js',
   '/js/site-settings.js',
+  '/js/filters.js',
+  '/js/main.js',
+  '/data/bootstrap.json',
 ];
+
+// Helper: Trim cache to limit size (LRU eviction)
+async function trimCache(cacheName, maxItems) {
+  try {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    if (keys.length > maxItems) {
+      const deleteCount = keys.length - maxItems;
+      for (let i = 0; i < deleteCount; i++) {
+        await cache.delete(keys[i]);
+      }
+    }
+  } catch (_) {}
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -74,12 +98,37 @@ self.addEventListener('fetch', (event) => {
           fetch(req).then((netRes) => {
             if (netRes && (netRes.ok || netRes.type === 'opaque')) {
               cache.put(req, netRes);
+              trimCache(IMAGE_CACHE, MAX_IMAGE_ENTRIES);
             }
           }).catch(() => {});
           return cached;
         }
 
         // Cache miss: fetch from network and store in cache
+        return fetch(req).then((netRes) => {
+          if (netRes && (netRes.ok || netRes.type === 'opaque')) {
+            cache.put(req, netRes.clone());
+            trimCache(IMAGE_CACHE, MAX_IMAGE_ENTRIES);
+          }
+          return netRes;
+        }).catch(() => cached);
+      })
+    );
+    return;
+  }
+
+  // 2. Web Fonts & CDNs (Google Fonts, cdnjs): Cache-First for instant typography
+  const isFontOrCdn =
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com') ||
+    url.hostname.includes('cdnjs.cloudflare.com') ||
+    /\.(woff2|woff|ttf|otf|eot)$/i.test(url.pathname);
+
+  if (isFontOrCdn) {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        const cached = await cache.match(req);
+        if (cached) return cached;
         return fetch(req).then((netRes) => {
           if (netRes && (netRes.ok || netRes.type === 'opaque')) {
             cache.put(req, netRes.clone());
@@ -91,8 +140,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static CSS / JS / JSON / Fonts: Stale-While-Revalidate
-  if (/\.(css|js|json|woff2|woff|ttf)$/i.test(url.pathname)) {
+  // 3. Static CSS / JS / JSON: Stale-While-Revalidate
+  if (/\.(css|js|json)$/i.test(url.pathname)) {
     event.respondWith(
       caches.open(STATIC_CACHE).then(async (cache) => {
         const cached = await cache.match(req);
@@ -104,6 +153,18 @@ self.addEventListener('fetch', (event) => {
         }).catch(() => cached);
 
         return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // 4. HTML Navigation: Network-First with Cache and Offline Fallback
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).catch(async () => {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        return (await caches.match('/index.html')) || (await caches.match('/'));
       })
     );
     return;
