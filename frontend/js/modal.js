@@ -207,6 +207,7 @@ function openProductModal(perfume, initialType, initialSize) {
 
   modal.querySelector('#modal-close-btn')?.addEventListener('click', closeProductModal);
 
+  overlay.classList.remove('closing');
   overlay.classList.add('open');
   document.documentElement.classList.add('modal-is-open');
   document.body.classList.add('modal-is-open');
@@ -217,12 +218,33 @@ function openProductModal(perfume, initialType, initialSize) {
 
 function closeProductModal() {
   const overlay = document.getElementById('product-modal-overlay');
-  overlay?.classList.remove('open');
-  document.documentElement.classList.remove('modal-is-open');
-  document.body.classList.remove('modal-is-open');
-  if (!document.body.classList.contains('drawer-is-open')) {
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
+  if (!overlay || (!overlay.classList.contains('open') && !overlay.classList.contains('closing'))) return;
+
+  const isMobile = window.innerWidth <= 768;
+
+  if (isMobile) {
+    if (overlay.classList.contains('closing')) return;
+    overlay.classList.add('closing');
+    overlay.classList.remove('open');
+
+    setTimeout(() => {
+      overlay.classList.remove('closing');
+      document.documentElement.classList.remove('modal-is-open');
+      document.body.classList.remove('modal-is-open');
+      if (!document.body.classList.contains('drawer-is-open')) {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      }
+    }, 310);
+  } else {
+    overlay.classList.remove('open');
+    overlay.classList.remove('closing');
+    document.documentElement.classList.remove('modal-is-open');
+    document.body.classList.remove('modal-is-open');
+    if (!document.body.classList.contains('drawer-is-open')) {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
   }
 }
 
