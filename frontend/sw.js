@@ -4,7 +4,7 @@
  * intelligent font caching, offline navigation resilience, and automatic LRU cache management.
  */
 
-const STATIC_CACHE = 'aarif-static-v111';
+const STATIC_CACHE = 'aarif-static-v113';
 const IMAGE_CACHE  = 'aarif-images-v3';
 const MAX_IMAGE_ENTRIES = 150;
 

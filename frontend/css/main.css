@@ -788,6 +788,88 @@ body.modal-is-open {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
+/* ── New Arrival Badge (Product Cards) ──────────────── */
+.fp-new-arrival-badge {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 4;
+  width: 72px;
+  max-width: 34%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 10px rgba(212, 175, 55, 0.35));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.fp-new-arrival-badge img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+}
+.fp-card:hover .fp-new-arrival-badge {
+  transform: translateY(-2px) scale(1.05);
+}
+.has-new-arrival .fp-wish-type-badge {
+  top: auto;
+  bottom: 18px;
+  left: 18px;
+}
+@media (max-width: 480px) {
+  .fp-new-arrival-badge {
+    width: 56px;
+    top: 16px;
+    left: 16px;
+  }
+}
+/* ── New Arrival Badge (Product Modal & PDP) ────────── */
+.pd-new-arrival-badge {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  z-index: 5;
+  width: 104px;
+  max-width: 32%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 14px rgba(212, 175, 55, 0.4));
+  animation: pdBadgeEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+.pd-new-arrival-badge img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+}
+@keyframes pdBadgeEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@media (max-width: 760px) {
+  .pd-new-arrival-badge {
+    top: 22px;
+    left: 22px;
+    width: 76px;
+  }
+}
+.pd-badge--new {
+  background: linear-gradient(135deg, #f5d061 0%, #d4af37 100%) !important;
+  color: #0a0a0a !important;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
 .fp-image-frame {
   position: relative;
   width: 100%;

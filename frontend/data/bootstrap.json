@@ -139,7 +139,7 @@
       "isCarHanger": true,
       "isFeatured": true,
       "isBestSeller": true,
-      "isNewArrival": false,
+      "isNewArrival": true,
       "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790527568/aarif-fragrances/products/hawas-rasasi.png",
       "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1790527568/aarif-fragrances/products/hawas-rasasi.png"
     },

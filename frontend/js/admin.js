@@ -994,7 +994,7 @@ function renderSpotlightProductList(items) {
             const pid = p.perfumeId || p.productId || p.perfume_id;
             const pname = p.perfumeName || p.productName || p.name;
             const cat = p.categoryName || p.fragranceTypeName || '';
-            const img = p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp';
+            const img = p.primaryImageUrl || p.primary_image_url || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
             return `
               <tr>
                 <td class="spotlight-col-thumb">
@@ -1142,9 +1142,9 @@ function paintSpotlightGrid(data) {
         if (state.allPerfumes) {
           const item = state.allPerfumes.find(x => (x.perfumeId || x.perfume_id) === pid);
           if (item) {
-            if (section.flag === 'is_featured') item.isFeatured = false;
-            if (section.flag === 'is_best_seller') item.isBestSeller = false;
-            if (section.flag === 'is_new_arrival') item.isNewArrival = false;
+            if (section.flag === 'is_featured') { item.isFeatured = false; item.is_featured = false; }
+            if (section.flag === 'is_best_seller') { item.isBestSeller = false; item.is_best_seller = false; }
+            if (section.flag === 'is_new_arrival') { item.isNewArrival = false; item.is_new_arrival = false; }
           }
         }
         await loadSpotlight();
@@ -1213,7 +1213,7 @@ async function loadSpotlight() {
         perfumeId: p.perfumeId || p.perfume_id,
         perfumeName: p.perfumeName || p.name,
         categoryName: p.categoryName || p.fragranceTypeName || p.fragranceTypeId || '',
-        primaryImageUrl: p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp',
+        primaryImageUrl: p.primaryImageUrl || p.primary_image_url || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png',
         price: p.price30ml || p.price_30ml || p.price50ml || p.price_50ml || 0,
         stock: p.stockQuantity ?? 50
       });
@@ -1316,7 +1316,7 @@ function renderSpotlightPickerItems(searchQuery) {
   listEl.innerHTML = available.map(p => {
     const pid = p.perfumeId || p.perfume_id;
     const pname = p.perfumeName || p.name;
-    const img = p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp';
+    const img = p.primaryImageUrl || p.primary_image_url || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
     return `
       <button type="button" class="spotlight-picker-item" data-pick-perfume="${esc(pid)}">
         <img src="${esc(img)}" alt="">
@@ -1334,9 +1334,9 @@ function renderSpotlightPickerItems(searchQuery) {
         if (state.allPerfumes) {
           const item = state.allPerfumes.find(x => (x.perfumeId || x.perfume_id) === pid);
           if (item) {
-            if (activeSpotlightPickerFlag === 'is_featured') item.isFeatured = true;
-            if (activeSpotlightPickerFlag === 'is_best_seller') item.isBestSeller = true;
-            if (activeSpotlightPickerFlag === 'is_new_arrival') item.isNewArrival = true;
+            if (activeSpotlightPickerFlag === 'is_featured') { item.isFeatured = true; item.is_featured = true; }
+            if (activeSpotlightPickerFlag === 'is_best_seller') { item.isBestSeller = true; item.is_best_seller = true; }
+            if (activeSpotlightPickerFlag === 'is_new_arrival') { item.isNewArrival = true; item.is_new_arrival = true; }
           }
         }
         await loadSpotlight();
@@ -2341,12 +2341,19 @@ function bindEvents() {
         item.priceCar6ml = body.price_car_6ml;
         item.priceCar12ml = body.price_car_12ml;
         item.isAttar = body.is_attar;
+        item.is_attar = body.is_attar;
         item.isPerfume = body.is_perfume;
+        item.is_perfume = body.is_perfume;
         item.isCarHanger = body.is_car_hanger;
+        item.is_car_hanger = body.is_car_hanger;
         item.isFeatured = body.is_featured;
+        item.is_featured = body.is_featured;
         item.isBestSeller = body.is_best_seller;
+        item.is_best_seller = body.is_best_seller;
         item.isNewArrival = body.is_new_arrival;
+        item.is_new_arrival = body.is_new_arrival;
         item.isActive = body.is_active;
+        item.is_active = body.is_active;
       };
 
       const matchP = (state.perfumes || []).find(x => (x.perfumeId || x.perfume_id) === targetId);
@@ -2374,13 +2381,20 @@ function bindEvents() {
           priceCar6ml: body.price_car_6ml,
           priceCar12ml: body.price_car_12ml,
           isAttar: body.is_attar,
+          is_attar: body.is_attar,
           isPerfume: body.is_perfume,
+          is_perfume: body.is_perfume,
           isCarHanger: body.is_car_hanger,
+          is_car_hanger: body.is_car_hanger,
           isFeatured: body.is_featured,
+          is_featured: body.is_featured,
           isBestSeller: body.is_best_seller,
+          is_best_seller: body.is_best_seller,
           isNewArrival: body.is_new_arrival,
+          is_new_arrival: body.is_new_arrival,
           isActive: body.is_active,
-          primaryImageUrl: '/images/products/placeholder.webp'
+          is_active: body.is_active,
+          primaryImageUrl: 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'
         };
         if (state.perfumes) state.perfumes.unshift(newItem);
         if (state.allPerfumes) state.allPerfumes.unshift(newItem);

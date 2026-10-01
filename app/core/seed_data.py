@@ -267,7 +267,7 @@ _RAW_PERFUMES = [
     ("PF002", "FT001", "Cool Water", "perfume", 150, 300, True, False, False),
     ("PF005", "FT001", "Invictus", "perfume", 100, 200, False, False, True),
     ("PF006", "FT001", "Royal Blue", "perfume", 200, 400, True, True, False),
-    ("PF004", "FT001", "Hawas Rasasi", "perfume", 200, 400, True, True, False),
+    ("PF004", "FT001", "Hawas Rasasi", "perfume", 200, 400, True, True, True),
     ("PF008", "FT001", "Sea Rose", "perfume", 150, 300, False, False, True),
     ("PF009", "FT001", "Iceberg", "perfume", 100, 200, False, False, False),
     ("PF010", "FT002", "Green Apple", "perfume", 150, 300, True, False, False),

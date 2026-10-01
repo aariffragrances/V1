@@ -133,7 +133,7 @@ const AdminAPI = {
         perfumeName: p.perfumeName || p.name,
         productName: p.perfumeName || p.name,
         categoryName: p.categoryName || p.fragranceTypeId || '',
-        primaryImageUrl: p.primaryImageUrl || p.primary_image_url || '/images/products/placeholder.webp',
+        primaryImageUrl: p.primaryImageUrl || p.primary_image_url || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png',
         price: p.price_30ml || p.price || 0,
         stock: p.stockQuantity ?? 50,
         isFeatured: !!(p.isFeatured || p.is_featured),

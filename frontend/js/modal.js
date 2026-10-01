@@ -28,8 +28,10 @@ function openProductModal(perfume, initialType, initialSize) {
   const def = (initialSize && sizes.find(s => s.label === initialSize)) || sizes[0] || { label: '', price: 0 };
   const name = perfume.displayName || perfume.perfumeName || '';
   const desc = perfume.description || 'Premium fragrance from Aarif Fragrances — crafted for lasting elegance.';
+  const isNewArrival = !!(perfume.isNewArrival ?? perfume.is_new_arrival ?? perfume.isNew);
 
   const badges = [];
+  if (isNewArrival) badges.push('<span class="pd-badge pd-badge--solid pd-badge--new">NEW ARRIVAL</span>');
   if (perfume.isAttar) badges.push('<span class="pd-badge pd-badge--outline">Attar</span>');
   if (perfume.isPerfume || perfume.perfumeSpray) badges.push('<span class="pd-badge pd-badge--outline">Perfume</span>');
   if (perfume.isCarHanger || perfume.isCarHangover) badges.push('<span class="pd-badge pd-badge--outline">Car Hanger</span>');
@@ -58,6 +60,10 @@ function openProductModal(perfume, initialType, initialSize) {
         <div class="pd-media-frame">
           ${`<img src="${m((typeof getProductImageUrl === 'function' ? getProductImageUrl(perfume) : (perfume.primaryImageUrl || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png')))}" alt="${m(name)}" onerror="this.onerror=null;this.src='https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png'">`}
         </div>
+        ${isNewArrival ? `
+        <div class="pd-new-arrival-badge" title="New Arrival" aria-label="New Arrival">
+          <img src="https://res.cloudinary.com/h7kuxzes/image/upload/v1790833059/aarif-fragrances/badges/new-arrival-badge.png" alt="New Arrival" loading="lazy" decoding="async">
+        </div>` : ''}
       </div>
       <div class="pd-info">
         <div class="pd-badges">${badges.join('')}</div>

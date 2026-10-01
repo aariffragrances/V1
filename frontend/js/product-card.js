@@ -202,14 +202,19 @@ function buildProductCardHTML(perfume, idx, initialType, initialSize, isWishlist
   const priceTxt = def.price ? `<span class="fp-currency">₹</span>${def.price}` : '';
   const imgUrl = getProductImageUrl(perfume);
   const activeTypeLabel = getTypeLabel(def.type);
+  const isNewArrival = !!(perfume.isNewArrival ?? perfume.is_new_arrival ?? perfume.isNew);
 
   const imgInner = `<img src="${escStr(imgUrl)}" alt="${escStr(name)}" loading="lazy" decoding="async"
     onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'">`;
 
   return `
-<article class="fp-card" data-product-name="${escStr(key)}"
+<article class="fp-card${isNewArrival ? ' has-new-arrival' : ''}" data-product-name="${escStr(key)}"
   data-type="${escStr(def.type)}" data-size="${escStr(def.size)}" data-price="${def.price}" tabindex="0">
   <div class="fp-image-area">
+    ${isNewArrival ? `
+    <div class="fp-new-arrival-badge" title="New Arrival" aria-label="New Arrival">
+      <img src="https://res.cloudinary.com/h7kuxzes/image/upload/v1790833059/aarif-fragrances/badges/new-arrival-badge.png" alt="New Arrival" loading="lazy" decoding="async">
+    </div>` : ''}
     <button type="button" class="fp-wish-btn${(typeof AarifStore !== 'undefined' && AarifStore.isInWishlist(key)) ? ' is-active' : ''}"
       data-wish="${escStr(key)}" aria-label="Save to wishlist" title="Wishlist">
       <i class="fa-${(typeof AarifStore !== 'undefined' && AarifStore.isInWishlist(key)) ? 'solid' : 'regular'} fa-heart"></i>
