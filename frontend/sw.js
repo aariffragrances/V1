@@ -4,12 +4,17 @@
  * intelligent font caching, offline navigation resilience, and automatic LRU cache management.
  */
 
-const STATIC_CACHE = 'aarif-static-v113';
+const STATIC_CACHE = 'aarif-static-v114';
 const IMAGE_CACHE  = 'aarif-images-v3';
 const MAX_IMAGE_ENTRIES = 150;
 
 const PRECACHE_ASSETS = [
   '/',
+  '/favicon.ico',
+  '/favicon-48x48.png',
+  '/favicon-96x96.png',
+  '/favicon-192x192.png',
+  '/apple-touch-icon.png',
   '/index.html',
   '/products.html',
   '/product.html',

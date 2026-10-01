@@ -8,6 +8,9 @@ Allow: /policies.html
 Allow: /assets/
 Allow: /css/
 Allow: /js/
+Allow: /favicon.ico
+Allow: /favicon-*.png
+Allow: /apple-touch-icon*.png
 
 # Disallow administrative and private areas
 Disallow: /admin

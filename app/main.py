@@ -202,6 +202,46 @@ async def serve_robots():
     return JSONResponse(status_code=404, content={"detail": "Robots.txt not found"})
 
 
+@app.get("/favicon.ico")
+async def serve_favicon():
+    fav_file = FRONTEND_DIR / "favicon.ico"
+    if fav_file.is_file():
+        return FileResponse(
+            fav_file,
+            media_type="image/x-icon",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Favicon not found"})
+
+
+@app.get("/apple-touch-icon.png")
+@app.get("/apple-touch-icon-precomposed.png")
+async def serve_apple_touch_icon():
+    icon_file = FRONTEND_DIR / "apple-touch-icon.png"
+    if icon_file.is_file():
+        return FileResponse(
+            icon_file,
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Apple touch icon not found"})
+
+
+@app.get("/favicon-48x48.png")
+@app.get("/favicon-96x96.png")
+@app.get("/favicon-192x192.png")
+async def serve_favicon_png(request: Request):
+    filename = request.url.path.lstrip("/")
+    f = FRONTEND_DIR / filename
+    if f.is_file():
+        return FileResponse(
+            f,
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Favicon not found"})
+
+
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     if request.url.path.startswith("/api/"):
