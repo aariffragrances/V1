@@ -202,6 +202,18 @@ async def serve_robots():
     return JSONResponse(status_code=404, content={"detail": "Robots.txt not found"})
 
 
+@app.get("/humans.txt")
+async def serve_humans():
+    humans_file = FRONTEND_DIR / "humans.txt"
+    if humans_file.is_file():
+        return FileResponse(
+            humans_file,
+            media_type="text/plain; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    return JSONResponse(status_code=404, content={"detail": "Humans.txt not found"})
+
+
 @app.get("/favicon.ico")
 async def serve_favicon():
     fav_file = FRONTEND_DIR / "favicon.ico"

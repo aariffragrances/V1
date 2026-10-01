@@ -11,6 +11,7 @@ Allow: /js/
 Allow: /favicon.ico
 Allow: /favicon-*.png
 Allow: /apple-touch-icon*.png
+Allow: /humans.txt
 
 # Disallow administrative and private areas
 Disallow: /admin

@@ -1428,6 +1428,8 @@ body.modal-is-open {
 .footer-types-list a { color: #aaa; font-size: 13px; }
 .footer-types-list a:hover { color: var(--gold-light); }
 .footer-bottom { border-top: 1px solid #333; padding: 16px 0; text-align: center; font-size: 12px; color: #666; }
+.developer-credit { color: var(--gold, #d4af37); text-decoration: none; font-weight: 500; transition: color 0.2s ease; }
+.developer-credit:hover { color: var(--gold-light, #f3e5ab); text-decoration: underline; }
 
 /* ============================================================
    MODAL / CONFIRM DIALOG

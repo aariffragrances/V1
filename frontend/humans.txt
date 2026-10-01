@@ -1,0 +1,12 @@
+/* TEAM */
+Developer & Designer: Saravanakumar
+Contact: saravananmsk1210@gmail.com
+Location: Tamil Nadu, India
+
+/* SITE */
+Client: Aarif Fragrances
+Site URL: https://aariffragnances.vercel.app/
+Language: English
+Doctype: HTML5
+Standards: HTML5, Vanilla CSS, JavaScript (ES6+), Python FastAPI, PostgreSQL (Neon), Cloudinary CDN
+Last Updated: 2026
