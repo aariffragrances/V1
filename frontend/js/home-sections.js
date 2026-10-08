@@ -237,7 +237,7 @@ function renderProductStrip(gridId, products, maxItems) {
     delete grid.dataset.fpBound;
     if (typeof bindProductCards === 'function') bindProductCards(grid);
   }
-  initAutoScrollStrip(grid, { itemSelector: '.fp-card', intervalMs: 2800 });
+  initAutoScrollStrip(grid, { itemSelector: '.fp-card', intervalMs: 2800, mobileIntervalMs: 4000 });
 }
 
 function renderProductStripSkeletons(gridId, count = 6) {
@@ -272,18 +272,23 @@ function stopAutoScrollStrip(el) {
     clearInterval(el._autoScrollTimer);
     el._autoScrollTimer = null;
   }
+  if (el._autoScrollCooldown) {
+    clearTimeout(el._autoScrollCooldown);
+    el._autoScrollCooldown = null;
+  }
   if (el._autoScrollObs) {
     el._autoScrollObs.disconnect();
     el._autoScrollObs = null;
   }
+  if (typeof el._autoScrollCleanup === 'function') {
+    try { el._autoScrollCleanup(); } catch (_) {}
+    el._autoScrollCleanup = null;
+  }
   delete el.dataset.autoScrollBound;
 }
 
-// ── Auto-scroll horizontal strips one card at a time (GMS-style) ─
-function initAutoScrollStrip(el, opts) {
-  if (!el) return;
-  stopAutoScrollStrip(el);
-
+// ── Desktop Auto-scroll (Exact original logic — strictly preserved) ─
+function initDesktopAutoScroll(el, opts) {
   const itemSelector = (opts && opts.itemSelector) || '.fp-card';
   const intervalMs = (opts && opts.intervalMs) || 2800;
   el.dataset.autoScrollBound = '1';
@@ -354,7 +359,211 @@ function initAutoScrollStrip(el, opts) {
   };
 
   el._autoScrollTimer = setInterval(tick, intervalMs);
+
+  el._autoScrollCleanup = () => {
+    el.removeEventListener('mouseenter', pause);
+    el.removeEventListener('mouseleave', resume);
+    el.removeEventListener('focusin', pause);
+    el.removeEventListener('focusout', resume);
+    el.removeEventListener('touchstart', pause);
+    el.removeEventListener('touchend', resume);
+    el.removeEventListener('wheel', pause);
+  };
 }
+
+// ── Mobile Auto-scroll (Optimized for mobile view & touch gestures) ─
+function initMobileAutoScroll(el, opts) {
+  const itemSelector = (opts && opts.itemSelector) || '.fp-card';
+  // Scroll one card after each 4 seconds (4000ms) on mobile
+  const intervalMs = (opts && opts.mobileIntervalMs) ? opts.mobileIntervalMs : 4000;
+  const COOLDOWN_MS = 4000;
+  el.dataset.autoScrollBound = '1';
+
+  let paused = false;
+  let userInteracting = false;
+  let inView = true;
+  let isProgrammaticScroll = false;
+  let programmaticTimer = null;
+
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      inView = entries.some((e) => e.isIntersecting && e.intersectionRatio > 0.15);
+    }, { threshold: [0, 0.15, 0.5] });
+    obs.observe(el);
+    el._autoScrollObs = obs;
+  }
+
+  const getCards = () => Array.from(el.querySelectorAll(itemSelector));
+
+  // Accurately determine currently visible card from actual scrollLeft position
+  const getCurrentIndex = () => {
+    const cards = getCards();
+    if (!cards.length) return 0;
+    const baseOffset = cards[0].offsetLeft;
+    const currentLeft = el.scrollLeft;
+    let closestIndex = 0;
+    let minDiff = Infinity;
+    for (let i = 0; i < cards.length; i++) {
+      const cardScrollPos = cards[i].offsetLeft - baseOffset;
+      const diff = Math.abs(cardScrollPos - currentLeft);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    }
+    return closestIndex;
+  };
+
+  const clearCooldown = () => {
+    if (el._autoScrollCooldown) {
+      clearTimeout(el._autoScrollCooldown);
+      el._autoScrollCooldown = null;
+    }
+  };
+
+  const onTouchStart = () => {
+    userInteracting = true;
+    paused = true;
+    clearCooldown();
+  };
+
+  const onTouchEnd = () => {
+    userInteracting = false;
+    clearCooldown();
+    // Allow user 4 seconds of reading time after touching/swiping before auto-scroll resumes
+    el._autoScrollCooldown = setTimeout(() => {
+      if (!userInteracting) paused = false;
+    }, COOLDOWN_MS);
+  };
+
+  const onScroll = () => {
+    // If scroll occurred from user touch/momentum (not programmatic auto-scroll tick):
+    if (!isProgrammaticScroll) {
+      paused = true;
+      clearCooldown();
+      el._autoScrollCooldown = setTimeout(() => {
+        if (!userInteracting) paused = false;
+      }, COOLDOWN_MS);
+    }
+  };
+
+  const onWindowScroll = () => {
+    // Pause horizontal strip while user scrolls the page vertically
+    if (inView && !isProgrammaticScroll) {
+      clearCooldown();
+      paused = true;
+      el._autoScrollCooldown = setTimeout(() => {
+        if (!userInteracting) paused = false;
+      }, 1800);
+    }
+  };
+
+  el.addEventListener('touchstart', onTouchStart, { passive: true });
+  el.addEventListener('touchmove', onTouchStart, { passive: true });
+  el.addEventListener('touchend', onTouchEnd, { passive: true });
+  el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+  el.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scroll', onWindowScroll, { passive: true });
+
+  const tickMobile = () => {
+    if (paused || userInteracting || document.hidden || !inView || isProgrammaticScroll) return;
+
+    const cards = getCards();
+    if (cards.length < 2) return;
+
+    const baseOffset = cards[0].offsetLeft;
+    const loopCount = parseInt(el.dataset.loopCount || '0', 10);
+    const currentIndex = getCurrentIndex();
+    let nextIndex = currentIndex + 1;
+
+    // Seamless loop wrap for duplicated product strips
+    if (loopCount > 0 && nextIndex >= loopCount) {
+      // Twin normalization: card `currentIndex` is identical to `currentIndex % loopCount`
+      const twinIndex = currentIndex % loopCount;
+      const twinCard = cards[twinIndex];
+      if (twinCard) {
+        const prevBehavior = el.style.scrollBehavior;
+        el.style.setProperty('scroll-behavior', 'auto', 'important');
+        el.scrollLeft = twinCard.offsetLeft - baseOffset;
+        void el.offsetWidth;
+        if (prevBehavior) el.style.scrollBehavior = prevBehavior;
+        else el.style.removeProperty('scroll-behavior');
+        nextIndex = twinIndex + 1;
+      }
+    } else if (loopCount <= 0 && nextIndex >= cards.length) {
+      // Non-looped strip (e.g. testimonials): wrap back to 0
+      nextIndex = 0;
+    }
+
+    const targetCard = cards[nextIndex];
+    if (!targetCard) return;
+
+    const targetLeft = targetCard.offsetLeft - baseOffset;
+
+    // Temporarily suspend CSS scroll-snap to prevent mobile browser jitter/fighting
+    isProgrammaticScroll = true;
+    const prevSnap = el.style.scrollSnapType;
+    el.style.scrollSnapType = 'none';
+
+    el.scrollTo({ left: targetLeft, behavior: 'smooth' });
+
+    if (programmaticTimer) clearTimeout(programmaticTimer);
+    programmaticTimer = setTimeout(() => {
+      el.style.scrollSnapType = prevSnap || '';
+      isProgrammaticScroll = false;
+    }, 480);
+  };
+
+  el._autoScrollTimer = setInterval(tickMobile, intervalMs);
+
+  el._autoScrollCleanup = () => {
+    el.removeEventListener('touchstart', onTouchStart);
+    el.removeEventListener('touchmove', onTouchStart);
+    el.removeEventListener('touchend', onTouchEnd);
+    el.removeEventListener('touchcancel', onTouchEnd);
+    el.removeEventListener('scroll', onScroll);
+    window.removeEventListener('scroll', onWindowScroll);
+    if (programmaticTimer) clearTimeout(programmaticTimer);
+    clearCooldown();
+  };
+}
+
+// ── Master dispatcher: Mobile vs Desktop ───────────────────────
+function initAutoScrollStrip(el, opts) {
+  if (!el) return;
+  stopAutoScrollStrip(el);
+
+  if (window.innerWidth < 1024) {
+    initMobileAutoScroll(el, opts);
+  } else {
+    initDesktopAutoScroll(el, opts);
+  }
+}
+
+// Window resize handler: rebind active strips if crossing 1024px breakpoint
+(function initAutoScrollResizeWatcher() {
+  if (typeof window === 'undefined' || window._autoScrollResizeWatcherInit) return;
+  window._autoScrollResizeWatcherInit = true;
+  let lastMode = window.innerWidth < 1024 ? 'mobile' : 'desktop';
+  let resizeTimer = null;
+
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const currentMode = window.innerWidth < 1024 ? 'mobile' : 'desktop';
+      if (currentMode !== lastMode) {
+        lastMode = currentMode;
+        document.querySelectorAll('[data-auto-scroll-bound="1"]').forEach(strip => {
+          if (strip.id === 'testimonials-carousel') {
+            initAutoScrollStrip(strip, { itemSelector: '.testimonial-card', intervalMs: 3800 });
+          } else {
+            initAutoScrollStrip(strip, { itemSelector: '.fp-card', intervalMs: 2800, mobileIntervalMs: 4000 });
+          }
+        });
+      }
+    }, 200);
+  }, { passive: true });
+})();
 
 // ── Testimonials ──────────────────────────────────────────────
 function renderTestimonials() {

@@ -1143,6 +1143,13 @@ body.modal-is-open {
 @media (max-width: 1279px) {
   .top-cat-card { flex: 0 0 138px; min-width: 138px; }
 }
+@media (max-width: 1023px) {
+  body[data-page="home"] .fp-grid,
+  .testimonials-carousel {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+}
 @media (max-width: 767px) {
   body[data-page="home"] .fp-grid .fp-card,
   .fp-grid:not(.fp-grid--catalog) .fp-card {
