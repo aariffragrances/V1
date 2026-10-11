@@ -1,6 +1,7 @@
 /* TEAM */
-Developer & Designer: Saravanakumar
+Developer & Designer: Saravana Kumar
 Contact: saravananmsk1210@gmail.com
+Website: https://saravananova.netlify.app/
 Location: Tamil Nadu, India
 
 /* SITE */

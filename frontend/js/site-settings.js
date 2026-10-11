@@ -49,7 +49,7 @@ function applySiteSettings(s) {
 
   // 4. Contact Email
   if (s.contact_email) {
-    document.querySelectorAll('.site-contact-email, a[href^="mailto:"]').forEach(el => {
+    document.querySelectorAll('.site-contact-email, a[href^="mailto:"]:not(.developer-credit)').forEach(el => {
       el.textContent = s.contact_email;
       if (el.tagName === 'A' || el.hasAttribute('href')) el.href = 'mailto:' + s.contact_email;
     });

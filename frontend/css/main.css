@@ -1151,12 +1151,15 @@ body.modal-is-open {
   }
 }
 @media (max-width: 767px) {
+  .fp-grid:not(.fp-grid--catalog) {
+    gap: 12px;
+  }
   body[data-page="home"] .fp-grid .fp-card,
   .fp-grid:not(.fp-grid--catalog) .fp-card {
-    flex: 0 0 calc(50vw - 28px);
-    min-width: calc(50vw - 28px);
-    width: calc(50vw - 28px);
-    max-width: none;
+    flex: 0 0 calc((100% - 14px) / 2);
+    min-width: calc((100% - 14px) / 2);
+    width: calc((100% - 14px) / 2);
+    max-width: calc((100% - 14px) / 2);
   }
 }
 @media (max-width: 479px) {

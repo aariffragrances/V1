@@ -1066,7 +1066,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484741/aarif-fragrances/products/jaguar-black.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484741/aarif-fragrances/products/jaguar-black.png"
     },
     {
       "perfumeId": "PF035",
@@ -1091,7 +1092,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": true,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484740/aarif-fragrances/products/magnet.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484740/aarif-fragrances/products/magnet.png"
     },
     {
       "perfumeId": "PF031",
@@ -1116,7 +1118,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484739/aarif-fragrances/products/sandal.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484739/aarif-fragrances/products/sandal.png"
     },
     {
       "perfumeId": "PF038",
@@ -1217,7 +1220,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484737/aarif-fragrances/products/khamrah.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484737/aarif-fragrances/products/khamrah.png"
     },
     {
       "perfumeId": "PF037",
@@ -1242,7 +1246,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484733/aarif-fragrances/products/vanilla.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484733/aarif-fragrances/products/vanilla.png"
     },
     {
       "perfumeId": "PF050",
@@ -1267,7 +1272,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484732/aarif-fragrances/products/jannat-firdaus.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484732/aarif-fragrances/products/jannat-firdaus.png"
     },
     {
       "perfumeId": "PF051",
@@ -1292,7 +1298,8 @@
       "isFeatured": false,
       "isBestSeller": false,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484728/aarif-fragrances/products/majmua.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484728/aarif-fragrances/products/majmua.png"
     },
     {
       "perfumeId": "PF052",
@@ -1317,7 +1324,8 @@
       "isFeatured": true,
       "isBestSeller": true,
       "isNewArrival": false,
-      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1790276409/aarif-fragrances/products/bottle-blue.png"
+      "primaryImageUrl": "https://res.cloudinary.com/h7kuxzes/image/upload/f_auto,q_auto,w_400/v1791484735/aarif-fragrances/products/musk-rijali.png",
+      "primary_image_url": "https://res.cloudinary.com/h7kuxzes/image/upload/v1791484735/aarif-fragrances/products/musk-rijali.png"
     }
   ],
   "promotionBanners": [
