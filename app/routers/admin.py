@@ -6,7 +6,7 @@ from pathlib import Path
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
-from sqlalchemy import select, text
+from sqlalchemy import or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -427,6 +427,7 @@ async def create_perfume(body: dict, user: User = Depends(require_admin), db: As
     admin_cache_clear("perfume")
     admin_cache_clear("stats")
     admin_cache_clear("low_stock")
+    admin_cache_clear("spotlight")
     invalidate_catalog_cache()
     return {"ok": True, "perfume_id": pid}
 
@@ -459,6 +460,7 @@ async def update_perfume(perfume_id: str, body: dict, user: User = Depends(requi
     admin_cache_clear("perfume")
     admin_cache_clear("stats")
     admin_cache_clear("low_stock")
+    admin_cache_clear("spotlight")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -536,6 +538,7 @@ async def delete_perfume(perfume_id: str, user: User = Depends(require_admin), d
     admin_cache_clear("perfume")
     admin_cache_clear("stats")
     admin_cache_clear("low_stock")
+    admin_cache_clear("spotlight")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -806,6 +809,7 @@ async def create_testimonial(body: dict, user: User = Depends(require_admin), db
     db.add(t)
     await db.flush()
     admin_cache_invalidate("testimonials")
+    admin_cache_clear("spotlight")
     invalidate_catalog_cache()
     return {"ok": True, "id": t.id}
 
@@ -820,6 +824,7 @@ async def update_testimonial(tid: int, body: dict, user: User = Depends(require_
         if k in body:
             setattr(t, k, body[k])
     admin_cache_invalidate("testimonials")
+    admin_cache_clear("spotlight")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -832,6 +837,7 @@ async def delete_testimonial(tid: int, user: User = Depends(require_admin), db: 
         raise HTTPException(status_code=404, detail="Testimonial not found")
     await db.delete(t)
     admin_cache_invalidate("testimonials")
+    admin_cache_clear("spotlight")
     invalidate_catalog_cache()
     return {"ok": True}
 
@@ -873,13 +879,24 @@ async def save_site_settings(body: dict, user: User = Depends(require_admin), db
 
 @router.get("/spotlight")
 async def get_admin_spotlight(user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    cached = admin_cache_get("spotlight")
+    if cached is not None:
+        return cached
+
     result = await db.execute(
         select(Perfume)
         .options(selectinload(Perfume.images), selectinload(Perfume.fragrance_type))
-        .where(Perfume.is_active == True)
+        .where(
+            (Perfume.is_active == True) &
+            or_(
+                Perfume.is_featured == True,
+                Perfume.is_best_seller == True,
+                Perfume.is_new_arrival == True,
+            )
+        )
         .order_by(Perfume.perfume_name)
     )
-    all_perfumes = result.scalars().all()
+    spotlight_perfumes = result.scalars().all()
 
     sections = {
         "featured": [],
@@ -887,7 +904,7 @@ async def get_admin_spotlight(user: User = Depends(require_admin), db: AsyncSess
         "newArrivals": [],
     }
 
-    for p in all_perfumes:
+    for p in spotlight_perfumes:
         img_url = p.images[0].image_url if p.images else ""
         item = {
             "productId": p.perfume_id,
@@ -932,7 +949,40 @@ async def get_admin_spotlight(user: User = Depends(require_admin), db: AsyncSess
         "testimonials": len(testimonials),
     }
 
-    return {"counts": counts, "sections": sections, "testimonials": testimonials}
+    payload = {"counts": counts, "sections": sections, "testimonials": testimonials}
+    admin_cache_set("spotlight", payload)
+    return payload
+
+
+@router.post("/spotlight/batch")
+async def batch_update_spotlight(
+    body: dict,
+    user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    perfume_ids = body.get("perfume_ids") or []
+    flag = body.get("flag")
+    value = bool(body.get("value", True))
+
+    if flag not in ("is_featured", "is_best_seller", "is_new_arrival"):
+        raise HTTPException(status_code=400, detail="Invalid spotlight flag")
+
+    if not perfume_ids or not isinstance(perfume_ids, list):
+        return {"ok": True, "count": 0}
+
+    await db.execute(
+        update(Perfume)
+        .where(Perfume.perfume_id.in_(perfume_ids))
+        .values({flag: value})
+    )
+    await db.commit()
+
+    admin_cache_clear("spotlight")
+    admin_cache_clear("perfume")
+    admin_cache_clear("stats")
+    invalidate_catalog_cache()
+
+    return {"ok": True, "count": len(perfume_ids)}
 
 
 # ── Coupons ────────────────────────────────────────────────────────────────────

@@ -250,6 +250,12 @@ const AdminAPI = {
 
   // Spotlight
   spotlight()    { return this.request('/api/v1/admin/spotlight'); },
+  batchUpdateSpotlight(perfumeIds, flag, value = true) {
+    return this.request('/api/v1/admin/spotlight/batch', {
+      method: 'POST',
+      body: JSON.stringify({ perfume_ids: perfumeIds, flag, value })
+    });
+  },
 
   // Banners
   banners()      { return this.request('/api/v1/admin/banners'); },

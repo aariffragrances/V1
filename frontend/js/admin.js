@@ -139,6 +139,12 @@ function switchSection(section) {
     if (state.types && state.types.length > 0) renderTypesTable();
     loadTypes();
   } else if (section === 'spotlight') {
+    if (!state.spotlight) {
+      try {
+        const cachedRaw = sessionStorage.getItem('aarif_adm_spotlight_cache');
+        if (cachedRaw) state.spotlight = JSON.parse(cachedRaw);
+      } catch (_) {}
+    }
     if (state.spotlight) paintSpotlightGrid(state.spotlight);
     loadSpotlight();
   } else if (section === 'banners') {
@@ -974,11 +980,14 @@ const SPOTLIGHT_PRODUCT_SECTIONS = [
 
 let activeSpotlightPickerSection = null;
 let activeSpotlightPickerFlag = null;
+let selectedSpotlightPids = new Set();
+let currentSpotlightAvailable = [];
 
-function renderSpotlightProductList(items) {
+function renderSpotlightProductList(items, section) {
   if (!items || !items.length) {
     return '<p class="spotlight-cell-empty">No perfumes in this section yet</p>';
   }
+  const sectionTitle = section?.title || 'section';
   return `
     <div class="adm-table-wrap spotlight-table-wrap">
       <table class="adm-table">
@@ -986,7 +995,7 @@ function renderSpotlightProductList(items) {
           <tr>
             <th class="no-sort spotlight-col-thumb">Image</th>
             <th class="no-sort">Perfume</th>
-            <th class="no-sort" style="text-align:right">Actions</th>
+            <th class="no-sort spotlight-col-action" style="text-align:right" title="Delete from section"><i class="fa-solid fa-trash-can" style="opacity:0.75;font-size:12px;"></i></th>
           </tr>
         </thead>
         <tbody>
@@ -1000,15 +1009,14 @@ function renderSpotlightProductList(items) {
                 <td class="spotlight-col-thumb">
                   <img class="thumb" src="${esc(img)}" alt="" style="width:36px;height:36px;border-radius:6px;object-fit:cover;background:#eee;">
                 </td>
-                <td>
-                  <strong>${esc(pname)}</strong><br>
+                <td class="spotlight-col-info" data-spotlight-edit="${esc(pid)}" title="Click to view/edit ${esc(pname)}" style="cursor:pointer">
+                  <strong>${esc(pname)}</strong>
                   <small style="color:var(--adm-muted)">${esc(cat || pid)}</small>
                 </td>
-                <td>
-                  <div class="adm-table-actions" style="justify-content:flex-end">
-                    <button type="button" data-spotlight-edit="${esc(pid)}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-                    <button type="button" class="del" data-spotlight-remove="${esc(pid)}" title="Remove"><i class="fa-solid fa-trash"></i></button>
-                  </div>
+                <td class="spotlight-col-action">
+                  <button type="button" class="del spotlight-del-btn" data-spotlight-remove="${esc(pid)}" data-spotlight-name="${esc(pname)}" title="Delete from ${esc(sectionTitle)}" aria-label="Delete from ${esc(sectionTitle)}">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
                 </td>
               </tr>`;
           }).join('')}
@@ -1028,7 +1036,7 @@ function renderSpotlightTestimonialList(items) {
           <tr>
             <th class="no-sort spotlight-col-thumb">Avatar</th>
             <th class="no-sort">Customer</th>
-            <th class="no-sort" style="text-align:right">Actions</th>
+            <th class="no-sort spotlight-col-action" style="text-align:right" title="Delete from spotlight"><i class="fa-solid fa-trash-can" style="opacity:0.75;font-size:12px;"></i></th>
           </tr>
         </thead>
         <tbody>
@@ -1043,15 +1051,14 @@ function renderSpotlightTestimonialList(items) {
                 <td class="spotlight-col-thumb">
                   <span class="badge badge--green spotlight-avatar">${esc(initial)}</span>
                 </td>
-                <td>
-                  <strong>${esc(name)}</strong> <span style="color:#f59e0b">${'★'.repeat(rating)}</span><br>
+                <td class="spotlight-col-info" data-spotlight-testimonial-edit="${t.id}" title="Click to edit testimonial" style="cursor:pointer">
+                  <strong>${esc(name)}</strong> <span style="color:#f59e0b">${'★'.repeat(rating)}</span>
                   <small style="color:var(--adm-muted)">${esc(shortQuote || '—')}</small>
                 </td>
-                <td>
-                  <div class="adm-table-actions" style="justify-content:flex-end">
-                    <button type="button" data-spotlight-testimonial-edit="${t.id}" title="Edit"><i class="fa-solid fa-pencil"></i></button>
-                    <button type="button" class="del" data-spotlight-testimonial-unfeature="${t.id}" title="Remove"><i class="fa-solid fa-trash"></i></button>
-                  </div>
+                <td class="spotlight-col-action">
+                  <button type="button" class="del spotlight-del-btn" data-spotlight-testimonial-unfeature="${t.id}" title="Remove testimonial from spotlight" aria-label="Remove testimonial from spotlight">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
                 </td>
               </tr>`;
           }).join('')}
@@ -1081,7 +1088,7 @@ function paintSpotlightGrid(data) {
         <span class="spotlight-cell-count">${counts[section.key] ?? 0}</span>
       </div>
       <div class="spotlight-cell-list">
-        ${renderSpotlightProductList(data.sections?.[section.key])}
+        ${renderSpotlightProductList(data.sections?.[section.key], section)}
       </div>
       <div style="padding:12px 18px;border-top:1px solid var(--adm-border)">
         <button type="button" class="adm-btn adm-btn--outline adm-btn--sm" data-spotlight-add="${section.key}" data-spotlight-flag="${section.flag}">
@@ -1129,16 +1136,20 @@ function paintSpotlightGrid(data) {
   });
 
   grid.querySelectorAll('[data-spotlight-remove]').forEach((btn) => {
-    btn.onclick = async () => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
       const pid = btn.dataset.spotlightRemove;
       const cell = btn.closest('[data-spotlight-section]');
       const sectionKey = cell?.dataset.spotlightSection;
       const section = SPOTLIGHT_PRODUCT_SECTIONS.find(s => s.key === sectionKey);
       if (!section) return;
 
+      const pname = btn.dataset.spotlightName || 'this perfume';
       try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         await AdminAPI.updatePerfume(pid, { [section.flag]: false });
-        toast('Removed from ' + section.title);
+        toast(`Removed "${pname}" from ${section.title}`);
         if (state.allPerfumes) {
           const item = state.allPerfumes.find(x => (x.perfumeId || x.perfume_id) === pid);
           if (item) {
@@ -1147,9 +1158,12 @@ function paintSpotlightGrid(data) {
             if (section.flag === 'is_new_arrival') { item.isNewArrival = false; item.is_new_arrival = false; }
           }
         }
+        try { sessionStorage.removeItem('aarif_adm_spotlight_cache'); } catch (_) {}
         await loadSpotlight();
         loadDashboard();
       } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
         toast(err.message || 'Failed to remove', true);
       }
     };
@@ -1171,14 +1185,20 @@ function paintSpotlightGrid(data) {
   });
 
   grid.querySelectorAll('[data-spotlight-testimonial-unfeature]').forEach((btn) => {
-    btn.onclick = async () => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
       const tid = btn.dataset.spotlightTestimonialUnfeature;
       try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         await AdminAPI.updateTestimonial(tid, { is_featured: false });
         toast('Removed from spotlight');
+        try { sessionStorage.removeItem('aarif_adm_spotlight_cache'); } catch (_) {}
         await loadSpotlight();
         loadTestimonials();
       } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
         toast(err.message || 'Failed to update', true);
       }
     };
@@ -1195,15 +1215,38 @@ function paintSpotlightGrid(data) {
 async function loadSpotlight() {
   const grid = document.getElementById('spotlight-grid');
   if (!grid) return;
+
+  // 1. Instant hydration from state or sessionStorage if grid is not yet painted
   if (!grid.querySelector('.spotlight-cell')) {
-    grid.innerHTML = '<div class="adm-card" style="grid-column: 1 / -1; padding:32px; text-align:center; color:var(--adm-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin:12px 0 0">Loading spotlight sections…</p></div>';
+    if (!state.spotlight) {
+      try {
+        const cachedRaw = sessionStorage.getItem('aarif_adm_spotlight_cache');
+        if (cachedRaw) {
+          state.spotlight = JSON.parse(cachedRaw);
+        }
+      } catch (_) {}
+    }
+
+    if (state.spotlight) {
+      paintSpotlightGrid(state.spotlight);
+    } else {
+      grid.innerHTML = '<div class="adm-card" style="grid-column: 1 / -1; padding:32px; text-align:center; color:var(--adm-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin:12px 0 0">Loading spotlight sections…</p></div>';
+    }
   }
 
+  // 2. Fetch fresh data from optimized backend (SQL-filtered & cached)
   try {
     const data = await AdminAPI.spotlight();
     state.spotlight = data;
+    try {
+      sessionStorage.setItem('aarif_adm_spotlight_cache', JSON.stringify(data));
+    } catch (_) {}
     paintSpotlightGrid(data);
   } catch (e) {
+    if (state.spotlight && grid.querySelector('.spotlight-cell')) {
+      console.warn('Could not refresh spotlight in background:', e);
+      return;
+    }
     if (state.allPerfumes && state.allPerfumes.length > 0) {
       const feat = state.allPerfumes.filter(p => p.isFeatured || p.is_featured);
       const best = state.allPerfumes.filter(p => p.isBestSeller || p.is_best_seller);
@@ -1253,19 +1296,31 @@ async function loadSpotlight() {
 async function openSpotlightProductPicker(sectionKey, flagField) {
   activeSpotlightPickerSection = sectionKey;
   activeSpotlightPickerFlag = flagField;
+  selectedSpotlightPids.clear();
 
   const sectionMeta = SPOTLIGHT_PRODUCT_SECTIONS.find(s => s.key === sectionKey);
+  const sectionTitle = sectionMeta?.title || 'Spotlight';
+
   const titleEl = document.getElementById('spotlight-picker-modal-title');
   if (titleEl) {
-    titleEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--adm-green)"></i> <span>Add to ${esc(sectionMeta?.title || 'Spotlight')}</span>`;
+    titleEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--adm-green)"></i> <span>Add to ${esc(sectionTitle)}</span>`;
+  }
+
+  const subEl = document.getElementById('spotlight-picker-modal-sub');
+  if (subEl) {
+    subEl.textContent = `Select one or more products to add to ${sectionTitle}`;
   }
 
   const searchInput = document.getElementById('spotlight-picker-search');
+  const clearSearchBtn = document.getElementById('spotlight-picker-search-clear');
   if (searchInput) searchInput.value = '';
+  if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+
+  updateSpotlightPickerSelectionUI([]);
 
   const listEl = document.getElementById('spotlight-picker-list');
   if (listEl) {
-    listEl.innerHTML = '<p class="spotlight-cell-empty" style="padding:16px"><i class="fa-solid fa-spinner fa-spin"></i> Loading perfumes...</p>';
+    listEl.innerHTML = '<p class="spotlight-cell-empty" style="padding:24px"><i class="fa-solid fa-spinner fa-spin"></i> Loading perfumes...</p>';
   }
 
   openModal('spotlight-picker-modal-overlay');
@@ -1282,9 +1337,95 @@ async function openSpotlightProductPicker(sectionKey, flagField) {
   if (searchInput) {
     searchInput.focus();
     searchInput.oninput = () => {
-      renderSpotlightPickerItems(searchInput.value.trim().toLowerCase());
+      const q = searchInput.value.trim().toLowerCase();
+      if (clearSearchBtn) clearSearchBtn.style.display = q ? 'block' : 'none';
+      renderSpotlightPickerItems(q);
     };
   }
+
+  if (clearSearchBtn && searchInput) {
+    clearSearchBtn.onclick = () => {
+      searchInput.value = '';
+      clearSearchBtn.style.display = 'none';
+      searchInput.focus();
+      renderSpotlightPickerItems('');
+    };
+  }
+
+  const selectAllBtn = document.getElementById('spotlight-picker-select-all');
+  if (selectAllBtn) {
+    selectAllBtn.onclick = () => {
+      currentSpotlightAvailable.forEach(p => {
+        const pid = p.perfumeId || p.perfume_id;
+        if (pid) selectedSpotlightPids.add(pid);
+      });
+      refreshSpotlightPickerItemElements();
+      updateSpotlightPickerSelectionUI(currentSpotlightAvailable);
+    };
+  }
+
+  const clearAllBtn = document.getElementById('spotlight-picker-clear-all');
+  if (clearAllBtn) {
+    clearAllBtn.onclick = () => {
+      selectedSpotlightPids.clear();
+      refreshSpotlightPickerItemElements();
+      updateSpotlightPickerSelectionUI(currentSpotlightAvailable);
+    };
+  }
+
+  const submitBtn = document.getElementById('spotlight-picker-submit-btn');
+  if (submitBtn) {
+    submitBtn.onclick = async () => {
+      if (selectedSpotlightPids.size === 0) return;
+      const pids = Array.from(selectedSpotlightPids);
+      await batchAddSpotlightPerfumes(pids, activeSpotlightPickerSection, activeSpotlightPickerFlag);
+    };
+  }
+}
+
+function updateSpotlightPickerSelectionUI(availableItems = currentSpotlightAvailable) {
+  const count = selectedSpotlightPids.size;
+  const countEl = document.getElementById('spotlight-picker-count');
+  if (countEl) countEl.textContent = String(count);
+
+  const availEl = document.getElementById('spotlight-picker-avail-count');
+  if (availEl) {
+    availEl.textContent = availableItems ? `(${availableItems.length} available)` : '';
+  }
+
+  const clearAllBtn = document.getElementById('spotlight-picker-clear-all');
+  if (clearAllBtn) {
+    clearAllBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+
+  const submitBtn = document.getElementById('spotlight-picker-submit-btn');
+  const submitText = document.getElementById('spotlight-picker-submit-text');
+  const statusHint = document.getElementById('spotlight-picker-status-hint');
+
+  if (submitBtn) {
+    submitBtn.disabled = count === 0;
+  }
+  if (submitText) {
+    submitText.textContent = count > 0 ? `Add Selected (${count})` : 'Add Selected';
+  }
+  if (statusHint) {
+    statusHint.textContent = count > 0
+      ? `${count} perfume${count > 1 ? 's' : ''} ready to add`
+      : 'Click perfumes to select multiple';
+  }
+}
+
+function refreshSpotlightPickerItemElements() {
+  const listEl = document.getElementById('spotlight-picker-list');
+  if (!listEl) return;
+  listEl.querySelectorAll('.spotlight-picker-item').forEach(el => {
+    const pid = el.dataset.pickPid;
+    const isSelected = selectedSpotlightPids.has(pid);
+    el.classList.toggle('is-selected', isSelected);
+    el.setAttribute('aria-checked', String(isSelected));
+    const chk = el.querySelector('.spotlight-picker-checkbox');
+    if (chk) chk.checked = isSelected;
+  });
 }
 
 function renderSpotlightPickerItems(searchQuery) {
@@ -1301,51 +1442,116 @@ function renderSpotlightPickerItems(searchQuery) {
   });
 
   if (searchQuery) {
+    const q = searchQuery.toLowerCase().trim();
     available = available.filter(p => {
       const name = (p.perfumeName || p.name || '').toLowerCase();
       const pid = (p.perfumeId || p.perfume_id || '').toLowerCase();
-      return name.includes(searchQuery) || pid.includes(searchQuery);
+      const cat = (p.categoryName || p.fragranceTypeName || '').toLowerCase();
+      return name.includes(q) || pid.includes(q) || cat.includes(q);
     });
   }
 
+  currentSpotlightAvailable = available;
+  updateSpotlightPickerSelectionUI(available);
+
   if (!available.length) {
-    listEl.innerHTML = `<p class="spotlight-cell-empty" style="padding:16px">${searchQuery ? 'No matching perfumes found' : 'All perfumes are already in this section'}</p>`;
+    listEl.innerHTML = `
+      <div class="spotlight-picker-empty">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <p style="margin:0; font-size:0.875rem;">${searchQuery ? 'No matching perfumes found' : 'All perfumes are already in this section'}</p>
+      </div>`;
     return;
   }
 
   listEl.innerHTML = available.map(p => {
     const pid = p.perfumeId || p.perfume_id;
     const pname = p.perfumeName || p.name;
+    const cat = p.categoryName || p.fragranceTypeName || '';
     const img = p.primaryImageUrl || p.primary_image_url || 'https://res.cloudinary.com/h7kuxzes/image/upload/v1790527578/aarif-fragrances/products/bottle-blue.png';
+    const isSelected = selectedSpotlightPids.has(pid);
     return `
-      <button type="button" class="spotlight-picker-item" data-pick-perfume="${esc(pid)}">
-        <img src="${esc(img)}" alt="">
-        <span><strong>${esc(pname)}</strong> <small style="color:var(--adm-muted);margin-left:6px;">(${esc(pid)})</small></span>
-      </button>`;
+      <div class="spotlight-picker-item ${isSelected ? 'is-selected' : ''}" data-pick-pid="${esc(pid)}" role="checkbox" aria-checked="${isSelected}">
+        <div class="spotlight-picker-checkbox-col">
+          <input type="checkbox" class="spotlight-picker-checkbox" ${isSelected ? 'checked' : ''} aria-label="Select ${esc(pname)}">
+        </div>
+        <img src="${esc(img)}" alt="" class="spotlight-picker-thumb">
+        <div class="spotlight-picker-meta">
+          <div class="spotlight-picker-name">${esc(pname)}</div>
+          <div class="spotlight-picker-tags">
+            <span class="spotlight-picker-id-badge">${esc(pid)}</span>
+            ${cat ? `<span class="spotlight-picker-cat-badge">${esc(cat)}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
   }).join('');
 
-  listEl.querySelectorAll('[data-pick-perfume]').forEach(btn => {
-    btn.onclick = async () => {
-      const pid = btn.dataset.pickPerfume;
-      try {
-        await AdminAPI.updatePerfume(pid, { [activeSpotlightPickerFlag]: true });
-        closeModal('spotlight-picker-modal-overlay');
-        toast('Added to spotlight');
-        if (state.allPerfumes) {
-          const item = state.allPerfumes.find(x => (x.perfumeId || x.perfume_id) === pid);
-          if (item) {
-            if (activeSpotlightPickerFlag === 'is_featured') { item.isFeatured = true; item.is_featured = true; }
-            if (activeSpotlightPickerFlag === 'is_best_seller') { item.isBestSeller = true; item.is_best_seller = true; }
-            if (activeSpotlightPickerFlag === 'is_new_arrival') { item.isNewArrival = true; item.is_new_arrival = true; }
-          }
-        }
-        await loadSpotlight();
-        loadDashboard();
-      } catch (err) {
-        toast(err.message || 'Failed to add', true);
+  listEl.querySelectorAll('.spotlight-picker-item').forEach(itemEl => {
+    itemEl.onclick = () => {
+      const pid = itemEl.dataset.pickPid;
+      if (!pid) return;
+      if (selectedSpotlightPids.has(pid)) {
+        selectedSpotlightPids.delete(pid);
+      } else {
+        selectedSpotlightPids.add(pid);
       }
+      const isSelected = selectedSpotlightPids.has(pid);
+      itemEl.classList.toggle('is-selected', isSelected);
+      itemEl.setAttribute('aria-checked', String(isSelected));
+      const chk = itemEl.querySelector('.spotlight-picker-checkbox');
+      if (chk) chk.checked = isSelected;
+      updateSpotlightPickerSelectionUI(currentSpotlightAvailable);
     };
   });
+}
+
+async function batchAddSpotlightPerfumes(pids, sectionKey, flagField) {
+  const sectionMeta = SPOTLIGHT_PRODUCT_SECTIONS.find(s => s.key === sectionKey);
+  const sectionTitle = sectionMeta?.title || 'Spotlight';
+  const submitBtn = document.getElementById('spotlight-picker-submit-btn');
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Adding ${pids.length} perfumes...`;
+  }
+
+  try {
+    // 1. Try batch update endpoint first
+    try {
+      await AdminAPI.batchUpdateSpotlight(pids, flagField, true);
+    } catch (batchErr) {
+      console.warn('Batch endpoint failed, falling back to parallel updates:', batchErr);
+      await Promise.all(pids.map(pid => AdminAPI.updatePerfume(pid, { [flagField]: true })));
+    }
+
+    // 2. Update local state
+    if (state.allPerfumes) {
+      const pidSet = new Set(pids);
+      state.allPerfumes.forEach(p => {
+        const pid = p.perfumeId || p.perfume_id;
+        if (pidSet.has(pid)) {
+          p[flagField] = true;
+          if (flagField === 'is_featured') { p.isFeatured = true; p.is_featured = true; }
+          if (flagField === 'is_best_seller') { p.isBestSeller = true; p.is_best_seller = true; }
+          if (flagField === 'is_new_arrival') { p.isNewArrival = true; p.is_new_arrival = true; }
+        }
+      });
+    }
+
+    // Invalidate session cache
+    try { sessionStorage.removeItem('aarif_adm_spotlight_cache'); } catch (_) {}
+
+    closeModal('spotlight-picker-modal-overlay');
+    toast(`Added ${pids.length} perfume${pids.length > 1 ? 's' : ''} to ${sectionTitle}`);
+
+    await loadSpotlight();
+    loadDashboard();
+  } catch (err) {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i class="fa-solid fa-plus"></i> Add Selected (${pids.length})`;
+    }
+    toast(err.message || 'Failed to add perfumes', true);
+  }
 }
 
 /* ── Banners ────────────────────────────────────────────── */
