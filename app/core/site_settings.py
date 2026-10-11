@@ -44,8 +44,8 @@ DEFAULT_SITE_SETTINGS: dict[str, str] = {
     # Containers (Section titles and subtitles)
     "container_featured_title": "Featured Perfumes",
     "container_featured_subtitle": "Our handpicked selection of finest fragrances",
-    "container_bestsellers_title": "Best Sellers",
-    "container_bestsellers_subtitle": "The most loved fragrances by our customers",
+    "container_bestsellers_title": "New Arrivals",
+    "container_bestsellers_subtitle": "Discover the latest fragrances, freshly added to our collection",
     # How to order section
     "order_section_title": "How to Order",
     "order_section_subtitle": "From scent to doorstep — simple, personal, and made for Aarif Fragrances",

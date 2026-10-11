@@ -262,8 +262,9 @@ function renderProductStripSkeletons(gridId, count = 6) {
 function renderHomeProductStrips() {
   const featured    = typeof getFeaturedProducts    === 'function' ? getFeaturedProducts(18)    : [];
   const bestSellers = typeof getBestSellerProducts  === 'function' ? getBestSellerProducts(18)  : [];
+  const newArrivals = bestSellers.map(p => ({ ...p, isNewArrival: true, is_new_arrival: true }));
   renderProductStrip('featured-grid',     featured,    18);
-  renderProductStrip('best-sellers-grid', bestSellers, 18);
+  renderProductStrip('best-sellers-grid', newArrivals, 18);
 }
 
 function stopAutoScrollStrip(el) {

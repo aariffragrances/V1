@@ -47,7 +47,7 @@ function normaliseApiPerfume(p) {
     isCarHanger:       !!(p.isCarHanger ?? p.isCarHangover),
     isFeatured:        !!(p.isFeatured ?? p.is_featured),
     isBestSeller:      !!(p.isBestSeller ?? p.is_best_seller),
-    isNewArrival:      !!(p.isNewArrival ?? p.is_new_arrival ?? p.isNew),
+    isNewArrival:      Boolean(p.isNewArrival || p.is_new_arrival || p.isNew || p.isBestSeller || p.is_best_seller),
     primaryImageUrl:   p.primaryImageUrl || '',
     // helpers used by product-card.js
     productName:       p.perfumeName,   // alias so shared card code works

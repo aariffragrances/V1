@@ -974,8 +974,8 @@ function exportSheetToCsv() {
 /* ── Spotlight ──────────────────────────────────────────── */
 const SPOTLIGHT_PRODUCT_SECTIONS = [
   { key: 'featured', flag: 'is_featured', title: 'Featured Perfumes', subtitle: 'Homepage featured strip', icon: 'fa-star' },
-  { key: 'bestSellers', flag: 'is_best_seller', title: 'Best Sellers', subtitle: 'Most loved fragrances', icon: 'fa-ranking-star' },
-  { key: 'newArrivals', flag: 'is_new_arrival', title: 'New Arrivals', subtitle: 'Recently added fragrances', icon: 'fa-wand-magic-sparkles' },
+  { key: 'bestSellers', flag: 'is_best_seller', title: 'New Arrivals', subtitle: 'Discover the latest fragrances, freshly added to our collection', icon: 'fa-wand-magic-sparkles' },
+  { key: 'newArrivals', flag: 'is_new_arrival', title: 'New Arrival Badges', subtitle: 'Catalog "NEW ARRIVAL" badge tag', icon: 'fa-tag' },
 ];
 
 let activeSpotlightPickerSection = null;
@@ -1531,7 +1531,10 @@ async function batchAddSpotlightPerfumes(pids, sectionKey, flagField) {
         if (pidSet.has(pid)) {
           p[flagField] = true;
           if (flagField === 'is_featured') { p.isFeatured = true; p.is_featured = true; }
-          if (flagField === 'is_best_seller') { p.isBestSeller = true; p.is_best_seller = true; }
+          if (flagField === 'is_best_seller') {
+            p.isBestSeller = true; p.is_best_seller = true;
+            p.isNewArrival = true; p.is_new_arrival = true;
+          }
           if (flagField === 'is_new_arrival') { p.isNewArrival = true; p.is_new_arrival = true; }
         }
       });

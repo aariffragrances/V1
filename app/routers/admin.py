@@ -444,6 +444,8 @@ async def update_perfume(perfume_id: str, body: dict, user: User = Depends(requi
               "is_perfume", "is_car_hanger", "is_featured", "is_best_seller", "is_new_arrival", "is_active"):
         if k in body:
             setattr(p, k, body[k])
+    if body.get("is_best_seller") is True and "is_new_arrival" not in body:
+        p.is_new_arrival = True
     if "stock_quantity" in body:
         p.stock_quantity = _safe_int(body["stock_quantity"], 0)
     if "is_car_hangover" in body and "is_car_hanger" not in body:
@@ -883,6 +885,14 @@ async def get_admin_spotlight(user: User = Depends(require_admin), db: AsyncSess
     if cached is not None:
         return cached
 
+    # Ensure all products in the New Arrivals container have is_new_arrival enabled
+    await db.execute(
+        update(Perfume)
+        .where(Perfume.is_best_seller == True, Perfume.is_new_arrival == False)
+        .values(is_new_arrival=True)
+    )
+    await db.commit()
+
     result = await db.execute(
         select(Perfume)
         .options(selectinload(Perfume.images), selectinload(Perfume.fragrance_type))
@@ -970,10 +980,14 @@ async def batch_update_spotlight(
     if not perfume_ids or not isinstance(perfume_ids, list):
         return {"ok": True, "count": 0}
 
+    values_to_set = {flag: value}
+    if flag == "is_best_seller" and value is True:
+        values_to_set["is_new_arrival"] = True
+
     await db.execute(
         update(Perfume)
         .where(Perfume.perfume_id.in_(perfume_ids))
-        .values({flag: value})
+        .values(values_to_set)
     )
     await db.commit()
 
